@@ -1,0 +1,2675 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Fiches de prep</title>
+<link rel="icon" type="image/png" href="icon.png">
+<link rel="apple-touch-icon" href="icon.png">
+<meta name="theme-color" content="#15130f">
+<meta property="og:image" content="icon.png">
+<style>
+  :root{
+    --bg: #15130f;
+    --bg-elevated: #1c1912;
+    --bg-card: #221e17;
+    --bg-card-hover: #2a251c;
+    --border: #363026;
+    --border-soft: #292419;
+    --copper: #c17a44;
+    --copper-bright: #e5a066;
+    --verdigris: #6a978c;
+    --verdigris-bright: #8bb8ad;
+    --text: #f1e9dc;
+    --text-soft: #b3a692;
+    --text-faint: #6e6355;
+    --danger: #b3593f;
+    --radius-card: 3px;
+    --serif: Georgia, 'Iowan Old Style', 'Palatino Linotype', 'Book Antiqua', serif;
+    --sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, system-ui, sans-serif;
+  }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:var(--sans);
+    min-height:100vh;
+    -webkit-font-smoothing:antialiased;
+  }
+  body::before{
+    content:"";
+    position:fixed; inset:0;
+    background:
+      radial-gradient(ellipse 900px 500px at 15% -10%, rgba(193,122,68,0.07), transparent 60%),
+      radial-gradient(ellipse 700px 500px at 100% 10%, rgba(106,151,140,0.05), transparent 60%);
+    pointer-events:none;
+    z-index:0;
+  }
+
+  a{color:inherit;}
+  button{font-family:inherit;}
+
+  /* ---------- layout ---------- */
+  .app{
+    position:relative;
+    z-index:1;
+    display:grid;
+    grid-template-columns:300px 1fr;
+    min-height:100vh;
+    transition:grid-template-columns .22s ease;
+  }
+  .app.rail-collapsed{
+    grid-template-columns:0px 1fr;
+  }
+  .app.rail-collapsed .rail{
+    opacity:0;
+    border-right-color:transparent;
+  }
+
+  /* ---------- rail toggle (in-rail button + floating fab) ---------- */
+  .rail-toggle-btn svg{width:16px;height:16px;}
+  .rail-fab{
+    position:fixed;
+    top:18px; left:18px;
+    z-index:70;
+    width:40px; height:40px;
+    border-radius:50%;
+    border:1px solid var(--border);
+    background:var(--bg-card);
+    color:var(--text-soft);
+    display:none;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    box-shadow:0 2px 14px rgba(0,0,0,0.4);
+  }
+  .rail-fab:hover{border-color:var(--copper);}
+  .rail-fab svg{width:18px;height:18px;stroke:var(--text-soft);}
+  .rail-fab:hover svg{stroke:var(--copper-bright);}
+  .app.rail-collapsed .rail-fab{display:flex;}
+
+  .rail-foot{
+    padding:12px 16px 16px;
+    border-top:1px solid var(--border-soft);
+    flex-shrink:0;
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+  }
+  .cloud-save-btn{
+    border-color:var(--verdigris);
+    color:var(--verdigris-bright);
+  }
+  .cloud-save-btn:hover{border-color:var(--verdigris-bright);}
+  .cloud-save-btn:disabled{opacity:.6; cursor:default;}
+  .export-btn{
+    width:100%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    padding:10px 12px;
+    border-radius:8px;
+    border:1px solid var(--border);
+    background:var(--bg-card);
+    color:var(--text-soft);
+    font-size:12.5px;
+    font-family:inherit;
+    cursor:pointer;
+  }
+  .export-btn:hover{border-color:var(--copper); color:var(--copper-bright);}
+  .export-btn svg{width:15px;height:15px;stroke:currentColor; flex-shrink:0;}
+
+  .rail-backdrop{display:none;}
+  .rail.collapsed .rail-list{display:none;}
+
+  /* ---------- left rail ---------- */
+  .rail{
+    border-right:1px solid var(--border-soft);
+    background:var(--bg-elevated);
+    height:100vh;
+    position:sticky;
+    top:0;
+    display:flex;
+    flex-direction:column;
+    overflow:hidden;
+  }
+
+  @media (max-width: 860px){
+    .app{grid-template-columns:1fr;}
+    .app.rail-collapsed{grid-template-columns:1fr;}
+    .rail{
+      position:fixed;
+      top:0; left:0; bottom:0;
+      height:100vh;
+      width:86vw;
+      max-width:340px;
+      z-index:80;
+      border-right:1px solid var(--border-soft);
+      transform:translateX(-100%);
+      transition:transform .25s ease;
+      opacity:1;
+    }
+    .app.rail-mobile-open .rail{
+      transform:translateX(0);
+    }
+    .rail-backdrop{
+      display:block;
+      position:fixed; inset:0;
+      background:rgba(10,8,5,0.55);
+      opacity:0;
+      pointer-events:none;
+      z-index:75;
+      transition:opacity .22s ease;
+    }
+    .app.rail-mobile-open .rail-backdrop{
+      opacity:1;
+      pointer-events:auto;
+    }
+    .rail-fab{display:flex;}
+    .app.rail-mobile-open .rail-fab{display:none;}
+    .main{padding-top:66px;}
+    .welcome{padding-top:0;}
+  }
+
+  .rail-head{
+    padding:22px 20px 14px;
+    border-bottom:1px solid var(--border-soft);
+  }
+  .rail-title{
+    font-family:var(--serif);
+    font-size:21px;
+    letter-spacing:0.2px;
+    margin:0 0 2px;
+    color:var(--text);
+  }
+  .head-btn-row{
+    display:flex;
+    gap:8px;
+    margin-bottom:14px;
+  }
+  .home-btn{
+    flex:1;
+    height:38px;
+    border-radius:20px;
+    border:1px solid var(--border);
+    background:var(--bg-card);
+    color:var(--text-soft);
+    cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .home-btn svg{width:17px;height:17px;stroke:var(--text-soft);}
+  .home-btn:hover{border-color:var(--copper); }
+  .home-btn:hover svg{stroke:var(--copper-bright);}
+  .home-btn:disabled{opacity:.35; cursor:default;}
+  .home-btn:disabled:hover{border-color:var(--border);}
+  .home-btn:disabled:hover svg{stroke:var(--text-soft);}
+  .search{
+    margin:14px 20px 0;
+    position:relative;
+  }
+  .search input{
+    width:100%;
+    background:var(--bg-card);
+    border:1px solid var(--border);
+    color:var(--text);
+    padding:9px 12px;
+    border-radius:var(--radius-card);
+    font-size:13.5px;
+    outline:none;
+  }
+  .search input:focus{border-color:var(--copper);}
+  .search input::placeholder{color:var(--text-faint);}
+
+  .tabs{
+    display:flex;
+    margin:16px 20px 8px;
+    background:var(--bg-card);
+    border:1px solid var(--border);
+    border-radius:var(--radius-card);
+    padding:3px;
+  }
+  .tab{
+    flex:1;
+    text-align:center;
+    padding:7px 4px;
+    font-size:12.5px;
+    color:var(--text-soft);
+    border-radius:2px;
+    cursor:pointer;
+    border:none;
+    background:transparent;
+    transition:background .15s, color .15s;
+  }
+  .tab.active{
+    background:var(--copper);
+    color:#1a140c;
+    font-weight:600;
+  }
+
+  .rail-list{
+    overflow-y:auto;
+    padding:10px 12px 24px;
+    flex:1;
+  }
+  .rail-group-label{
+    font-size:11px;
+    color:var(--text-faint);
+    padding:14px 8px 6px;
+    letter-spacing:.3px;
+  }
+  .rail-group-label:first-child{padding-top:6px;}
+
+  .rail-item{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:9px 8px;
+    border-radius:var(--radius-card);
+    cursor:pointer;
+    border-left:2px solid transparent;
+    background:var(--bg-elevated);
+  }
+  .rail-item:hover{background:var(--bg-card-hover);}
+  .rail-item.active{
+    background:var(--bg-card);
+    border-left:2px solid var(--copper);
+  }
+  .swipe-wrapper{position:relative; overflow:hidden; border-radius:var(--radius-card);}
+  .swipe-content{
+    position:relative;
+    touch-action:pan-y;
+    user-select:none;
+    will-change:transform;
+    transition:transform .2s ease;
+  }
+  .swipe-delete{
+    position:absolute;
+    top:0; right:0; bottom:0;
+    width:88px;
+    background:var(--danger);
+    color:#fdece7;
+    display:flex; align-items:center; justify-content:center;
+    font-size:12px;
+    letter-spacing:.2px;
+    cursor:pointer;
+    transform:translateX(88px);
+    transition:transform .2s ease;
+  }
+  .rail-item .dot{
+    width:7px; height:7px; border-radius:50%;
+    flex-shrink:0;
+    background:var(--copper);
+  }
+  .rail-item.type-prep .dot{background:var(--verdigris);}
+  .rail-item.rail-add{border-left:2px dashed transparent;}
+  .rail-item.rail-add:hover{background:var(--bg-card-hover);}
+  .rail-item.rail-add .rail-item-name{color:var(--text-soft);}
+  .add-dot{
+    background:transparent !important;
+    border:1px solid var(--text-faint);
+    color:var(--text-faint);
+    width:14px !important; height:14px !important;
+    border-radius:50%;
+    font-size:11px;
+    display:flex; align-items:center; justify-content:center;
+    line-height:1;
+  }
+  .rail-item-text{min-width:0;}
+  .rail-item-name{
+    font-size:13.5px;
+    color:var(--text);
+    white-space:normal;
+    overflow-wrap:break-word;
+    line-height:1.3;
+  }
+  .rail-item-cat{
+    font-size:11px;
+    color:var(--text-faint);
+  }
+  .rail-empty{
+    color:var(--text-faint);
+    font-size:13px;
+    padding:20px 8px;
+  }
+
+  /* ---------- main ---------- */
+  .main{
+    padding:40px 48px 80px;
+    max-width:820px;
+    margin:0 auto;
+    width:100%;
+    box-sizing:border-box;
+    transition:max-width .22s ease;
+  }
+  .app.rail-collapsed .main{
+    max-width:1040px;
+  }
+  @media (max-width: 640px){
+    .main{padding:66px 18px 60px;}
+  }
+
+  .welcome{
+    max-width:560px;
+    padding-top:8vh;
+  }
+  .daily-prep-title{
+    font-family:var(--serif);
+    font-style:italic;
+    font-size:46px;
+    letter-spacing:2px;
+    text-transform:uppercase;
+    color:var(--text);
+    margin:0;
+    line-height:1.1;
+  }
+  .welcome .hint{
+    margin-top:22px;
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+    align-items:center;
+  }
+  .hint-chip{
+    border:1px solid var(--border);
+    color:var(--text-soft);
+    font-size:12.5px;
+    padding:7px 12px;
+    border-radius:20px;
+  }
+  .hint-chip-add{
+    background:transparent;
+    border:1px solid var(--copper);
+    color:var(--copper-bright);
+    cursor:pointer;
+    font-family:inherit;
+    font-weight:600;
+  }
+  .hint-chip-add:hover{background:var(--copper); color:#1a140c;}
+
+  .crumb{
+    font-size:12px;
+    color:var(--text-faint);
+    margin-bottom:10px;
+  }
+  .crumb .type-tag{color:var(--copper);}
+  .crumb.is-prep .type-tag{color:var(--verdigris-bright);}
+
+  .sheet-head{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-end;
+    gap:20px;
+    border-bottom:1px solid var(--border-soft);
+    padding-bottom:22px;
+    margin-bottom:28px;
+  }
+  .sheet-head-main{flex:1; min-width:0;}
+  .sheet-title{
+    font-family:var(--serif);
+    font-size:32px;
+    margin:0 0 8px;
+    line-height:1.15;
+  }
+  .sheet-title-input{
+    font-family:var(--serif);
+    font-size:32px;
+    line-height:1.15;
+    margin:0 0 8px;
+    background:transparent;
+    border:none;
+    border-bottom:1px dotted transparent;
+    color:var(--text);
+    padding:0 0 2px;
+    width:100%;
+  }
+  .sheet-title-input:not(:disabled){border-bottom-color:var(--border);}
+  .sheet-title-input:not(:disabled):hover{border-bottom-color:var(--copper);}
+  .sheet-title-input:focus{outline:none; border-bottom-color:var(--copper);}
+  .sheet-title-input:disabled{
+    cursor:default;
+    opacity:1;
+    color:var(--text);
+    -webkit-text-fill-color:var(--text);
+  }
+  .sheet-meta{
+    display:flex;
+    gap:16px;
+    flex-wrap:wrap;
+    font-size:13px;
+    color:var(--text-soft);
+  }
+  .sheet-meta span b{color:var(--text);font-weight:600;}
+  .sheet-meta-edit{display:inline-flex; align-items:center;}
+  .sheet-meta-input{
+    background:transparent;
+    border:none;
+    border-bottom:1px dotted var(--border);
+    color:var(--text);
+    font-weight:600;
+    font-family:inherit;
+    font-size:13px;
+    padding:1px 0 1px 4px;
+    width:110px;
+  }
+  .sheet-meta-input:focus{outline:none; border-bottom-color:var(--copper);}
+  .edit-sheet-btn{
+    background:transparent;
+    border:1px solid var(--border);
+    color:var(--text-soft);
+    padding:8px 14px;
+    border-radius:var(--radius-card);
+    font-size:12.5px;
+    cursor:pointer;
+    white-space:nowrap;
+  }
+  .edit-sheet-btn:hover{border-color:var(--copper);color:var(--copper-bright);}
+  .edit-sheet-btn.is-editing{border-color:var(--copper); color:var(--copper-bright); background:rgba(193,122,68,0.12);}
+
+  .section{margin-bottom:34px;}
+  .section-label{
+    font-size:12px;
+    text-transform:none;
+    color:var(--text-faint);
+    margin:0 0 12px;
+    padding-bottom:8px;
+    border-bottom:1px solid var(--border-soft);
+  }
+
+  /* scaler */
+  .scaler{
+    display:flex;
+    align-items:center;
+    gap:16px;
+    background:var(--bg-card);
+    border:1px solid var(--border);
+    padding:16px 20px;
+    border-radius:var(--radius-card);
+    margin-bottom:20px;
+    flex-wrap:wrap;
+  }
+  .scaler-label{font-size:13px;color:var(--text-soft);}
+  .scaler-controls{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    margin-left:auto;
+  }
+  .scaler-btn{
+    width:30px;height:30px;
+    border-radius:50%;
+    border:1px solid var(--border);
+    background:var(--bg-elevated);
+    color:var(--text);
+    font-size:16px;
+    cursor:pointer;
+    display:flex;align-items:center;justify-content:center;
+    line-height:1;
+  }
+  .scaler-btn:hover{border-color:var(--copper);color:var(--copper-bright);}
+  .scaler-value{
+    font-family:var(--serif);
+    font-size:22px;
+    min-width:86px;
+    text-align:center;
+    font-variant-numeric:tabular-nums;
+    display:flex;
+    align-items:baseline;
+    justify-content:center;
+    gap:6px;
+  }
+  .scaler-value input{
+    font-family:var(--serif);
+    font-size:22px;
+    width:84px;
+    text-align:right;
+    background:transparent;
+    border:none;
+    border-bottom:1px dotted var(--border);
+    color:var(--copper-bright);
+    font-variant-numeric:tabular-nums;
+    outline:none;
+    -moz-appearance:textfield;
+  }
+  .scaler-value input:focus{border-bottom-color:var(--copper);}
+  .scaler-value input::-webkit-outer-spin-button,
+  .scaler-value input::-webkit-inner-spin-button{
+    -webkit-appearance:none; margin:0;
+  }
+  .scaler-value .unit{font-size:14px;color:var(--text-soft);}
+  .scaler-presets{display:flex;gap:6px;}
+  .preset-btn{
+    border:1px solid var(--border);
+    background:transparent;
+    color:var(--text-soft);
+    font-size:12px;
+    padding:5px 10px;
+    border-radius:14px;
+    cursor:pointer;
+  }
+  .preset-btn:hover, .preset-btn.active{
+    border-color:var(--verdigris);
+    color:var(--verdigris-bright);
+  }
+
+  .ingredient-list{list-style:none;margin:0;padding:0;}
+  .ingredient-total{border-top:1px solid var(--border); margin-top:2px; padding-top:14px;}
+  .ingredient-total .ing-name{color:var(--text-soft);}
+  .ingredient-row{
+    display:flex;
+    justify-content:flex-start;
+    align-items:center;
+    padding:11px 2px;
+    border-bottom:1px solid var(--border-soft);
+    font-size:14.5px;
+    gap:12px;
+  }
+  .ingredient-row:last-child{border-bottom:none;}
+  .ingredient-list > li:last-child > .swipe-content.ingredient-row{border-bottom:none;}
+  .ing-name{color:var(--text); flex:1; min-width:0;}
+  .pb-toggle{
+    position:relative;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    width:28px; height:28px;
+    cursor:pointer;
+    flex-shrink:0;
+  }
+  .pb-toggle input{position:absolute; inset:0; opacity:0; margin:0; cursor:pointer;}
+  .pb-toggle input:disabled{cursor:default;}
+  .pb-toggle svg{width:19px; height:19px; stroke:var(--text-faint); pointer-events:none;}
+  .pb-toggle input:checked ~ svg{stroke:var(--verdigris-bright);}
+  .pb-static{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    width:28px; height:28px;
+    flex-shrink:0;
+  }
+  .pb-static svg{width:19px; height:19px; stroke:var(--text-faint);}
+  .pb-static.pb-active svg{stroke:var(--verdigris-bright);}
+  .ing-name .ing-note{color:var(--text-faint); font-size:12.5px;}
+  .ing-name.is-link{
+    color:var(--text);
+    cursor:pointer;
+    padding:2px 4px;
+    margin:-2px -4px;
+    border-radius:3px;
+    display:inline-block;
+    transition:color .12s ease;
+  }
+  .ing-name.is-link:hover{color:var(--verdigris-bright);}
+  .ing-name.is-link:active{color:var(--verdigris);}
+  .edit-ing-btn{
+    width:18px;height:18px;
+    border-radius:50%;
+    border:1px solid var(--border);
+    background:transparent;
+    color:var(--text-soft);
+    font-size:11px;
+    line-height:1;
+    cursor:pointer;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    padding:0;
+    margin-right:4px;
+    transform:translateY(-1px);
+  }
+  .edit-ing-btn:hover{border-color:var(--copper);color:var(--copper-bright);}
+  .add-prep-btn{
+    width:18px;height:18px;
+    border-radius:50%;
+    border:1px solid var(--verdigris);
+    background:transparent;
+    color:var(--verdigris-bright);
+    font-size:13px;
+    line-height:1;
+    cursor:pointer;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    padding:0;
+    margin-right:6px;
+    transform:translateY(-1px);
+  }
+  .add-prep-btn:hover{background:var(--verdigris);color:#101613;}
+  .pending-prep-name{
+    display:flex;
+    align-items:center;
+    gap:6px;
+  }
+  .pending-prep-badge{
+    flex-shrink:0;
+    width:18px;height:18px;
+    border-radius:50%;
+    border:1px solid var(--verdigris);
+    color:var(--verdigris-bright);
+    font-size:13px;
+    line-height:1;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+  }
+  .pending-prep-name input{flex:1; min-width:0;}
+
+  /* ---------- modal ---------- */
+  .modal-overlay{
+    position:fixed; inset:0;
+    background:rgba(10,9,6,0.65);
+    display:none;
+    align-items:flex-start;
+    justify-content:center;
+    padding:40px 16px;
+    overflow-y:auto;
+    z-index:50;
+  }
+  .modal-overlay.open{display:flex;}
+  .modal{
+    background:var(--bg-elevated);
+    border:1px solid var(--border);
+    border-radius:4px;
+    width:100%;
+    max-width:560px;
+    padding:26px 28px 28px;
+  }
+  .modal h2{
+    font-family:var(--serif);
+    font-size:21px;
+    margin:0 0 4px;
+  }
+  .modal .modal-sub{
+    font-size:12.5px;
+    color:var(--text-faint);
+    margin:0 0 20px;
+  }
+  .field{margin-bottom:16px;}
+  .field label{
+    display:block;
+    font-size:12px;
+    color:var(--text-soft);
+    margin-bottom:5px;
+  }
+  .field input[type=text], .field input[type=number], .field textarea, .field select{
+    width:100%;
+    background:var(--bg-card);
+    border:1px solid var(--border);
+    color:var(--text);
+    padding:8px 10px;
+    border-radius:var(--radius-card);
+    font-size:13.5px;
+    font-family:inherit;
+    outline:none;
+  }
+  .field input:focus, .field textarea:focus, .field select:focus{border-color:var(--copper);}
+  .field textarea{resize:vertical; min-height:44px;}
+  .row-2{display:grid; grid-template-columns:1fr 1fr; gap:12px;}
+  .row-3{display:grid; grid-template-columns:1fr 90px 80px; gap:8px; align-items:end;}
+  .row-4{display:grid; grid-template-columns:1fr 90px 1fr 90px; gap:8px; align-items:end;}
+  .row-ckt-ing{display:grid; grid-template-columns:100px 1fr 60px 60px 34px 18px; gap:8px; align-items:end; margin-bottom:10px;}
+  .subgroup{
+    border:1px solid var(--border-soft);
+    border-radius:var(--radius-card);
+    padding:14px 14px 6px;
+    margin-bottom:16px;
+  }
+  .subgroup-label{
+    font-size:12px;
+    color:var(--text-faint);
+    margin:0 0 12px;
+  }
+  .dyn-row{margin-bottom:10px; position:relative;}
+  .remove-row{
+    background:transparent;
+    border:none;
+    color:var(--text-faint);
+    cursor:pointer;
+    font-size:16px;
+    padding:0 4px;
+  }
+  .remove-row:hover{color:var(--danger);}
+  .add-row-btn{
+    background:transparent;
+    border:1px dashed var(--border);
+    color:var(--text-soft);
+    font-size:12.5px;
+    padding:7px 10px;
+    border-radius:var(--radius-card);
+    cursor:pointer;
+    width:100%;
+    margin-top:2px;
+  }
+  .add-row-btn:hover{border-color:var(--verdigris); color:var(--verdigris-bright);}
+  .add-ing-select{
+    appearance:none;
+    -webkit-appearance:none;
+    text-align:center;
+    font-family:inherit;
+  }
+  .add-ing-select:disabled{opacity:.5; cursor:default;}
+  .modal-actions{
+    display:flex;
+    justify-content:flex-end;
+    gap:10px;
+    margin-top:22px;
+  }
+  .today-selector-list{
+    max-height:50vh;
+    overflow-y:auto;
+    margin:6px 0 4px;
+    border-top:1px solid var(--border-soft);
+  }
+  .today-selector-row{
+    border-bottom:1px solid var(--border-soft);
+  }
+  .today-selector-row label{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:10px 2px;
+    cursor:pointer;
+  }
+  .today-selector-row input[type=checkbox]{
+    width:17px; height:17px; accent-color:var(--copper); flex-shrink:0;
+  }
+  .today-selector-name{flex:1; font-size:14px; color:var(--text);}
+  .today-selector-cat{font-size:11.5px; color:var(--text-faint);}
+  .today-selector-empty{padding:16px 2px; color:var(--text-faint); font-size:13px;}
+  @media (max-width: 640px){
+    .modal-overlay{padding:16px 10px;}
+    .modal{padding:20px 16px 22px;}
+    .modal h2{font-size:19px;}
+    .field{margin-bottom:18px;}
+    .field label{font-size:12.5px; margin-bottom:6px;}
+    .field input[type=text], .field input[type=number], .field textarea, .field select{
+      padding:11px 12px;
+      font-size:16px;
+      border-radius:6px;
+    }
+    .row-2{grid-template-columns:1fr; gap:16px;}
+    .field > .row-2{grid-template-columns:1fr 1fr; gap:10px;}
+    .row-3, .row-4, .row-ckt-ing{
+      grid-template-columns:1fr 1fr;
+      gap:12px 10px;
+      row-gap:16px;
+    }
+    .row-4 > *:nth-child(1){grid-column:1/-1;}
+    .row-ckt-ing > *:nth-child(5){grid-column:1/-1;}
+    .row-3 .remove-row, .row-4 .remove-row, .row-ckt-ing .remove-row{
+      position:absolute;
+      top:-4px; right:-4px;
+      font-size:22px;
+      line-height:1;
+      padding:6px 8px;
+    }
+    .add-row-btn{padding:11px 10px; font-size:13.5px;}
+    .subgroup{padding:14px 12px 8px;}
+    .search input{font-size:16px; padding:10px 12px;}
+    .ing-name-input, .ing-qty-input, .ing-pct-input{font-size:16px;}
+    .ing-qty-input{width:66px;}
+    .ing-pct-input{width:54px;}
+    .today-selector-row label{padding:12px 2px;}
+    .today-selector-name{font-size:15px;}
+  }
+  .btn{
+    padding:9px 16px;
+    border-radius:var(--radius-card);
+    font-size:13px;
+    cursor:pointer;
+    border:1px solid var(--border);
+    background:transparent;
+    color:var(--text-soft);
+  }
+  .btn:hover{border-color:var(--text-soft); color:var(--text);}
+  .btn-primary{
+    background:var(--copper);
+    border-color:var(--copper);
+    color:#1a140c;
+    font-weight:600;
+  }
+  .btn-primary:hover{background:var(--copper-bright); border-color:var(--copper-bright); color:#1a140c;}
+
+  .toast{
+    position:fixed;
+    bottom:24px; left:50%;
+    transform:translateX(-50%);
+    background:var(--bg-card);
+    border:1px solid var(--verdigris);
+    color:var(--text);
+    padding:14px 18px;
+    border-radius:var(--radius-card);
+    font-size:13px;
+    max-width:460px;
+    display:none;
+    align-items:center;
+    gap:14px;
+    z-index:60;
+    box-shadow:0 10px 30px rgba(0,0,0,.4);
+  }
+  .toast.open{display:flex;}
+  .toast button{
+    flex-shrink:0;
+    background:transparent;
+    border:1px solid var(--border);
+    color:var(--verdigris-bright);
+    font-size:12px;
+    padding:6px 10px;
+    border-radius:var(--radius-card);
+    cursor:pointer;
+  }
+  .ing-qty{
+    font-variant-numeric:tabular-nums;
+    color:var(--copper-bright);
+    white-space:nowrap;
+    font-weight:600;
+    transition:opacity .15s;
+  }
+  .ing-qty.flash{animation:flash .5s ease;}
+  @keyframes flash{
+    0%{opacity:.25; transform:translateY(-2px);}
+    100%{opacity:1; transform:translateY(0);}
+  }
+  .ing-name-input{
+    background:transparent;
+    border:none;
+    border-bottom:1px dotted var(--border);
+    color:var(--text);
+    font-size:14.5px;
+    font-family:inherit;
+    padding:2px 0;
+    min-width:150px;
+  }
+  .ing-name-input:focus{outline:none; border-bottom-color:var(--copper);}
+  .ing-qty-edit{display:flex; align-items:center; gap:5px; flex-shrink:0;}
+  .ing-qty-input{
+    width:60px;
+    background:transparent;
+    border:none;
+    border-bottom:1px dotted var(--border);
+    color:var(--copper-bright);
+    font-weight:600;
+    font-variant-numeric:tabular-nums;
+    text-align:right;
+    font-size:14.5px;
+    font-family:inherit;
+    padding:2px 0;
+  }
+  .ing-qty-input:focus{outline:none; border-bottom-color:var(--copper);}
+  .ing-qty-input.flash{animation:flash .5s ease;}
+  .ing-unit-select{
+    background:transparent;
+    border:none;
+    color:var(--text-soft);
+    font-size:12px;
+    font-family:inherit;
+    cursor:pointer;
+  }
+  .ing-unit-select:focus{outline:none;}
+  .ing-name-input:disabled, .ing-qty-input:disabled, .ing-unit-select:disabled, .add-prep-btn:disabled, .ing-pct-input:disabled{
+    opacity:1;
+    cursor:default;
+    border-bottom-color:transparent;
+    -webkit-text-fill-color:currentColor;
+  }
+  .ing-name-input:disabled{color:var(--text);}
+  .ing-qty-input:disabled{color:var(--copper-bright);}
+  .ing-unit-select:disabled{color:var(--text-soft);}
+  .ing-pct-input:disabled{color:var(--verdigris-bright);}
+  .add-prep-btn:disabled{color:var(--verdigris-bright); border-color:var(--verdigris);}
+  .add-prep-btn:disabled:hover{background:transparent; color:var(--verdigris-bright);}
+  .ing-pct-edit{
+    display:flex;
+    align-items:center;
+    gap:3px;
+    flex-shrink:0;
+    margin-left:10px;
+  }
+  .ing-pct-input{
+    width:48px;
+    background:transparent;
+    border:none;
+    border-bottom:1px dotted var(--border);
+    color:var(--verdigris-bright);
+    font-weight:600;
+    font-variant-numeric:tabular-nums;
+    text-align:right;
+    font-size:13px;
+    font-family:inherit;
+    padding:2px 0;
+  }
+  .ing-pct-input:focus{outline:none; border-bottom-color:var(--copper);}
+  .ing-pct-static{
+    font-variant-numeric:tabular-nums;
+    color:var(--verdigris-bright);
+    font-weight:600;
+    font-size:13px;
+  }
+  .pct-sign{font-size:11.5px; color:var(--text-faint);}
+
+  .checklist-section{margin-top:36px;}
+  .checklist-head{
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    border-bottom:1px solid var(--border-soft);
+    padding-bottom:8px;
+    margin-bottom:2px;
+  }
+  .checklist-count{
+    font-size:12px;
+    color:var(--text-faint);
+    font-variant-numeric:tabular-nums;
+  }
+  .checklist-head-right{
+    display:flex;
+    align-items:center;
+    gap:12px;
+  }
+  .today-edit-btn{
+    display:flex;
+    align-items:center;
+    gap:5px;
+    background:transparent;
+    border:1px solid var(--border);
+    color:var(--text-soft);
+    font-size:11.5px;
+    font-family:inherit;
+    padding:5px 10px;
+    border-radius:999px;
+    cursor:pointer;
+  }
+  .today-edit-btn:hover{border-color:var(--copper); color:var(--copper-bright);}
+  .today-edit-btn svg{width:12px; height:12px; stroke:currentColor;}
+  .checklist{list-style:none; margin:0; padding:0;}
+  .checklist-row{border-bottom:1px solid var(--border-soft);}
+  .checklist-row:last-child{border-bottom:none;}
+  .checklist-row label{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    padding:11px 2px;
+    cursor:pointer;
+  }
+  .checklist-row input[type=checkbox]{
+    width:17px; height:17px;
+    accent-color:var(--copper);
+    cursor:pointer;
+    flex-shrink:0;
+  }
+  .checklist-name{
+    flex:1;
+    font-size:14px;
+    color:var(--text);
+  }
+  .checklist-name:hover{color:var(--copper-bright);}
+  .checklist-row.done .checklist-name{
+    color:var(--text-faint);
+    text-decoration:line-through;
+  }
+  .checklist-cat{font-size:11.5px; color:var(--text-faint);}
+  .checklist-empty{color:var(--text-faint); font-size:13px; padding:12px 2px;}
+
+  .steps{
+    display:flex;
+    flex-direction:column;
+    gap:0;
+  }
+  .step{
+    display:grid;
+    grid-template-columns:44px 1fr;
+    gap:16px;
+    position:relative;
+    padding-bottom:26px;
+  }
+  .step:last-child{padding-bottom:0;}
+  .step-rail{
+    position:relative;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+  }
+  .step-icon{
+    width:44px;height:44px;
+    border-radius:50%;
+    background:var(--bg-card);
+    border:1px solid var(--border);
+    display:flex;align-items:center;justify-content:center;
+    flex-shrink:0;
+    z-index:1;
+  }
+  .step-icon svg{width:22px;height:22px;stroke:var(--copper-bright);}
+  .step.is-prep-step .step-icon svg{stroke:var(--verdigris-bright);}
+  .step-line{
+    position:absolute;
+    top:44px; bottom:-26px;
+    width:1px;
+    background:var(--border);
+  }
+  .step:last-child .step-line{display:none;}
+  .step-body{padding-top:8px;}
+  .step-title{
+    font-size:14.5px;
+    font-weight:600;
+    margin:0 0 5px;
+    color:var(--text);
+  }
+  .step-text{
+    font-size:13.5px;
+    color:var(--text-soft);
+    line-height:1.6;
+    margin:0;
+  }
+  .step-timer{
+    display:inline-block;
+    margin-top:7px;
+    font-size:11.5px;
+    color:var(--text-faint);
+    border:1px solid var(--border);
+    padding:3px 8px;
+    border-radius:12px;
+  }
+
+  .notes-box{
+    background:var(--bg-card);
+    border-left:2px solid var(--copper);
+    padding:14px 18px;
+    border-radius:0 var(--radius-card) var(--radius-card) 0;
+    font-size:13.5px;
+    color:var(--text-soft);
+    line-height:1.6;
+  }
+  .notes-box.verdigris{border-left-color:var(--verdigris);}
+
+  .tag-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:2px;}
+  .tag{
+    font-size:11.5px;
+    border:1px solid var(--border);
+    color:var(--text-soft);
+    padding:4px 10px;
+    border-radius:12px;
+  }
+
+  @media print{
+    .rail{display:none;}
+    .app{display:block;}
+    .main{max-width:100%;padding:0;}
+    body{background:#fff;color:#111;}
+    .edit-sheet-btn{display:none;}
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <button class="rail-fab" id="railFab" onclick="toggleRail()" title="Afficher le menu">
+    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M4 7h16M4 12h16M4 17h16" stroke-width="1.6" stroke-linecap="round"/>
+    </svg>
+  </button>
+  <aside class="rail" id="rail">
+    <div class="rail-head">
+      <div class="head-btn-row">
+        <button class="home-btn" onclick="goHome()" title="Retour à l'accueil">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M4 11l8-7 8 7" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M6 10v9a1 1 0 0 0 1 1h3v-6h4v6h3a1 1 0 0 0 1-1v-9" stroke-width="1.6" stroke-linejoin="round"/>
+          </svg>
+        </button>
+        <button class="home-btn rail-toggle-btn" onclick="toggleRail()" title="Réduire le menu">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M15 5l-7 7 7 7" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+      </div>
+      <div class="head-btn-row">
+        <button class="home-btn" id="undoBtn" onclick="undoAction()" title="Annuler la dernière modification" disabled>
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M9 7L4 12l5 5" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M4 12h11a5 5 0 0 1 0 10h-1" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+        <button class="home-btn" id="redoBtn" onclick="redoAction()" title="Rétablir la modification suivante" disabled>
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M15 7l5 5-5 5" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M20 12H9a5 5 0 0 0 0 10h1" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+      </div>
+      <div class="search">
+        <input type="text" id="searchInput" placeholder="Chercher une fiche…" oninput="renderList()">
+      </div>
+      <div class="tabs">
+        <button class="tab active" data-tab="all" onclick="setTab('all')">Tout</button>
+        <button class="tab" data-tab="cocktail" onclick="setTab('cocktail')">Cocktails</button>
+        <button class="tab" data-tab="prep" onclick="setTab('prep')">Preps</button>
+      </div>
+    </div>
+    <div class="rail-list" id="railList"></div>
+    <div class="rail-foot">
+      <button class="export-btn cloud-save-btn" id="cloudSaveBtn" onclick="saveToCloud()" title="Envoyer tes modifications en ligne, visibles par toute l'équipe">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M7 18a4.5 4.5 0 0 1-1-8.9A5.5 5.5 0 0 1 16.9 7.2 4 4 0 0 1 17 15h-1" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M12 12v7M9.5 16.5 12 14l2.5 2.5" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        Publier en ligne
+      </button>
+      <button class="export-btn" onclick="exportUpdatedApp()" title="Télécharger le fichier avec les fiches à jour, à réenvoyer sur l'hébergement">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 4v11M8 11l4 4 4-4" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M5 19h14" stroke-width="1.6" stroke-linecap="round"/>
+        </svg>
+        Exporter en fichier
+      </button>
+    </div>
+  </aside>
+
+  <div class="rail-backdrop" id="railBackdrop" onclick="closeMobileRail()"></div>
+
+  <main class="main" id="main"></main>
+</div>
+
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <h2 id="modalTitle">Nouvelle fiche de prep</h2>
+    <p class="modal-sub">Cette fiche est ajoutée pour la session en cours. Copie le code à la fin pour me le renvoyer et l'intégrer définitivement au fichier.</p>
+
+    <div class="field">
+      <label id="modalNameLabel">Nom de la préparation</label>
+      <input type="text" id="mfName">
+    </div>
+
+    <div id="mfPrepFields">
+      <div class="row-2">
+        <div class="field">
+          <label>Catégorie</label>
+          <select id="mfCategory">
+            <option>Sirop</option>
+            <option>Infusion</option>
+            <option>Jus</option>
+            <option>Cordial</option>
+            <option>Clarification</option>
+            <option>Glace</option>
+            <option>Autre</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Volume de référence du lot</label>
+          <div class="row-2">
+            <input type="number" id="mfBaseVolume" value="1000" min="0" step="10">
+            <select id="mfBaseUnit">
+              <option value="ml">ml</option>
+              <option value="g">g</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="field">
+        <label>Conservation</label>
+        <input type="text" id="mfShelfLife" placeholder="ex. 2 semaines au réfrigérateur">
+      </div>
+    </div>
+
+    <div id="mfCocktailFields" style="display:none;">
+      <div class="row-2">
+        <div class="field">
+          <label>Catégorie</label>
+          <input type="text" id="mfCktCategory" placeholder="ex. Signature, Classique…">
+        </div>
+        <div class="field">
+          <label>Verre</label>
+          <input type="text" id="mfGlass" placeholder="ex. Tumbler">
+        </div>
+      </div>
+      <div class="row-2">
+        <div class="field">
+          <label>Glace</label>
+          <input type="text" id="mfIce" placeholder="ex. Clear Collins">
+        </div>
+        <div class="field">
+          <label>Garniture</label>
+          <input type="text" id="mfGarnish">
+        </div>
+      </div>
+      <div class="field">
+        <label>Méthode</label>
+        <input type="text" id="mfMethod" placeholder="ex. On Tap, Shake, Build…">
+      </div>
+    </div>
+
+    <div class="subgroup">
+      <p class="subgroup-label" id="mfIngLabel">Ingrédients (pour le volume de référence)</p>
+      <div id="mfIngRows"></div>
+      <button type="button" class="add-row-btn" onclick="addModalIngredient()">+ Ajouter un ingrédient</button>
+    </div>
+
+    <div class="subgroup">
+      <p class="subgroup-label">Étapes du processus (optionnel)</p>
+      <div id="mfStepRows"></div>
+      <button type="button" class="add-row-btn" onclick="addModalStep()">+ Ajouter une étape</button>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn" onclick="closePrepModal()">Annuler</button>
+      <button class="btn btn-primary" id="modalSubmitBtn" onclick="submitPrepModal()">Créer la fiche</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="todayModalOverlay">
+  <div class="modal" style="max-width:480px;">
+    <h2>Preps du jour</h2>
+    <p class="modal-sub">Sélectionne les préparations à afficher sur l'écran d'accueil aujourd'hui.</p>
+    <div id="todaySelectorList" class="today-selector-list"></div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeTodaySelector()">Annuler</button>
+      <button class="btn btn-primary" onclick="confirmTodaySelection()">Valider</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast">
+  <span id="toastText"></span>
+  <button onclick="copyToastCode()">Copier le code</button>
+</div>
+
+<script>
+/* ============================================================
+   DONNÉES — pour ajouter une fiche, complète ces deux tableaux.
+   ============================================================ */
+
+/* DATA_START */
+// ---- Préparations maison (sirops, infusions, jus, cordiaux…) ----
+const preps = [
+  {
+    id: 'infusion-tequila-nori',
+    type: 'prep',
+    category: 'Infusion',
+    name: 'Infusion Tequila au Nori',
+    baseVolume: 1000,       // volume de référence
+    unit: 'ml',
+    shelfLife: '3 semaines, à température ambiante, à l\u2019abri de la lumière',
+    ingredients: [
+      { name: 'Tequila blanco', qty: 1000, unit: 'ml' },
+      { name: 'Feuilles de nori séchées', qty: 5, unit: 'g' },
+    ],
+    steps: [
+      { icon: 'jar', title: 'Préparer le contenant', text: 'Verser la tequila dans un bocal hermétique stérilisé, adapté au volume du lot.' },
+      { icon: 'leaf', title: 'Ajouter le nori', text: 'Découper les feuilles de nori en morceaux grossiers et les immerger dans la tequila.', timer: null },
+      { icon: 'clock', title: 'Infuser', text: 'Laisser infuser à température ambiante, à l\u2019abri de la lumière, en remuant une fois par jour.', timer: '48h' },
+      { icon: 'strain', title: 'Filtrer', text: 'Filtrer à travers un tamis fin puis un filtre à café pour retirer toutes les particules.' },
+      { icon: 'bottle', title: 'Mettre en bouteille', text: 'Transvaser dans une bouteille étiquetée avec la date de production et la date limite.' },
+    ],
+  },
+  {
+    id: 'sirop-poivre-timut',
+    type: 'prep',
+    category: 'Sirop',
+    name: 'Sirop de Poivre de Timut',
+    baseVolume: 1000,
+    unit: 'ml',
+    shelfLife: '2 semaines au réfrigérateur',
+    ingredients: [
+      { name: 'Eau', qty: 500, unit: 'ml' },
+      { name: 'Sucre semoule', qty: 500, unit: 'g' },
+      { name: 'Poivre de Timut, concassé', qty: 12, unit: 'g' },
+    ],
+    steps: [
+      { icon: 'pan', title: 'Chauffer', text: 'Porter l\u2019eau et le sucre à frémissement en remuant jusqu\u2019à dissolution complète.' },
+      { icon: 'leaf', title: 'Infuser à chaud', text: 'Hors du feu, ajouter le poivre concassé et couvrir.', timer: '20 min' },
+      { icon: 'strain', title: 'Filtrer', text: 'Filtrer à chaud à travers un tamis fin, laisser refroidir à température ambiante avant mise en bouteille.' },
+      { icon: 'bottle', title: 'Mettre en bouteille', text: 'Étiqueter avec la date de production.' },
+    ],
+  },
+];
+
+// ---- Cocktails ----
+const cocktails = [
+  {
+    id: 'nori-smash',
+    type: 'cocktail',
+    category: 'Signature',
+    name: 'Nori Smash',
+    glass: 'Tumbler',
+    ice: 'Clear Collins',
+    garnish: 'Sel au Wasabi',
+    methodType: 'On Tap',
+    ingredients: [
+      { kind: 'prep', ref: 'infusion-tequila-nori', qty: 30, unit: 'ml', prebatch: true },
+      { kind: 'raw', name: 'Super Pamplemousse', qty: 30, unit: 'ml', note: 'prep — fiche à créer', prebatch: true },
+      { kind: 'raw', name: 'Soda Thé pamplemousse', qty: 80, unit: 'ml', note: 'prep — fiche à créer', prebatch: true },
+      { kind: 'raw', name: 'Liqueur de violette Boudier', qty: 7.5, unit: 'ml', prebatch: true },
+    ],
+  },
+];
+/* DATA_END */
+
+// ---- Persistance locale (sauvegarde automatique dans ce navigateur) ----
+const LOCAL_STORAGE_KEY = 'fiches-prep-data-v1';
+(function hydrateFromLocalStorage(){
+  try{
+    const raw = localStorage.getItem(LOCAL_STORAGE_KEY);
+    if(!raw) return;
+    const saved = JSON.parse(raw);
+    if(saved && Array.isArray(saved.preps) && Array.isArray(saved.cocktails)){
+      preps.length = 0; preps.push(...saved.preps);
+      cocktails.length = 0; cocktails.push(...saved.cocktails);
+    }
+  }catch(e){ /* données locales illisibles, on garde les données par défaut */ }
+})();
+function saveToLocalStorage(){
+  try{
+    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify({ preps, cocktails }));
+  }catch(e){ /* stockage indisponible (navigation privée…) — pas bloquant */ }
+}
+
+// ---- Sauvegarde en ligne (jsonbin.io) — partagée avec toute l'équipe ----
+const JSONBIN_ID = '6ab2d919ffd5d16053242607';
+const JSONBIN_KEY = '$2a$10$toOK1DCtfNjMBJuBWFEpL.63wSuwQNJDE5wwnU7.HqdL9D0zEcs.S';
+const SAVE_PIN = '1623';
+
+async function loadFromCloud(silent){
+  try{
+    const res = await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_ID}/latest`, {
+      headers: { 'X-Master-Key': JSONBIN_KEY }
+    });
+    if(!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    const record = data.record || {};
+    if(Array.isArray(record.preps) && Array.isArray(record.cocktails)){
+      preps.length = 0; preps.push(...record.preps);
+      cocktails.length = 0; cocktails.push(...record.cocktails);
+      saveToLocalStorage();
+      renderList();
+      renderMain();
+    }
+  }catch(e){
+    if(!silent) showToast('Chargement en ligne impossible — affichage de la dernière version locale.');
+  }
+}
+
+async function saveToCloud(){
+  const pin = window.prompt('Code pour publier en ligne :');
+  if(pin === null) return;
+  if(pin !== SAVE_PIN){ alert('Code incorrect.'); return; }
+  const btn = document.getElementById('cloudSaveBtn');
+  const originalLabel = btn ? btn.innerHTML : null;
+  if(btn){ btn.disabled = true; btn.textContent = 'Publication…'; }
+  try{
+    const res = await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_ID}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', 'X-Master-Key': JSONBIN_KEY },
+      body: JSON.stringify({ preps, cocktails })
+    });
+    if(!res.ok) throw new Error('HTTP ' + res.status);
+    showToast('Publié en ligne — visible par toute l’équipe au prochain chargement.');
+  }catch(e){
+    alert('Échec de la publication en ligne. Vérifie ta connexion et réessaie.');
+  } finally {
+    if(btn){ btn.disabled = false; if(originalLabel !== null) btn.innerHTML = originalLabel; }
+  }
+}
+
+// ---- Export d'un fichier HTML à jour, prêt à réenvoyer sur l'hébergement ----
+function exportUpdatedApp(){
+  const pin = window.prompt('Code pour exporter le fichier :');
+  if(pin === null) return;
+  if(pin !== SAVE_PIN){ alert('Code incorrect.'); return; }
+  const clone = document.documentElement.cloneNode(true);
+  const appEl = clone.querySelector('.app');
+  if(appEl) appEl.classList.remove('rail-collapsed', 'rail-mobile-open');
+  const overlay = clone.querySelector('#modalOverlay');
+  if(overlay) overlay.classList.remove('open');
+  let html = clone.outerHTML;
+
+  const newDataBlock =
+`/* DATA_START */
+// ---- Préparations maison (sirops, infusions, jus, cordiaux…) ----
+const preps = ${JSON.stringify(preps, null, 2)};
+
+// ---- Cocktails ----
+const cocktails = ${JSON.stringify(cocktails, null, 2)};
+/* DATA_END */`;
+
+  html = html.replace(/\/\* DATA_START \*\/[\s\S]*?\/\* DATA_END \*\//, newDataBlock);
+
+  const blob = new Blob(['<!DOCTYPE html>\n' + html], { type: 'text/html' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const stamp = new Date().toISOString().slice(0,10);
+  a.href = url;
+  a.download = `fiches-prep-${stamp}.html`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+/* ============================================================
+   ICÔNES — petits pictos inline (aucune dépendance externe)
+   ============================================================ */
+const icons = {
+  jar: '<path d="M8 3h8M9 3v3.5c0 .5-.2 1-.6 1.4L6 10.5V20a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1v-9.5l-2.4-2.6a2 2 0 0 1-.6-1.4V3" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>',
+  leaf: '<path d="M20 4C10 4 4 10 4 18c8 0 14-6 14-14z" fill="none" stroke-width="1.6" stroke-linejoin="round"/><path d="M6 18C10 14 14 10 19 5" fill="none" stroke-width="1.6" stroke-linecap="round"/>',
+  clock: '<circle cx="12" cy="12" r="8.5" fill="none" stroke-width="1.6"/><path d="M12 7.5V12l3.2 2" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>',
+  strain: '<path d="M5 6h14l-1.5 12a2 2 0 0 1-2 1.8h-7a2 2 0 0 1-2-1.8L5 6z" fill="none" stroke-width="1.6" stroke-linejoin="round"/><path d="M3 6h18" stroke-width="1.6" stroke-linecap="round"/><path d="M9 6V4h6v2" fill="none" stroke-width="1.6"/>',
+  bottle: '<path d="M10 2h4v3.2l1.6 2A3 3 0 0 1 16 9.5V20a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2V9.5a3 3 0 0 1 .4-2.3L10 5.2V2z" fill="none" stroke-width="1.6" stroke-linejoin="round"/><path d="M8 13h8" stroke-width="1.6"/>',
+  pan: '<circle cx="11" cy="13" r="6" fill="none" stroke-width="1.6"/><path d="M17 11h5" stroke-width="1.6" stroke-linecap="round"/><path d="M8.5 13a2.5 2.5 0 0 1 5 0" fill="none" stroke-width="1.4" stroke-linecap="round"/>',
+  shaker: '<path d="M8 3h8l1 4H7l1-4z" fill="none" stroke-width="1.6" stroke-linejoin="round"/><path d="M7 7h10l-1.2 12.5a2 2 0 0 1-2 1.5H10.2a2 2 0 0 1-2-1.5L7 7z" fill="none" stroke-width="1.6" stroke-linejoin="round"/><path d="M7.6 11.5h8.8" stroke-width="1.4"/>',
+  blender: '<path d="M8 4h8l-1 14a2 2 0 0 1-2 2h-2a2 2 0 0 1-2-2L8 4z" fill="none" stroke-width="1.6" stroke-linejoin="round"/><path d="M9 9h6M9.6 13.5h4.8" stroke-width="1.4" stroke-linecap="round"/>',
+  snowflake: '<path d="M12 3v18M4.5 7.5l15 9M19.5 7.5l-15 9" stroke-width="1.4" stroke-linecap="round"/><path d="M9 4.5 12 7l3-2.5M9 19.5 12 17l3 2.5M4.8 10l3.7.2-1 3.6M19.2 10l-3.7.2 1 3.6M4.8 14l3.7-.2-1-3.6M19.2 14l-3.7-.2 1-3.6" fill="none" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>',
+  flame: '<path d="M12 3c1.8 2.8-.8 4-.8 6.8a2.8 2.8 0 0 0 5.6 0c0-.9-.4-1.8-.9-2.3.7 1.8.2 3.4-1 4.4a4.2 4.2 0 0 1-6.6-3.5C8.3 6 10.2 4.4 12 3z" fill="none" stroke-width="1.5" stroke-linejoin="round"/>',
+  scale: '<path d="M12 3v3M6 6h12M6 6L3 12a3 3 0 0 0 6 0L6 6zM18 6l-3 6a3 3 0 0 0 6 0l-3-6zM8 21h8" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>',
+  drop: '<path d="M12 3c3 4 6 8 6 11.5A6 6 0 0 1 6 14.5C6 11 9 7 12 3z" fill="none" stroke-width="1.6" stroke-linejoin="round"/>',
+  spoon: '<ellipse cx="9" cy="7" rx="3.5" ry="4.5" fill="none" stroke-width="1.5"/><path d="M9 11.5V21" stroke-width="1.6" stroke-linecap="round"/>',
+  knife: '<path d="M4 16 15 5l4 4L8 20H4v-4z" fill="none" stroke-width="1.5" stroke-linejoin="round"/><path d="M15 5l4 4" stroke-width="1.5"/>',
+  fridge: '<rect x="6" y="3" width="12" height="18" rx="1.5" fill="none" stroke-width="1.5"/><path d="M6 10h12" stroke-width="1.4"/><path d="M9 6.5v1.5M9 13v1.5" stroke-width="1.4" stroke-linecap="round"/>',
+  press: '<path d="M6 4h12M8 4v3l-2 3v9h12v-9l-2-3V4" fill="none" stroke-width="1.6" stroke-linejoin="round"/><path d="M9 11h6" stroke-width="1.4" stroke-linecap="round"/>',
+  filter: '<path d="M5 5h14l-5.5 7v6l-3 1.5v-7.5L5 5z" fill="none" stroke-width="1.6" stroke-linejoin="round"/>',
+  mortar: '<path d="M5 11h14a7 5 0 0 1-14 0z" fill="none" stroke-width="1.6" stroke-linejoin="round"/><path d="M9 11c0-3 1-6 2-7M15 4c1 3-1 4-1 4" fill="none" stroke-width="1.5" stroke-linecap="round"/>',
+  vacuum: '<rect x="5" y="6" width="14" height="13" rx="1.5" fill="none" stroke-width="1.5"/><path d="M9 6V4h6v2M8 10h8M8 13h8" stroke-width="1.3" stroke-linecap="round"/>',
+  bubble: '<circle cx="10" cy="13.5" r="5.3" fill="none" stroke-width="1.6"/><circle cx="16.8" cy="7.8" r="2.3" fill="none" stroke-width="1.5"/><circle cx="15.2" cy="16.8" r="1.5" fill="none" stroke-width="1.3"/>',
+  barrel: '<path d="M8.5 3h7l1.3 3.2c.6 1.6.9 3.3.9 5v1.6c0 1.7-.3 3.4-.9 5L15.5 21h-7l-1.3-3.2c-.6-1.6-.9-3.3-.9-5v-1.6c0-1.7.3-3.4.9-5L8.5 3z" fill="none" stroke-width="1.5" stroke-linejoin="round"/><path d="M5.8 8.5h12.4M5.8 15.5h12.4" stroke-width="1.3"/>',
+};
+function iconSvg(name){
+  const p = icons[name] || icons.leaf;
+  return '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">' + p + '</svg>';
+}
+
+/* ============================================================
+   STATE + RENDER
+   ============================================================ */
+let state = { tab: 'all', activeId: null };
+let cocktailEditMode = false; // édition des ingrédients d'un cocktail activée via le bouton "Modifier"
+let dailyChecklist = {}; // { prepId: true/false } — statut fait/pas fait
+let todaySelection = {}; // { prepId: true } — preps choisies pour l'écran d'accueil du jour
+let todaySelectorDraft = {}; // brouillon en cours d'édition dans la fenêtre de sélection
+
+const DAILY_STORAGE_KEY = 'fiches-prep-daily-v1';
+(function hydrateDailyFromLocalStorage(){
+  try{
+    const raw = localStorage.getItem(DAILY_STORAGE_KEY);
+    if(!raw) return;
+    const saved = JSON.parse(raw);
+    if(saved && typeof saved === 'object'){
+      dailyChecklist = saved.dailyChecklist || {};
+      todaySelection = saved.todaySelection || {};
+    }
+  }catch(e){ /* rien à faire, on repart de listes vides */ }
+})();
+function saveDailyToLocalStorage(){
+  try{
+    localStorage.setItem(DAILY_STORAGE_KEY, JSON.stringify({ dailyChecklist, todaySelection }));
+  }catch(e){ /* stockage indisponible — pas bloquant */ }
+}
+
+// ---------- historique (annuler / rétablir) ----------
+let historyStack = [];
+let futureStack = [];
+const HISTORY_LIMIT = 50;
+
+function snapshot(){
+  historyStack.push(JSON.stringify({ cocktails, preps }));
+  if(historyStack.length > HISTORY_LIMIT) historyStack.shift();
+  futureStack = [];
+  updateHistoryButtons();
+}
+
+function applySnapshot(json){
+  const data = JSON.parse(json);
+  cocktails.length = 0; cocktails.push(...data.cocktails);
+  preps.length = 0; preps.push(...data.preps);
+  if(state.activeId && !byId(state.activeId)) state.activeId = null;
+  cocktailEditMode = false;
+  const overlay = document.getElementById('modalOverlay');
+  if(overlay && overlay.classList.contains('open')) closePrepModal();
+  renderList();
+  renderMain();
+  updateHistoryButtons();
+}
+
+function undoAction(){
+  if(!historyStack.length) return;
+  futureStack.push(JSON.stringify({ cocktails, preps }));
+  applySnapshot(historyStack.pop());
+}
+
+function redoAction(){
+  if(!futureStack.length) return;
+  historyStack.push(JSON.stringify({ cocktails, preps }));
+  applySnapshot(futureStack.pop());
+}
+
+function updateHistoryButtons(){
+  const undoBtn = document.getElementById('undoBtn');
+  const redoBtn = document.getElementById('redoBtn');
+  if(undoBtn) undoBtn.disabled = historyStack.length === 0;
+  if(redoBtn) redoBtn.disabled = futureStack.length === 0;
+}
+const allItems = () => [...cocktails, ...preps];
+const byId = (id) => allItems().find(i => i.id === id);
+
+function goHome(){
+  state.activeId = null;
+  cocktailEditMode = false;
+  renderList();
+  renderMain();
+  if(window.innerWidth <= 860){ closeMobileRail(); }
+}
+
+let swipe = { active:false, startX:0, el:null, base:0, lastDx:0 };
+
+function closeAllSwipes(except){
+  document.querySelectorAll('.swipe-content.swiped').forEach(el => {
+    if(el !== except){
+      el.style.transform = '';
+      el.classList.remove('swiped');
+      const del = el.previousElementSibling;
+      if(del && del.classList.contains('swipe-delete')) del.style.transform = '';
+    }
+  });
+}
+
+function swipeStart(e, el){
+  if(e.target.closest('input, select, button, a, label, .is-link')) return;
+  const base = el.classList.contains('swiped') ? -88 : 0;
+  closeAllSwipes(el);
+  swipe = { active:true, startX:e.clientX, el, base, lastDx:base };
+  el.style.transition = 'none';
+  const del = el.previousElementSibling;
+  if(del && del.classList.contains('swipe-delete')) del.style.transition = 'none';
+  if(el.setPointerCapture){ try{ el.setPointerCapture(e.pointerId); }catch(err){} }
+}
+function swipeMove(e, el){
+  if(!swipe.active || swipe.el !== el) return;
+  let dx = swipe.base + (e.clientX - swipe.startX);
+  dx = Math.max(-88, Math.min(0, dx));
+  el.style.transform = `translateX(${dx}px)`;
+  const del = el.previousElementSibling;
+  if(del && del.classList.contains('swipe-delete')) del.style.transform = `translateX(${88 + dx}px)`;
+  swipe.lastDx = dx;
+}
+function swipeEnd(e, el, id){
+  if(!swipe.active || swipe.el !== el) return;
+  el.style.transition = '';
+  const del = el.previousElementSibling;
+  if(del && del.classList.contains('swipe-delete')) del.style.transition = '';
+  const moved = Math.abs((e.clientX || 0) - swipe.startX);
+  const dx = swipe.lastDx;
+  if(dx < -44){
+    el.style.transform = 'translateX(-88px)';
+    el.classList.add('swiped');
+    if(del) del.style.transform = 'translateX(0px)';
+  } else {
+    el.style.transform = 'translateX(0)';
+    el.classList.remove('swiped');
+    if(del) del.style.transform = 'translateX(88px)';
+  }
+  const wasTap = moved < 6;
+  swipe.active = false;
+  if(wasTap && dx > -44 && id){
+    selectItem(id);
+  }
+}
+
+function confirmDeleteItem(id, type){
+  snapshot();
+  if(type === 'cocktail'){
+    const idx = cocktails.findIndex(c => c.id === id);
+    if(idx > -1) cocktails.splice(idx, 1);
+  } else {
+    const idx = preps.findIndex(p => p.id === id);
+    if(idx > -1) preps.splice(idx, 1);
+  }
+  delete dailyChecklist[id];
+  delete todaySelection[id];
+  saveDailyToLocalStorage();
+  if(state.activeId === id) state.activeId = null;
+  renderList();
+  renderMain();
+}
+
+function updateItemName(id, value){
+  const item = byId(id);
+  if(!item) return;
+  item.name = value;
+  renderList();
+}
+
+function updateCocktailMeta(id, field, value){
+  const item = byId(id);
+  if(!item) return;
+  item[field] = value;
+}
+
+function toggleCocktailEdit(){
+  cocktailEditMode = !cocktailEditMode;
+  const item = byId(state.activeId);
+  if(item) renderCocktailSheet(item);
+}
+
+function setTab(tab){
+  state.tab = tab;
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
+  renderList();
+}
+
+function selectItem(id){
+  state.activeId = id;
+  cocktailEditMode = false;
+  renderList();
+  renderMain();
+  if(window.innerWidth <= 860){
+    closeMobileRail();
+    window.scrollTo({top:0, behavior:'smooth'});
+  }
+}
+
+function toggleRail(){
+  const app = document.querySelector('.app');
+  if(window.innerWidth <= 860){
+    app.classList.toggle('rail-mobile-open');
+  } else {
+    app.classList.toggle('rail-collapsed');
+  }
+}
+function closeMobileRail(){
+  document.querySelector('.app').classList.remove('rail-mobile-open');
+}
+window.addEventListener('resize', () => {
+  const app = document.querySelector('.app');
+  if(window.innerWidth > 860){ app.classList.remove('rail-mobile-open'); }
+  else { app.classList.remove('rail-collapsed'); }
+});
+
+function renderList(){
+  saveToLocalStorage();
+  const q = document.getElementById('searchInput').value.trim().toLowerCase();
+  const list = document.getElementById('railList');
+  let items = allItems().filter(i => state.tab === 'all' || i.type === state.tab);
+  if(q) items = items.filter(i => i.name.toLowerCase().includes(q) || i.category.toLowerCase().includes(q));
+
+  const cocktailItems = items.filter(i => i.type === 'cocktail');
+  const prepItems = items.filter(i => i.type === 'prep');
+
+  let html = '';
+  const renderGroup = (label, arr, type, addLabel) => {
+    if(!arr.length && q) return '';
+    let h = `<div class="rail-group-label">${label}</div>`;
+    arr.forEach(i => {
+      h += `<div class="swipe-wrapper">
+        <div class="swipe-delete" onclick="confirmDeleteItem('${i.id}','${i.type}')">Supprimé</div>
+        <div class="swipe-content rail-item type-${i.type} ${state.activeId===i.id?'active':''}"
+          onpointerdown="swipeStart(event, this)" onpointermove="swipeMove(event, this)"
+          onpointerup="swipeEnd(event, this, '${i.id}')" onpointercancel="swipeEnd(event, this, '${i.id}')">
+          <span class="dot"></span>
+          <span class="rail-item-text">
+            <div class="rail-item-name">${i.name}</div>
+            <div class="rail-item-cat">${i.category}</div>
+          </span>
+        </div>
+      </div>`;
+    });
+    if(!q){
+      h += `<div class="rail-item rail-add" onclick="openCreateModal('${type}')">
+        <span class="dot add-dot">+</span>
+        <span class="rail-item-text"><div class="rail-item-name">${addLabel}</div></span>
+      </div>`;
+    }
+    return h;
+  };
+
+  if(state.tab === 'all'){
+    html += renderGroup('Cocktails', cocktailItems, 'cocktail', 'Nouveau cocktail');
+    html += renderGroup('Préparations maison', prepItems, 'prep', 'Nouvelle prep');
+  } else if(state.tab === 'cocktail'){
+    html += renderGroup('Cocktails', cocktailItems, 'cocktail', 'Nouveau cocktail');
+  } else {
+    html += renderGroup('Préparations maison', prepItems, 'prep', 'Nouvelle prep');
+  }
+
+  if(q && !cocktailItems.length && !prepItems.length){
+    html = `<div class="rail-empty">Aucune fiche ne correspond.</div>`;
+  }
+  list.innerHTML = html;
+}
+
+function fmtQty(qty, unit){
+  let v = Math.round(qty * 100) / 100;
+  if(v % 1 === 0) v = v.toFixed(0);
+  else v = v.toFixed(2).replace(/0$/, '').replace(/\.$/, '');
+  return `${v} ${unit}`;
+}
+
+function renderMain(){
+  const main = document.getElementById('main');
+  const item = byId(state.activeId);
+  if(!item){
+    main.innerHTML = `
+      <div class="welcome">
+        <h1 class="daily-prep-title">Daily Prep</h1>
+        <div class="hint">
+          <button class="hint-chip hint-chip-add" onclick="openTodaySelector()">Choisir les preps du jour</button>
+        </div>
+      </div>
+      ${renderDailyChecklistHtml()}`;
+    return;
+  }
+  if(item.type === 'prep') renderPrepSheet(item);
+  else renderCocktailSheet(item);
+}
+
+function renderDailyChecklistHtml(){
+  const todayPreps = preps.filter(p => todaySelection[p.id]);
+  const viderBtn = `<button class="today-edit-btn" onclick="clearTodaySelection()" title="Vider la liste du jour">
+    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M5 7h14M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2m-8 0 1 12a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1l1-12" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    Vider
+  </button>`;
+  if(!preps.length){
+    return `<div class="checklist-section"><p class="section-label">Preps du jour</p><div class="checklist-empty">Aucune préparation pour l'instant.</div></div>`;
+  }
+  if(!todayPreps.length){
+    return `
+      <div class="checklist-section">
+        <div class="checklist-head">
+          <p class="section-label" style="margin:0; border:none; padding:0;">Preps du jour</p>
+        </div>
+        <div class="checklist-empty">Aucune prep sélectionnée pour aujourd'hui. Clique sur « Choisir les preps du jour » ci-dessus pour en ajouter.</div>
+      </div>
+    `;
+  }
+  const done = todayPreps.filter(p => dailyChecklist[p.id]).length;
+  return `
+    <div class="checklist-section">
+      <div class="checklist-head">
+        <p class="section-label" style="margin:0; border:none; padding:0;">Preps du jour</p>
+        <div class="checklist-head-right">
+          <span class="checklist-count" id="checklistCount">${done}/${todayPreps.length}</span>
+          ${viderBtn}
+        </div>
+      </div>
+      <ul class="checklist">
+        ${todayPreps.map(p => `
+          <li class="checklist-row ${dailyChecklist[p.id] ? 'done' : ''}" data-id="${p.id}">
+            <label>
+              <input type="checkbox" ${dailyChecklist[p.id] ? 'checked' : ''} onchange="toggleDaily('${p.id}', this.checked)">
+              <span class="checklist-name" onclick="selectItem('${p.id}')">${p.name}</span>
+              <span class="checklist-cat">${p.category}</span>
+            </label>
+          </li>
+        `).join('')}
+      </ul>
+    </div>
+  `;
+}
+
+function clearTodaySelection(){
+  todaySelection = {};
+  saveDailyToLocalStorage();
+  renderMain();
+}
+
+function toggleDaily(id, val){
+  dailyChecklist[id] = val;
+  saveDailyToLocalStorage();
+  const row = document.querySelector(`.checklist-row[data-id="${id}"]`);
+  if(row) row.classList.toggle('done', val);
+  const todayPreps = preps.filter(p => todaySelection[p.id]);
+  const done = todayPreps.filter(p => dailyChecklist[p.id]).length;
+  const countEl = document.getElementById('checklistCount');
+  if(countEl) countEl.textContent = `${done}/${todayPreps.length}`;
+}
+
+function openTodaySelector(){
+  todaySelectorDraft = { ...todaySelection };
+  renderTodaySelectorList();
+  document.getElementById('todayModalOverlay').classList.add('open');
+}
+function closeTodaySelector(){
+  document.getElementById('todayModalOverlay').classList.remove('open');
+}
+function renderTodaySelectorList(){
+  const list = document.getElementById('todaySelectorList');
+  if(!preps.length){
+    list.innerHTML = `<div class="today-selector-empty">Aucune préparation créée pour l'instant.</div>`;
+    return;
+  }
+  const sorted = [...preps].sort((a,b) => a.name.localeCompare(b.name, 'fr'));
+  list.innerHTML = sorted.map(p => `
+    <div class="today-selector-row">
+      <label>
+        <input type="checkbox" ${todaySelectorDraft[p.id] ? 'checked' : ''} onchange="toggleTodayDraft('${p.id}', this.checked)">
+        <span class="today-selector-name">${p.name}</span>
+        <span class="today-selector-cat">${p.category}</span>
+      </label>
+    </div>
+  `).join('');
+}
+function toggleTodayDraft(id, val){
+  if(val) todaySelectorDraft[id] = true;
+  else delete todaySelectorDraft[id];
+}
+function confirmTodaySelection(){
+  todaySelection = { ...todaySelectorDraft };
+  saveDailyToLocalStorage();
+  closeTodaySelector();
+  renderMain();
+}
+
+function renderPrepSheet(item){
+  const main = document.getElementById('main');
+  main.innerHTML = `
+    <div class="crumb is-prep"><span class="type-tag">Préparation maison</span> · ${item.category}</div>
+    <div class="sheet-head">
+      <div class="sheet-head-main">
+        <h1 class="sheet-title">${item.name}</h1>
+        <div class="sheet-meta"><span>Lot de référence — <b>${item.baseVolume} ${item.unit}</b></span></div>
+      </div>
+      <button class="edit-sheet-btn" onclick="openEditPrepModal('${item.id}')">Modifier</button>
+    </div>
+
+    <div class="section">
+      <p class="section-label">Quantités pour le lot</p>
+      <div class="scaler">
+        <span class="scaler-label">Volume du lot</span>
+        <div class="scaler-controls">
+          <button class="scaler-btn" onclick="adjustVolume(-1)">−</button>
+          <div class="scaler-value"><input type="number" id="volValue" value="${item.baseVolume}" min="1" step="1" oninput="setVolume(this.value)"> <span class="unit">${item.unit}</span></div>
+          <button class="scaler-btn" onclick="adjustVolume(1)">+</button>
+        </div>
+      </div>
+      <ul class="ingredient-list" id="ingList"></ul>
+    </div>
+
+    <div class="section">
+      <p class="section-label">Processus</p>
+      <div class="steps">
+        ${item.steps.map((s, idx) => stepHtml(s, idx === item.steps.length - 1, true)).join('')}
+      </div>
+    </div>
+
+    ${item.shelfLife ? `<div class="section">
+      <p class="section-label">Conservation</p>
+      <div class="notes-box verdigris">${item.shelfLife}</div>
+    </div>` : ''}
+  `;
+
+  window._currentVolume = item.baseVolume;
+  renderIngredients(item, item.baseVolume, false);
+}
+
+function setVolume(v){
+  const item = byId(state.activeId);
+  v = parseFloat(v) || item.baseVolume;
+  window._currentVolume = v;
+  renderIngredients(item, v, true);
+}
+
+function adjustVolume(dir){
+  const item = byId(state.activeId);
+  const step = item.baseVolume >= 200 ? 100 : (item.baseVolume >= 20 ? 10 : 1);
+  let v = (window._currentVolume || item.baseVolume) + dir * step;
+  v = Math.max(step, Math.round(v * 100) / 100);
+  window._currentVolume = v;
+  document.getElementById('volValue').value = fmtNumber(v);
+  renderIngredients(item, v, true);
+}
+
+function fmtNumber(v){
+  return (v % 1 === 0) ? v.toFixed(0) : (Math.round(v*100)/100).toString();
+}
+
+function fmtPercent(p){
+  return (Math.round(p * 100) / 100).toString();
+}
+
+function renderIngredients(item, volume, animate){
+  const factor = volume / item.baseVolume;
+  const total = item.ingredients.reduce((s, i) => s + (Number(i.qty) || 0), 0) || 1;
+  const list = document.getElementById('ingList');
+  list.innerHTML = item.ingredients.map((ing) => {
+    const pct = (Number(ing.qty) || 0) / total * 100;
+    return `
+    <li class="ingredient-row">
+      <span class="ing-name">${ing.name}</span>
+      <span class="ing-qty-edit"><span class="ing-qty ${animate?'flash':''}">${fmtQty(ing.qty * factor, ing.unit)}</span></span>
+      <span class="ing-pct-edit" title="Ratio sur le poids total du lot">
+        <span class="ing-pct-static">${fmtPercent(pct)}</span><span class="pct-sign">%</span>
+      </span>
+    </li>`;
+  }).join('');
+}
+
+function refreshPercentDisplays(item){
+  const total = item.ingredients.reduce((s, i) => s + (Number(i.qty) || 0), 0) || 1;
+  item.ingredients.forEach((ing, idx) => {
+    const el = document.getElementById('pctInput-' + idx);
+    if(el && document.activeElement !== el){
+      const p = (Number(ing.qty) || 0) / total * 100;
+      el.value = fmtPercent(p);
+    }
+  });
+}
+
+function updatePrepIng(prepId, idx, field, value, factor){
+  const item = byId(prepId);
+  const ing = item.ingredients[idx];
+  if(field === 'qty'){
+    const f = factor || ((window._currentVolume || item.baseVolume) / item.baseVolume) || 1;
+    ing.qty = (parseFloat(value) || 0) / f;
+    refreshPercentDisplays(item);
+  } else {
+    ing[field] = value;
+  }
+}
+
+function updatePrepPercent(prepId, idx, value){
+  const item = byId(prepId);
+  const ing = item.ingredients[idx];
+  if(!ing) return;
+  let p = parseFloat(value);
+  if(isNaN(p) || p < 0) p = 0;
+  if(p > 99.99) p = 99.99;
+  p = p / 100;
+  const others = item.ingredients.reduce((s, i, j) => j === idx ? s : s + (Number(i.qty) || 0), 0);
+  ing.qty = (p * others) / (1 - p);
+  const factor = (window._currentVolume || item.baseVolume) / item.baseVolume;
+  const qtyEl = document.querySelector(`#ingList li[data-idx="${idx}"] .ing-qty-input`);
+  if(qtyEl) qtyEl.value = fmtNumber(ing.qty * factor);
+  refreshPercentDisplays(item);
+}
+
+function ingredientRowHtml(ing, qty, cocktailId, idx, editing){
+  if(!editing){
+    const isPending = ing.kind === 'raw' && ing.note === 'prep — fiche à créer';
+    const nameHtml = ing.kind === 'prep'
+      ? `<span class="ing-name is-link" onclick="selectItem('${ing.ref}')">${(byId(ing.ref) || {}).name || ing.ref}</span>`
+      : (isPending
+          ? `<span class="ing-name">
+              <button class="add-prep-btn" title="Créer une fiche de prep pour cet ingrédient" onclick="openPrepModal('${cocktailId}', ${idx})">+</button>
+              ${ing.name}
+            </span>`
+          : `<span class="ing-name">${ing.name}</span>`);
+    const pbStatic = ing.prebatch ? `
+      <span class="pb-static pb-active" title="Dans le prebatch">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 3v3" stroke-width="1.6" stroke-linecap="round"/>
+          <path d="M10 6h4l1 2.3a6 6 0 0 1 2 4.5V17a4 4 0 0 1-4 4h-2a4 4 0 0 1-4-4v-4.2a6 6 0 0 1 2-4.5L10 6z" fill="none" stroke-width="1.6" stroke-linejoin="round"/>
+        </svg>
+      </span>` : `<span class="pb-static" aria-hidden="true"></span>`;
+    return `<li class="ingredient-row">
+      ${nameHtml}
+      <span class="ing-qty-edit"><span class="ing-qty">${fmtQty(qty, ing.unit)}</span></span>
+      ${pbStatic}
+    </li>`;
+  }
+
+  const pbToggle = `
+      <label class="pb-toggle" title="Inclure dans le prebatch">
+        <input type="checkbox" ${ing.prebatch ? 'checked' : ''} onchange="toggleIngPrebatch('${cocktailId}',${idx},this.checked)">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 3v3" stroke-width="1.6" stroke-linecap="round"/>
+          <path d="M10 6h4l1 2.3a6 6 0 0 1 2 4.5V17a4 4 0 0 1-4 4h-2a4 4 0 0 1-4-4v-4.2a6 6 0 0 1 2-4.5L10 6z" fill="none" stroke-width="1.6" stroke-linejoin="round"/>
+        </svg>
+      </label>`;
+  const nameHtml = ing.kind === 'prep'
+    ? `<span class="ing-name is-link" onclick="selectItem('${ing.ref}')">${(byId(ing.ref) || {}).name || ing.ref}</span>`
+    : (ing.name === ''
+      ? `<span class="ing-name">
+          <input type="text" id="newIngNameInput" class="ing-name-input" placeholder="Nom de l'ingrédient…"
+            onblur="nameInputDone('${cocktailId}',${idx},this.value)"
+            onkeydown="if(event.key==='Enter'){this.blur();}">
+        </span>`
+      : `<span class="ing-name">
+          <button class="add-prep-btn" title="Créer une fiche de prep pour cet ingrédient" onclick="openPrepModal('${cocktailId}', ${idx})">+</button>
+          ${ing.name}
+        </span>`);
+  return `<li class="swipe-wrapper">
+    <div class="swipe-delete" onclick="removeCocktailIngredient('${cocktailId}', ${idx})">Supprimé</div>
+    <div class="swipe-content ingredient-row"
+      onpointerdown="swipeStart(event, this)" onpointermove="swipeMove(event, this)"
+      onpointerup="swipeEnd(event, this)" onpointercancel="swipeEnd(event, this)">
+      ${nameHtml}
+      <span class="ing-qty-edit">
+        <input type="number" class="ing-qty-input" value="${qty}" step="0.1" onfocus="snapshot()" oninput="updateCocktailIng('${cocktailId}',${idx},'qty',this.value)">
+        <select class="ing-unit-select" onchange="updateCocktailIng('${cocktailId}',${idx},'unit',this.value)">
+          ${['ml','L','g','kg','cl','pièce'].map(u => `<option value="${u}" ${ing.unit===u?'selected':''}>${u}</option>`).join('')}
+        </select>
+      </span>
+      ${pbToggle}
+    </div>
+  </li>`;
+}
+
+function updateCocktailIng(cocktailId, idx, field, value){
+  if(field === 'unit') snapshot();
+  const cocktail = byId(cocktailId);
+  const ing = cocktail.ingredients[idx];
+  if(field === 'qty') ing.qty = parseFloat(value) || 0;
+  else ing[field] = value;
+  if(cocktail.ingredients.some(i => i.prebatch)){
+    const vol = window._currentBatchVolume || 15000;
+    renderBatchIngredients(cocktail, vol, true);
+  }
+  const totalEl = document.getElementById('recipeTotalValue');
+  if(totalEl) totalEl.textContent = `${fmtNumber(recipeTotalMl(cocktail))} ml`;
+}
+
+function renderCocktailSheet(item){
+  const main = document.getElementById('main');
+  const hasSteps = item.steps && item.steps.length;
+  const hasPrebatch = item.ingredients.some(i => i.prebatch);
+  const editing = cocktailEditMode;
+  main.innerHTML = `
+    <div class="crumb"><span class="type-tag">Cocktail</span> · ${item.category}</div>
+    <div class="sheet-head">
+      <div class="sheet-head-main">
+        ${editing
+          ? `<input type="text" class="sheet-title-input" value="${item.name}" onfocus="snapshot()" oninput="updateItemName('${item.id}', this.value)">`
+          : `<h1 class="sheet-title">${item.name}</h1>`}
+        <div class="sheet-meta">
+          ${editing ? `
+            <span class="sheet-meta-edit">Verre — <input type="text" class="sheet-meta-input" value="${item.glass || ''}" onfocus="snapshot()" oninput="updateCocktailMeta('${item.id}','glass',this.value)"></span>
+            <span class="sheet-meta-edit">Glace — <input type="text" class="sheet-meta-input" value="${item.ice || ''}" onfocus="snapshot()" oninput="updateCocktailMeta('${item.id}','ice',this.value)"></span>
+            <span class="sheet-meta-edit">Garniture — <input type="text" class="sheet-meta-input" value="${item.garnish || ''}" onfocus="snapshot()" oninput="updateCocktailMeta('${item.id}','garnish',this.value)"></span>
+            <span class="sheet-meta-edit">Méthode — <input type="text" class="sheet-meta-input" value="${item.methodType || ''}" onfocus="snapshot()" oninput="updateCocktailMeta('${item.id}','methodType',this.value)"></span>
+          ` : `
+            <span>Verre — <b>${item.glass}</b></span>
+            ${item.ice ? `<span>Glace — <b>${item.ice}</b></span>` : ''}
+            ${item.garnish ? `<span>Garniture — <b>${item.garnish}</b></span>` : ''}
+            ${item.methodType ? `<span>Méthode — <b>${item.methodType}</b></span>` : ''}
+          `}
+        </div>
+      </div>
+      <button class="edit-sheet-btn" onclick="openEditCocktailModal('${item.id}')">Modifier</button>
+    </div>
+
+    <div class="section">
+      <p class="section-label">Recette (1 verre)</p>
+      <ul class="ingredient-list">
+        ${item.ingredients.map((ing, idx) => ingredientRowHtml(ing, ing.qty, item.id, idx, editing)).join('')}
+        <li class="ingredient-row ingredient-total">
+          <span class="ing-name">Volume total</span>
+          <span class="ing-qty" id="recipeTotalValue">${fmtNumber(recipeTotalMl(item))} ml</span>
+        </li>
+      </ul>
+      ${editing ? `<select class="add-row-btn add-ing-select" onchange="handleAddIngredientChoice('${item.id}', this)">
+        <option value="" selected disabled>+ Ajouter un ingrédient</option>
+        <option value="__new__">+ Nouvel ingrédient (brut)</option>
+        ${preps.length ? `<optgroup label="Preps existantes">
+          ${preps.map(p => `<option value="${p.id}">${p.name}</option>`).join('')}
+        </optgroup>` : ''}
+      </select>` : ''}
+    </div>
+
+    ${hasPrebatch ? `
+    <div class="section">
+      <p class="section-label">Prebatch</p>
+      <div class="scaler">
+        <span class="scaler-label">Quantité totale du batch</span>
+        <div class="scaler-controls">
+          <button class="scaler-btn" onclick="adjustBatchVolume(-1)">−</button>
+          <div class="scaler-value"><input type="number" id="batchVolValue" value="15000" min="1" step="1" oninput="setBatchVolume(this.value)"> <span class="unit">ml</span></div>
+          <button class="scaler-btn" onclick="adjustBatchVolume(1)">+</button>
+        </div>
+      </div>
+      <ul class="ingredient-list" id="batchIngList"></ul>
+    </div>` : ''}
+
+    ${hasSteps ? `
+    <div class="section">
+      <p class="section-label">Méthode</p>
+      <div class="steps">
+        ${item.steps.map((s, idx) => stepHtml(s, idx === item.steps.length - 1, false)).join('')}
+      </div>
+    </div>` : ''}
+  `;
+
+  if(hasPrebatch){
+    window._currentBatchVolume = 15000;
+    renderBatchIngredients(item, 15000, false);
+  }
+}
+
+function handleAddIngredientChoice(cocktailId, selectEl){
+  const val = selectEl.value;
+  const cocktail = byId(cocktailId);
+  if(val === '__new__'){
+    snapshot();
+    cocktail.ingredients.push({ kind: 'raw', name: '', qty: 0, unit: 'ml', prebatch: false });
+    renderMain();
+    const input = document.getElementById('newIngNameInput');
+    if(input) input.focus();
+  } else if(val){
+    snapshot();
+    cocktail.ingredients.push({ kind: 'prep', ref: val, qty: 0, unit: 'ml', prebatch: false });
+    renderMain();
+  }
+}
+
+function nameInputDone(cocktailId, idx, value){
+  const cocktail = byId(cocktailId);
+  const ing = cocktail.ingredients[idx];
+  if(!ing) return;
+  snapshot();
+  const trimmed = (value || '').trim();
+  if(trimmed){
+    ing.name = trimmed;
+  } else {
+    cocktail.ingredients.splice(idx, 1);
+  }
+  renderMain();
+}
+
+function removeCocktailIngredient(cocktailId, idx){
+  snapshot();
+  const cocktail = byId(cocktailId);
+  cocktail.ingredients.splice(idx, 1);
+  renderMain();
+}
+
+function toggleIngPrebatch(cocktailId, idx, checked){
+  snapshot();
+  const cocktail = byId(cocktailId);
+  cocktail.ingredients[idx].prebatch = checked;
+  renderCocktailSheet(cocktail);
+}
+
+function recipeTotalMl(item){
+  return item.ingredients.reduce((sum, ing) => {
+    let q = Number(ing.qty) || 0;
+    if(ing.unit === 'L') q *= 1000;
+    else if(ing.unit === 'cl') q *= 10;
+    else if(ing.unit !== 'ml') return sum;
+    return sum + q;
+  }, 0);
+}
+
+function prebatchBaseVolume(item){
+  return item.ingredients.filter(i => i.prebatch).reduce((sum, ing) => sum + (Number(ing.qty) || 0), 0) || 1;
+}
+
+function renderBatchIngredients(item, volume, animate){
+  const factor = volume / prebatchBaseVolume(item);
+  const list = document.getElementById('batchIngList');
+  list.innerHTML = item.ingredients.filter(ing => ing.prebatch).map(ing => `
+    <li class="ingredient-row">
+      <span class="ing-name">${ing.kind === 'prep' ? (byId(ing.ref) ? byId(ing.ref).name : ing.ref) : ing.name}${ing.note ? ` <span class="ing-note">(${ing.note})</span>` : ''}</span>
+      <span class="ing-qty ${animate?'flash':''}">${fmtQty(ing.qty * factor, ing.unit)}</span>
+    </li>
+  `).join('');
+}
+
+function setBatchVolume(v){
+  const item = byId(state.activeId);
+  v = parseFloat(v) || 15000;
+  window._currentBatchVolume = v;
+  renderBatchIngredients(item, v, true);
+}
+
+function adjustBatchVolume(dir){
+  const item = byId(state.activeId);
+  const step = 1000;
+  let v = (window._currentBatchVolume || 15000) + dir * step;
+  v = Math.max(step, Math.round(v * 100) / 100);
+  window._currentBatchVolume = v;
+  document.getElementById('batchVolValue').value = fmtNumber(v);
+  renderBatchIngredients(item, v, true);
+}
+
+function stepHtml(s, isLast, isPrep){
+  return `
+    <div class="step ${isPrep ? 'is-prep-step' : ''}">
+      <div class="step-rail">
+        <div class="step-icon">${iconSvg(s.icon)}</div>
+        ${!isLast ? '<div class="step-line"></div>' : ''}
+      </div>
+      <div class="step-body">
+        <p class="step-title">${s.title}</p>
+        <p class="step-text">${s.text}</p>
+        ${s.timer ? `<span class="step-timer">${s.timer}</span>` : ''}
+      </div>
+    </div>
+  `;
+}
+
+/* ============================================================
+   MODALE — créer une fiche de prep liée à un ingrédient
+   ============================================================ */
+let modalCtx = null; // { cocktailId, idx } — présent seulement en mode "link"
+let modalMode = 'create'; // 'create' | 'link'
+let modalType = 'prep';   // 'prep' | 'cocktail'
+let modalIngredients = [];
+let modalSteps = [];
+let lastCreatedPrep = null;
+
+function slugify(str){
+  return str.toString().toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)/g, '');
+}
+
+function openPrepModal(cocktailId, idx){
+  const cocktail = byId(cocktailId);
+  const ing = cocktail.ingredients[idx];
+  modalCtx = { cocktailId, idx };
+  modalMode = 'link';
+  modalType = 'prep';
+  document.getElementById('modalTitle').textContent = 'Nouvelle fiche de prep';
+  document.getElementById('modalNameLabel').textContent = 'Nom de la préparation';
+  document.getElementById('mfIngLabel').textContent = 'Ingrédients (pour le volume de référence)';
+  document.getElementById('mfPrepFields').style.display = '';
+  document.getElementById('mfCocktailFields').style.display = 'none';
+  document.getElementById('mfName').value = ing.name;
+  document.getElementById('mfCategory').value = 'Sirop';
+  document.getElementById('mfBaseVolume').value = 1000;
+  document.getElementById('mfBaseUnit').value = 'ml';
+  document.getElementById('mfShelfLife').value = '';
+  modalIngredients = [{ name: '', qty: '', unit: 'ml' }];
+  modalSteps = [{ title: '', text: '', icon: 'leaf', timer: '' }];
+  renderModalIngredients();
+  renderModalSteps();
+  const submitBtn0 = document.getElementById('modalSubmitBtn');
+  if(submitBtn0) submitBtn0.textContent = 'Créer la fiche';
+  document.getElementById('modalOverlay').classList.add('open');
+}
+
+function openEditPrepModal(prepId){
+  const item = byId(prepId);
+  if(!item) return;
+  modalCtx = { editId: prepId };
+  modalMode = 'edit';
+  modalType = 'prep';
+  document.getElementById('modalTitle').textContent = 'Modifier la préparation';
+  document.getElementById('modalNameLabel').textContent = 'Nom de la préparation';
+  document.getElementById('mfIngLabel').textContent = 'Ingrédients (pour le volume de référence)';
+  document.getElementById('mfPrepFields').style.display = '';
+  document.getElementById('mfCocktailFields').style.display = 'none';
+  document.getElementById('mfName').value = item.name;
+  document.getElementById('mfCategory').value = item.category;
+  document.getElementById('mfBaseVolume').value = item.baseVolume;
+  document.getElementById('mfBaseUnit').value = item.unit;
+  document.getElementById('mfShelfLife').value = item.shelfLife || '';
+  modalIngredients = item.ingredients.map(i => ({ name: i.name, qty: i.qty, unit: i.unit }));
+  modalSteps = (item.steps || []).map(s => ({ title: s.title, icon: s.icon, text: s.text, timer: s.timer || '' }));
+  if(!modalIngredients.length) modalIngredients = [{ name: '', qty: '', unit: 'ml' }];
+  if(!modalSteps.length) modalSteps = [{ title: '', text: '', icon: 'leaf', timer: '' }];
+  renderModalIngredients();
+  renderModalSteps();
+  const submitBtn = document.getElementById('modalSubmitBtn');
+  if(submitBtn) submitBtn.textContent = 'Enregistrer les modifications';
+  document.getElementById('modalOverlay').classList.add('open');
+}
+
+function openEditCocktailModal(cocktailId){
+  const item = byId(cocktailId);
+  if(!item) return;
+  modalCtx = { editId: cocktailId };
+  modalMode = 'edit';
+  modalType = 'cocktail';
+  document.getElementById('modalTitle').textContent = 'Modifier le cocktail';
+  document.getElementById('modalNameLabel').textContent = 'Nom du cocktail';
+  document.getElementById('mfIngLabel').textContent = 'Ingrédients (pour 1 verre)';
+  document.getElementById('mfPrepFields').style.display = 'none';
+  document.getElementById('mfCocktailFields').style.display = '';
+  document.getElementById('mfName').value = item.name;
+  document.getElementById('mfCktCategory').value = item.category || '';
+  document.getElementById('mfGlass').value = item.glass || '';
+  document.getElementById('mfIce').value = item.ice || '';
+  document.getElementById('mfGarnish').value = item.garnish || '';
+  document.getElementById('mfMethod').value = item.methodType || '';
+  modalIngredients = item.ingredients.map(i => {
+    if(i.kind === 'prep'){
+      return { kind: 'prep', ref: i.ref, pendingName: '', qty: i.qty, unit: i.unit, prebatch: !!i.prebatch };
+    }
+    if(i.note === 'prep — fiche à créer'){
+      return { kind: 'prep', ref: '__new__', pendingName: i.name, qty: i.qty, unit: i.unit, prebatch: !!i.prebatch };
+    }
+    return { kind: 'raw', name: i.name, ref: '', qty: i.qty, unit: i.unit, prebatch: !!i.prebatch };
+  });
+  modalSteps = (item.steps || []).map(s => ({ title: s.title, icon: s.icon, text: s.text, timer: s.timer || '' }));
+  if(!modalIngredients.length) modalIngredients = [{ kind: 'raw', name: '', ref: '', qty: '', unit: 'ml', prebatch: false }];
+  if(!modalSteps.length) modalSteps = [{ title: '', text: '', icon: 'leaf', timer: '' }];
+  renderModalIngredients();
+  renderModalSteps();
+  const submitBtn = document.getElementById('modalSubmitBtn');
+  if(submitBtn) submitBtn.textContent = 'Enregistrer les modifications';
+  document.getElementById('modalOverlay').classList.add('open');
+}
+
+function openCreateModal(type){
+  modalCtx = null;
+  modalMode = 'create';
+  modalType = type;
+  document.getElementById('modalTitle').textContent = type === 'cocktail' ? 'Nouveau cocktail' : 'Nouvelle préparation';
+  document.getElementById('modalNameLabel').textContent = type === 'cocktail' ? 'Nom du cocktail' : 'Nom de la préparation';
+  document.getElementById('mfIngLabel').textContent = type === 'cocktail' ? 'Ingrédients (pour 1 verre)' : 'Ingrédients (pour le volume de référence)';
+  document.getElementById('mfPrepFields').style.display = type === 'prep' ? '' : 'none';
+  document.getElementById('mfCocktailFields').style.display = type === 'cocktail' ? '' : 'none';
+  document.getElementById('mfName').value = '';
+  if(type === 'prep'){
+    document.getElementById('mfCategory').value = 'Sirop';
+    document.getElementById('mfBaseVolume').value = 1000;
+    document.getElementById('mfBaseUnit').value = 'ml';
+    document.getElementById('mfShelfLife').value = '';
+    modalIngredients = [{ name: '', qty: '', unit: 'ml' }];
+  } else {
+    document.getElementById('mfCktCategory').value = '';
+    document.getElementById('mfGlass').value = '';
+    document.getElementById('mfIce').value = '';
+    document.getElementById('mfGarnish').value = '';
+    document.getElementById('mfMethod').value = '';
+    modalIngredients = [{ kind: 'raw', name: '', ref: '', pendingName: '', qty: '', unit: 'ml', prebatch: false }];
+  }
+  modalSteps = [{ title: '', text: '', icon: 'leaf', timer: '' }];
+  renderModalIngredients();
+  renderModalSteps();
+  const submitBtn1 = document.getElementById('modalSubmitBtn');
+  if(submitBtn1) submitBtn1.textContent = 'Créer la fiche';
+  document.getElementById('modalOverlay').classList.add('open');
+}
+
+function closePrepModal(){
+  document.getElementById('modalOverlay').classList.remove('open');
+  modalCtx = null;
+}
+
+function renderModalIngredients(){
+  const wrap = document.getElementById('mfIngRows');
+  if(modalType === 'cocktail'){
+    wrap.innerHTML = modalIngredients.map((row, i) => {
+      const isPrepKind = row.kind === 'prep';
+      const isPendingNew = isPrepKind && row.ref === '__new__';
+      return `
+      <div class="dyn-row row-ckt-ing">
+        <div class="field" style="margin-bottom:0;">
+          ${i===0?'<label>Type</label>':''}
+          <select onchange="setModalIngKind(${i}, this.value)">
+            <option value="raw" ${!isPrepKind?'selected':''}>Brut</option>
+            <option value="prep" ${isPrepKind?'selected':''}>Prep existante</option>
+          </select>
+        </div>
+        <div class="field" style="margin-bottom:0;">
+          ${i===0?'<label>Nom</label>':''}
+          ${isPrepKind
+            ? (isPendingNew
+                ? `<span class="pending-prep-name">
+                    <input type="text" placeholder="Nom de la nouvelle prep…" value="${row.pendingName||''}" oninput="updateModalIng(${i},'pendingName',this.value)">
+                  </span>`
+                : `<select onchange="selectModalIngPrep(${i}, this.value)">
+                    <option value="">— choisir —</option>
+                    ${preps.map(p => `<option value="${p.id}" ${row.ref===p.id?'selected':''}>${p.name}</option>`).join('')}
+                    <option value="__new__">+ Créer une nouvelle prep</option>
+                  </select>`)
+            : `<input type="text" value="${row.name||''}" oninput="updateModalIng(${i},'name',this.value)">`
+          }
+        </div>
+        <div class="field" style="margin-bottom:0;">
+          ${i===0?'<label>Qté</label>':''}
+          <input type="number" value="${row.qty}" step="0.1" oninput="updateModalIng(${i},'qty',this.value)">
+        </div>
+        <div class="field" style="margin-bottom:0;">
+          ${i===0?'<label>Unité</label>':''}
+          <select onchange="updateModalIng(${i},'unit',this.value)">
+            ${['ml','g','cl','pièce'].map(u => `<option value="${u}" ${row.unit===u?'selected':''}>${u}</option>`).join('')}
+          </select>
+        </div>
+        <div class="field" style="margin-bottom:0; text-align:center;">
+          ${i===0?'<label>PB</label>':''}
+          <input type="checkbox" style="width:auto;" ${row.prebatch?'checked':''} onchange="updateModalIng(${i},'prebatch',this.checked)">
+        </div>
+        <button type="button" class="remove-row" onclick="removeModalIng(${i})" title="Retirer">×</button>
+      </div>`;
+    }).join('');
+    return;
+  }
+  wrap.innerHTML = modalIngredients.map((row, i) => `
+    <div class="dyn-row row-4">
+      <div class="field" style="margin-bottom:0;">
+        ${i===0?'<label>Nom</label>':''}
+        <input type="text" value="${row.name}" oninput="updateModalIng(${i},'name',this.value)">
+      </div>
+      <div class="field" style="margin-bottom:0;">
+        ${i===0?'<label>Qté</label>':''}
+        <input type="number" value="${row.qty}" step="0.1" oninput="updateModalIng(${i},'qty',this.value)">
+      </div>
+      <div class="field" style="margin-bottom:0;">
+        ${i===0?'<label>Unité</label>':''}
+        <select onchange="updateModalIng(${i},'unit',this.value)">
+          ${['ml','g','pièce'].map(u => `<option value="${u}" ${row.unit===u?'selected':''}>${u}</option>`).join('')}
+        </select>
+      </div>
+      <button type="button" class="remove-row" onclick="removeModalIng(${i})" title="Retirer">×</button>
+    </div>
+  `).join('');
+}
+function addModalIngredient(){
+  modalIngredients.push(modalType === 'cocktail' ? { kind:'raw', name:'', ref:'', pendingName:'', qty:'', unit:'ml', prebatch:false } : { name:'', qty:'', unit:'ml' });
+  renderModalIngredients();
+}
+function removeModalIng(i){ if(modalIngredients.length>1){ modalIngredients.splice(i,1); renderModalIngredients(); } }
+function updateModalIng(i, field, val){ modalIngredients[i][field] = val; }
+function setModalIngKind(i, val){
+  modalIngredients[i].kind = val;
+  if(val === 'prep'){
+    modalIngredients[i].ref = '';
+    modalIngredients[i].pendingName = '';
+  } else {
+    modalIngredients[i].ref = '';
+    modalIngredients[i].pendingName = '';
+  }
+  renderModalIngredients();
+}
+function selectModalIngPrep(i, val){
+  modalIngredients[i].ref = val;
+  if(val !== '__new__') modalIngredients[i].pendingName = '';
+  renderModalIngredients();
+}
+
+const stepIconOptions = ['jar','leaf','clock','strain','bottle','pan','shaker','blender','snowflake','flame','scale','drop','spoon','knife','fridge','press','filter','mortar','vacuum','bubble','barrel'];
+function renderModalSteps(){
+  const wrap = document.getElementById('mfStepRows');
+  wrap.innerHTML = modalSteps.map((row, i) => `
+    <div class="dyn-row subgroup" style="padding:10px 10px 2px;">
+      <div class="row-3" style="margin-bottom:8px;">
+        <div class="field" style="margin-bottom:0;">
+          <label>Titre étape ${i+1}</label>
+          <input type="text" value="${row.title}" oninput="updateModalStep(${i},'title',this.value)">
+        </div>
+        <div class="field" style="margin-bottom:0;">
+          <label>Icône</label>
+          <select onchange="updateModalStep(${i},'icon',this.value)">
+            ${stepIconOptions.map(o => `<option value="${o}" ${row.icon===o?'selected':''}>${o}</option>`).join('')}
+          </select>
+        </div>
+        <button type="button" class="remove-row" onclick="removeModalStep(${i})" title="Retirer">×</button>
+      </div>
+      <div class="field">
+        <label>Description</label>
+        <textarea oninput="updateModalStep(${i},'text',this.value)">${row.text}</textarea>
+      </div>
+      <div class="field">
+        <label>Timer (optionnel, ex. 48h)</label>
+        <input type="text" value="${row.timer}" oninput="updateModalStep(${i},'timer',this.value)">
+      </div>
+    </div>
+  `).join('');
+}
+function addModalStep(){ modalSteps.push({title:'',text:'',icon:'leaf',timer:''}); renderModalSteps(); }
+function removeModalStep(i){ if(modalSteps.length>1){ modalSteps.splice(i,1); renderModalSteps(); } }
+function updateModalStep(i, field, val){ modalSteps[i][field] = val; }
+
+function buildCocktailIngredientsFromModal(){
+  return modalIngredients
+    .filter(r => {
+      if(r.kind === 'prep') return (r.ref === '__new__' ? (r.pendingName||'').trim() : r.ref) && r.qty !== '';
+      return (r.name||'').trim() && r.qty !== '';
+    })
+    .map(r => {
+      if(r.kind === 'prep' && r.ref === '__new__'){
+        return { kind: 'raw', name: r.pendingName.trim(), qty: parseFloat(r.qty), unit: r.unit, prebatch: !!r.prebatch, note: 'prep — fiche à créer' };
+      }
+      if(r.kind === 'prep'){
+        return { kind: 'prep', ref: r.ref, qty: parseFloat(r.qty), unit: r.unit, prebatch: !!r.prebatch };
+      }
+      return { kind: 'raw', name: r.name.trim(), qty: parseFloat(r.qty), unit: r.unit, prebatch: !!r.prebatch };
+    });
+}
+
+function submitPrepModal(){
+  const name = document.getElementById('mfName').value.trim();
+  if(!name){ alert('Donne un nom.'); return; }
+  snapshot();
+
+  if(modalMode === 'edit' && modalType === 'prep'){
+    const item = byId(modalCtx.editId);
+    if(!item){ closePrepModal(); return; }
+    const category = document.getElementById('mfCategory').value;
+    const baseVolume = parseFloat(document.getElementById('mfBaseVolume').value) || item.baseVolume;
+    const unit = document.getElementById('mfBaseUnit').value;
+    const shelfLife = document.getElementById('mfShelfLife').value.trim();
+    const ingredients = modalIngredients
+      .filter(r => r.name.trim() && r.qty !== '')
+      .map(r => ({ name: r.name.trim(), qty: parseFloat(r.qty), unit: r.unit }));
+    const steps = modalSteps
+      .filter(s => s.title.trim())
+      .map(s => ({ icon: s.icon, title: s.title.trim(), text: s.text.trim(), timer: s.timer.trim() || null }));
+    item.name = name;
+    item.category = category;
+    item.baseVolume = baseVolume;
+    item.unit = unit;
+    item.shelfLife = shelfLife || null;
+    if(ingredients.length) item.ingredients = ingredients;
+    if(steps.length) item.steps = steps;
+    closePrepModal();
+    renderList();
+    renderMain();
+    showToast(`Fiche "${name}" mise à jour.`);
+    return;
+  }
+
+  if(modalMode === 'edit' && modalType === 'cocktail'){
+    const item = byId(modalCtx.editId);
+    if(!item){ closePrepModal(); return; }
+    const category = document.getElementById('mfCktCategory').value.trim() || 'Signature';
+    const glass = document.getElementById('mfGlass').value.trim();
+    const ice = document.getElementById('mfIce').value.trim();
+    const garnish = document.getElementById('mfGarnish').value.trim();
+    const methodType = document.getElementById('mfMethod').value.trim();
+    const ingredients = buildCocktailIngredientsFromModal();
+    const steps = modalSteps
+      .filter(s => s.title.trim())
+      .map(s => ({ icon: s.icon, title: s.title.trim(), text: s.text.trim(), timer: s.timer.trim() || null }));
+    item.name = name;
+    item.category = category;
+    item.glass = glass || 'À préciser';
+    item.ice = ice || null;
+    item.garnish = garnish || null;
+    item.methodType = methodType || null;
+    if(ingredients.length) item.ingredients = ingredients;
+    if(steps.length) item.steps = steps;
+    closePrepModal();
+    renderList();
+    renderMain();
+    showToast(`Cocktail "${name}" mis à jour.`);
+    return;
+  }
+
+  let id = slugify(name);
+  if(byId(id)) id = id + '-' + Math.floor(Math.random()*900 + 100);
+
+  if(modalType === 'cocktail'){
+    const category = document.getElementById('mfCktCategory').value.trim() || 'Signature';
+    const glass = document.getElementById('mfGlass').value.trim();
+    const ice = document.getElementById('mfIce').value.trim();
+    const garnish = document.getElementById('mfGarnish').value.trim();
+    const methodType = document.getElementById('mfMethod').value.trim();
+
+    const ingredients = buildCocktailIngredientsFromModal();
+    const steps = modalSteps
+      .filter(s => s.title.trim())
+      .map(s => ({ icon: s.icon, title: s.title.trim(), text: s.text.trim(), timer: s.timer.trim() || null }));
+
+    const newCocktail = {
+      id, type: 'cocktail', category, name,
+      glass: glass || 'À préciser',
+      ice: ice || null,
+      garnish: garnish || null,
+      methodType: methodType || null,
+      ingredients: ingredients.length ? ingredients : [{ kind: 'raw', name: 'Ingrédient à préciser', qty: 1, unit: 'ml', prebatch: false }],
+    };
+    if(steps.length) newCocktail.steps = steps;
+    cocktails.push(newCocktail);
+    lastCreatedPrep = newCocktail;
+    closePrepModal();
+    renderList();
+    selectItem(id);
+    showToast(`Cocktail "${name}" créé pour cette session.`);
+    return;
+  }
+
+  const category = document.getElementById('mfCategory').value;
+  const baseVolume = parseFloat(document.getElementById('mfBaseVolume').value) || 1000;
+  const unit = document.getElementById('mfBaseUnit').value;
+  const shelfLife = document.getElementById('mfShelfLife').value.trim();
+
+  const ingredients = modalIngredients
+    .filter(r => r.name.trim() && r.qty !== '')
+    .map(r => ({ name: r.name.trim(), qty: parseFloat(r.qty), unit: r.unit }));
+  const steps = modalSteps
+    .filter(s => s.title.trim())
+    .map(s => ({ icon: s.icon, title: s.title.trim(), text: s.text.trim(), timer: s.timer.trim() || null }));
+
+  const newPrep = {
+    id, type: 'prep', category, name, baseVolume, unit,
+    shelfLife: shelfLife || null,
+    ingredients: ingredients.length ? ingredients : [{ name: 'Ingrédient à préciser', qty: 1000, unit: 'ml' }],
+    steps: steps.length ? steps : [{ icon: 'leaf', title: 'Étape à préciser', text: '' }],
+  };
+  preps.push(newPrep);
+
+  if(modalCtx){
+    const cocktail = byId(modalCtx.cocktailId);
+    const ing = cocktail.ingredients[modalCtx.idx];
+    cocktail.ingredients[modalCtx.idx] = { kind: 'prep', ref: id, qty: ing.qty, unit: ing.unit, prebatch: !!ing.prebatch };
+  }
+
+  lastCreatedPrep = newPrep;
+  closePrepModal();
+  renderList();
+  if(modalCtx){ renderMain(); } else { selectItem(id); }
+  showToast(`Fiche "${name}" créée pour cette session.`);
+}
+
+function showToast(text){
+  document.getElementById('toastText').textContent = text;
+  document.getElementById('toast').classList.add('open');
+  clearTimeout(window._toastTimer);
+  window._toastTimer = setTimeout(() => document.getElementById('toast').classList.remove('open'), 9000);
+}
+
+function copyToastCode(){
+  if(!lastCreatedPrep) return;
+  const code = JSON.stringify(lastCreatedPrep, null, 2);
+  const text = `Ajoute cette fiche prep :\n${code}`;
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(() => showToast('Code copié — colle-le dans le chat.'));
+  } else {
+    window.prompt('Copie ce code :', text);
+  }
+}
+
+/* ============================================================
+   INIT
+   ============================================================ */
+renderList();
+renderMain();
+loadFromCloud(true);
+</script>
+</body>
+</html>
