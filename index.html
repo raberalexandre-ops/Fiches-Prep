@@ -20,6 +20,8 @@
     --copper-bright: #e5a066;
     --verdigris: #6a978c;
     --verdigris-bright: #8bb8ad;
+    --slate: #7d8ba3;
+    --slate-bright: #a3aec2;
     --text: #f1e9dc;
     --text-soft: #b3a692;
     --text-faint: #6e6355;
@@ -234,14 +236,15 @@
   .tab{
     flex:1;
     text-align:center;
-    padding:7px 4px;
-    font-size:12.5px;
+    padding:7px 2px;
+    font-size:11.5px;
     color:var(--text-soft);
     border-radius:2px;
     cursor:pointer;
     border:none;
     background:transparent;
     transition:background .15s, color .15s;
+    white-space:nowrap;
   }
   .tab.active{
     background:var(--copper);
@@ -303,7 +306,23 @@
     flex-shrink:0;
     background:var(--copper);
   }
+  .rail-drag-handle{
+    flex-shrink:0;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    width:16px; height:22px;
+    margin:0 -4px 0 -6px;
+    color:var(--text-faint);
+    cursor:grab;
+    touch-action:none;
+  }
+  .rail-drag-handle:hover{color:var(--text-soft);}
+  .rail-drag-handle svg{width:14px;height:14px;}
+  .rail-item.dragging{opacity:.35;}
+  .rail-item.drag-over{box-shadow: inset 0 2px 0 0 var(--copper);}
   .rail-item.type-prep .dot{background:var(--verdigris);}
+  .rail-item.type-ratio .dot{background:var(--slate);}
   .rail-item.rail-add{border-left:2px dashed transparent;}
   .rail-item.rail-add:hover{background:var(--bg-card-hover);}
   .rail-item.rail-add .rail-item-name{color:var(--text-soft);}
@@ -396,6 +415,16 @@
   }
   .crumb .type-tag{color:var(--copper);}
   .crumb.is-prep .type-tag{color:var(--verdigris-bright);}
+  .crumb.is-ratio .type-tag{color:var(--slate-bright);}
+  .ratio-pct{
+    font-variant-numeric:tabular-nums;
+    color:var(--verdigris-bright);
+    font-weight:600;
+    white-space:nowrap;
+    width:28px;
+    text-align:right;
+    flex-shrink:0;
+  }
 
   .sheet-head{
     display:flex;
@@ -593,7 +622,7 @@
   .pb-static.pb-active svg{stroke:var(--verdigris-bright);}
   .ing-name .ing-note{color:var(--text-faint); font-size:12.5px;}
   .ing-name.is-link{
-    color:var(--text);
+    color:var(--verdigris-bright);
     cursor:pointer;
     padding:2px 4px;
     margin:-2px -4px;
@@ -601,8 +630,7 @@
     display:inline-block;
     transition:color .12s ease;
   }
-  .ing-name.is-link:hover{color:var(--verdigris-bright);}
-  .ing-name.is-link:active{color:var(--verdigris);}
+  .ing-name.is-link:hover, .ing-name.is-link:active{color:var(--text);}
   .edit-ing-btn{
     width:18px;height:18px;
     border-radius:50%;
@@ -1145,6 +1173,7 @@
         <button class="tab active" data-tab="all" onclick="setTab('all')">Tout</button>
         <button class="tab" data-tab="cocktail" onclick="setTab('cocktail')">Cocktails</button>
         <button class="tab" data-tab="prep" onclick="setTab('prep')">Preps</button>
+        <button class="tab" data-tab="ratio" onclick="setTab('ratio')">Ratios</button>
       </div>
     </div>
     <div class="rail-list" id="railList"></div>
@@ -1198,7 +1227,7 @@
         <div class="field">
           <label>Volume de référence du lot</label>
           <div class="row-2">
-            <input type="number" id="mfBaseVolume" value="1000" min="0" step="10">
+            <input type="number" id="mfBaseVolume" value="1000" min="0" step="10" oninput="mfBaseVolumeTouched=true">
             <select id="mfBaseUnit">
               <option value="ml">ml</option>
               <option value="g">g</option>
@@ -1239,13 +1268,30 @@
       </div>
     </div>
 
-    <div class="subgroup">
+    <div id="mfRatioFields" style="display:none;">
+      <div class="field">
+        <label>Catégorie</label>
+        <input type="text" id="mfRatioCategory" placeholder="ex. Sirop, Infusion, Acide…">
+      </div>
+    </div>
+
+    <div class="subgroup" id="mfIngSection">
       <p class="subgroup-label" id="mfIngLabel">Ingrédients (pour le volume de référence)</p>
       <div id="mfIngRows"></div>
       <button type="button" class="add-row-btn" onclick="addModalIngredient()">+ Ajouter un ingrédient</button>
     </div>
 
-    <div class="subgroup">
+    <div class="subgroup" id="mfRatioPartsSection" style="display:none;">
+      <p class="subgroup-label">Proportions</p>
+      <div id="mfRatioPartRows"></div>
+      <button type="button" class="add-row-btn" onclick="addModalRatioPart()">+ Ajouter une part</button>
+      <div class="field" style="margin-top:14px;">
+        <label>Note (optionnel)</label>
+        <input type="text" id="mfRatioNote" placeholder="ex. précision d'usage, température…">
+      </div>
+    </div>
+
+    <div class="subgroup" id="mfStepsSection">
       <p class="subgroup-label">Étapes du processus (optionnel)</p>
       <div id="mfStepRows"></div>
       <button type="button" class="add-row-btn" onclick="addModalStep()">+ Ajouter une étape</button>
@@ -1344,6 +1390,21 @@ const cocktails = [
     ],
   },
 ];
+
+// ---- Ratios (fiches de proportions génériques) ----
+const ratios = [
+  {
+    id: 'ratio-sirop-miel',
+    type: 'ratio',
+    category: 'Sirop',
+    name: 'Sirop de miel',
+    parts: [
+      { label: 'Miel', value: 64 },
+      { label: 'Eau', value: 100 },
+    ],
+    note: 'Chauffer légèrement l\u2019eau pour dissoudre le miel, laisser refroidir avant embouteillage.',
+  },
+];
 /* DATA_END */
 
 // ---- Persistance locale (sauvegarde automatique dans ce navigateur) ----
@@ -1356,12 +1417,13 @@ const LOCAL_STORAGE_KEY = 'fiches-prep-data-v1';
     if(saved && Array.isArray(saved.preps) && Array.isArray(saved.cocktails)){
       preps.length = 0; preps.push(...saved.preps);
       cocktails.length = 0; cocktails.push(...saved.cocktails);
+      if(Array.isArray(saved.ratios)){ ratios.length = 0; ratios.push(...saved.ratios); }
     }
   }catch(e){ /* données locales illisibles, on garde les données par défaut */ }
 })();
 function saveToLocalStorage(){
   try{
-    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify({ preps, cocktails }));
+    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify({ preps, cocktails, ratios }));
   }catch(e){ /* stockage indisponible (navigation privée…) — pas bloquant */ }
 }
 
@@ -1381,6 +1443,7 @@ async function loadFromCloud(silent){
     if(Array.isArray(record.preps) && Array.isArray(record.cocktails)){
       preps.length = 0; preps.push(...record.preps);
       cocktails.length = 0; cocktails.push(...record.cocktails);
+      if(Array.isArray(record.ratios)){ ratios.length = 0; ratios.push(...record.ratios); }
       saveToLocalStorage();
       renderList();
       renderMain();
@@ -1401,7 +1464,7 @@ async function saveToCloud(){
     const res = await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_ID}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json', 'X-Master-Key': JSONBIN_KEY },
-      body: JSON.stringify({ preps, cocktails })
+      body: JSON.stringify({ preps, cocktails, ratios })
     });
     if(!res.ok) throw new Error('HTTP ' + res.status);
     showToast('Publié en ligne — visible par toute l’équipe au prochain chargement.');
@@ -1431,6 +1494,9 @@ const preps = ${JSON.stringify(preps, null, 2)};
 
 // ---- Cocktails ----
 const cocktails = ${JSON.stringify(cocktails, null, 2)};
+
+// ---- Ratios (fiches de proportions génériques) ----
+const ratios = ${JSON.stringify(ratios, null, 2)};
 /* DATA_END */`;
 
   html = html.replace(/\/\* DATA_START \*\/[\s\S]*?\/\* DATA_END \*\//, newDataBlock);
@@ -1472,6 +1538,7 @@ const icons = {
   vacuum: '<rect x="5" y="6" width="14" height="13" rx="1.5" fill="none" stroke-width="1.5"/><path d="M9 6V4h6v2M8 10h8M8 13h8" stroke-width="1.3" stroke-linecap="round"/>',
   bubble: '<circle cx="10" cy="13.5" r="5.3" fill="none" stroke-width="1.6"/><circle cx="16.8" cy="7.8" r="2.3" fill="none" stroke-width="1.5"/><circle cx="15.2" cy="16.8" r="1.5" fill="none" stroke-width="1.3"/>',
   barrel: '<path d="M8.5 3h7l1.3 3.2c.6 1.6.9 3.3.9 5v1.6c0 1.7-.3 3.4-.9 5L15.5 21h-7l-1.3-3.2c-.6-1.6-.9-3.3-.9-5v-1.6c0-1.7.3-3.4.9-5L8.5 3z" fill="none" stroke-width="1.5" stroke-linejoin="round"/><path d="M5.8 8.5h12.4M5.8 15.5h12.4" stroke-width="1.3"/>',
+  whisk: '<path d="M12 3v6" stroke-width="1.6" stroke-linecap="round"/><path d="M12 9c-4 0-6 3-6 7a6 6 0 0 0 12 0c0-4-2-7-6-7z" fill="none" stroke-width="1.5" stroke-linejoin="round"/><path d="M12 9c-2 2-2 10 0 12M12 9c2 2 2 10 0 12M8 10.5c-1.2 2.6-1.2 8 1 10.7M16 10.5c1.2 2.6 1.2 8-1 10.7" fill="none" stroke-width="1.2" stroke-linecap="round"/>',
 };
 function iconSvg(name){
   const p = icons[name] || icons.leaf;
@@ -1511,7 +1578,7 @@ let futureStack = [];
 const HISTORY_LIMIT = 50;
 
 function snapshot(){
-  historyStack.push(JSON.stringify({ cocktails, preps }));
+  historyStack.push(JSON.stringify({ cocktails, preps, ratios }));
   if(historyStack.length > HISTORY_LIMIT) historyStack.shift();
   futureStack = [];
   updateHistoryButtons();
@@ -1521,6 +1588,7 @@ function applySnapshot(json){
   const data = JSON.parse(json);
   cocktails.length = 0; cocktails.push(...data.cocktails);
   preps.length = 0; preps.push(...data.preps);
+  if(Array.isArray(data.ratios)){ ratios.length = 0; ratios.push(...data.ratios); }
   if(state.activeId && !byId(state.activeId)) state.activeId = null;
   cocktailEditMode = false;
   const overlay = document.getElementById('modalOverlay');
@@ -1532,13 +1600,13 @@ function applySnapshot(json){
 
 function undoAction(){
   if(!historyStack.length) return;
-  futureStack.push(JSON.stringify({ cocktails, preps }));
+  futureStack.push(JSON.stringify({ cocktails, preps, ratios }));
   applySnapshot(historyStack.pop());
 }
 
 function redoAction(){
   if(!futureStack.length) return;
-  historyStack.push(JSON.stringify({ cocktails, preps }));
+  historyStack.push(JSON.stringify({ cocktails, preps, ratios }));
   applySnapshot(futureStack.pop());
 }
 
@@ -1548,7 +1616,7 @@ function updateHistoryButtons(){
   if(undoBtn) undoBtn.disabled = historyStack.length === 0;
   if(redoBtn) redoBtn.disabled = futureStack.length === 0;
 }
-const allItems = () => [...cocktails, ...preps];
+const allItems = () => [...cocktails, ...preps, ...ratios];
 const byId = (id) => allItems().find(i => i.id === id);
 
 function goHome(){
@@ -1619,6 +1687,9 @@ function confirmDeleteItem(id, type){
   if(type === 'cocktail'){
     const idx = cocktails.findIndex(c => c.id === id);
     if(idx > -1) cocktails.splice(idx, 1);
+  } else if(type === 'ratio'){
+    const idx = ratios.findIndex(r => r.id === id);
+    if(idx > -1) ratios.splice(idx, 1);
   } else {
     const idx = preps.findIndex(p => p.id === id);
     if(idx > -1) preps.splice(idx, 1);
@@ -1667,6 +1738,50 @@ function selectItem(id){
   }
 }
 
+// ---------- réorganisation du menu par glisser-déposer ----------
+let dragSourceId = null;
+function railDragStart(e, id){
+  dragSourceId = id;
+  e.dataTransfer.effectAllowed = 'move';
+  try{ e.dataTransfer.setData('text/plain', id); }catch(err){}
+  const row = e.target.closest('.rail-item');
+  if(row) row.classList.add('dragging');
+}
+function railDragOver(e, rowEl){
+  if(!dragSourceId || rowEl.dataset.id === dragSourceId) return;
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  rowEl.classList.add('drag-over');
+}
+function railDragLeave(e, rowEl){
+  rowEl.classList.remove('drag-over');
+}
+function railDrop(e, rowEl){
+  e.preventDefault();
+  rowEl.classList.remove('drag-over');
+  const targetId = rowEl.dataset.id;
+  if(dragSourceId && targetId && dragSourceId !== targetId){
+    reorderItem(dragSourceId, targetId);
+  }
+  dragSourceId = null;
+}
+function railDragEnd(){
+  document.querySelectorAll('.rail-item.dragging').forEach(el => el.classList.remove('dragging'));
+  document.querySelectorAll('.rail-item.drag-over').forEach(el => el.classList.remove('drag-over'));
+  dragSourceId = null;
+}
+function reorderItem(sourceId, targetId){
+  const src = byId(sourceId), tgt = byId(targetId);
+  if(!src || !tgt || src.type !== tgt.type) return;
+  const arr = src.type === 'cocktail' ? cocktails : (src.type === 'prep' ? preps : ratios);
+  const srcIdx = arr.findIndex(x => x.id === sourceId);
+  const tgtIdx = arr.findIndex(x => x.id === targetId);
+  if(srcIdx === -1 || tgtIdx === -1) return;
+  const [moved] = arr.splice(srcIdx, 1);
+  arr.splice(tgtIdx, 0, moved);
+  renderList();
+}
+
 function toggleRail(){
   const app = document.querySelector('.app');
   if(window.innerWidth <= 860){
@@ -1693,6 +1808,7 @@ function renderList(){
 
   const cocktailItems = items.filter(i => i.type === 'cocktail');
   const prepItems = items.filter(i => i.type === 'prep');
+  const ratioItems = items.filter(i => i.type === 'ratio');
 
   let html = '';
   const renderGroup = (label, arr, type, addLabel) => {
@@ -1702,8 +1818,16 @@ function renderList(){
       h += `<div class="swipe-wrapper">
         <div class="swipe-delete" onclick="confirmDeleteItem('${i.id}','${i.type}')">Supprimé</div>
         <div class="swipe-content rail-item type-${i.type} ${state.activeId===i.id?'active':''}"
+          data-id="${i.id}"
           onpointerdown="swipeStart(event, this)" onpointermove="swipeMove(event, this)"
-          onpointerup="swipeEnd(event, this, '${i.id}')" onpointercancel="swipeEnd(event, this, '${i.id}')">
+          onpointerup="swipeEnd(event, this, '${i.id}')" onpointercancel="swipeEnd(event, this, '${i.id}')"
+          ondragover="railDragOver(event, this)" ondragleave="railDragLeave(event, this)" ondrop="railDrop(event, this)">
+          <span class="rail-drag-handle" draggable="true" ondragstart="railDragStart(event, '${i.id}')" ondragend="railDragEnd(event)" title="Glisser pour réordonner">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="9" cy="6" r="1.3" fill="currentColor"/><circle cx="9" cy="12" r="1.3" fill="currentColor"/><circle cx="9" cy="18" r="1.3" fill="currentColor"/>
+              <circle cx="15" cy="6" r="1.3" fill="currentColor"/><circle cx="15" cy="12" r="1.3" fill="currentColor"/><circle cx="15" cy="18" r="1.3" fill="currentColor"/>
+            </svg>
+          </span>
           <span class="dot"></span>
           <span class="rail-item-text">
             <div class="rail-item-name">${i.name}</div>
@@ -1724,13 +1848,16 @@ function renderList(){
   if(state.tab === 'all'){
     html += renderGroup('Cocktails', cocktailItems, 'cocktail', 'Nouveau cocktail');
     html += renderGroup('Préparations maison', prepItems, 'prep', 'Nouvelle prep');
+    html += renderGroup('Ratios', ratioItems, 'ratio', 'Nouveau ratio');
   } else if(state.tab === 'cocktail'){
     html += renderGroup('Cocktails', cocktailItems, 'cocktail', 'Nouveau cocktail');
+  } else if(state.tab === 'ratio'){
+    html += renderGroup('Ratios', ratioItems, 'ratio', 'Nouveau ratio');
   } else {
     html += renderGroup('Préparations maison', prepItems, 'prep', 'Nouvelle prep');
   }
 
-  if(q && !cocktailItems.length && !prepItems.length){
+  if(q && !cocktailItems.length && !prepItems.length && !ratioItems.length){
     html = `<div class="rail-empty">Aucune fiche ne correspond.</div>`;
   }
   list.innerHTML = html;
@@ -1758,7 +1885,54 @@ function renderMain(){
     return;
   }
   if(item.type === 'prep') renderPrepSheet(item);
+  else if(item.type === 'ratio') renderRatioSheet(item);
   else renderCocktailSheet(item);
+}
+
+function ratioColor(i){
+  const palette = ['var(--copper)','var(--verdigris)','var(--slate)','var(--copper-bright)','var(--verdigris-bright)','var(--slate-bright)'];
+  return palette[i % palette.length];
+}
+
+function renderRatioSheet(item){
+  const main = document.getElementById('main');
+  const total = item.parts.reduce((s,p) => s + (Number(p.value)||0), 0) || 1;
+  const ratioText = item.parts.map(p => `${fmtNumber(p.value)}${p.unit || ''}`).join(' : ');
+  let cursor = 0;
+  const segs = item.parts.map((p,i) => {
+    const pct = (Number(p.value)||0)/total*100;
+    const start = cursor;
+    cursor += pct;
+    return { start, end: cursor, pct, color: ratioColor(i) };
+  });
+  main.innerHTML = `
+    <div class="crumb is-ratio"><span class="type-tag">Ratio</span> · ${item.category}</div>
+    <div class="sheet-head">
+      <div class="sheet-head-main">
+        <h1 class="sheet-title">${item.name}</h1>
+        <div class="sheet-meta"><span>Ratio — <b>${ratioText}</b></span></div>
+      </div>
+      <button class="edit-sheet-btn" onclick="openEditRatioModal('${item.id}')">Modifier</button>
+    </div>
+
+    <div class="section">
+      <p class="section-label">Proportions</p>
+      <ul class="ingredient-list">
+        ${item.parts.map((p,i) => `
+          <li class="ingredient-row">
+            <span class="ing-name">${p.label}</span>
+            <span class="ing-qty-edit"><span class="ing-qty">${fmtNumber(p.value)}${p.unit || ''}</span></span>
+            <span class="ratio-pct">${Math.round(segs[i].pct)}%</span>
+          </li>
+        `).join('')}
+      </ul>
+    </div>
+
+    ${item.note ? `<div class="section">
+      <p class="section-label">Notes</p>
+      <div class="notes-box verdigris">${item.note}</div>
+    </div>` : ''}
+  `;
 }
 
 function renderDailyChecklistHtml(){
@@ -1929,17 +2103,12 @@ function fmtPercent(p){
 
 function renderIngredients(item, volume, animate){
   const factor = volume / item.baseVolume;
-  const total = item.ingredients.reduce((s, i) => s + (Number(i.qty) || 0), 0) || 1;
   const list = document.getElementById('ingList');
   list.innerHTML = item.ingredients.map((ing) => {
-    const pct = (Number(ing.qty) || 0) / total * 100;
     return `
     <li class="ingredient-row">
       <span class="ing-name">${ing.name}</span>
       <span class="ing-qty-edit"><span class="ing-qty ${animate?'flash':''}">${fmtQty(ing.qty * factor, ing.unit)}</span></span>
-      <span class="ing-pct-edit" title="Ratio sur le poids total du lot">
-        <span class="ing-pct-static">${fmtPercent(pct)}</span><span class="pct-sign">%</span>
-      </span>
     </li>`;
   }).join('');
 }
@@ -2063,6 +2232,7 @@ function renderCocktailSheet(item){
   const main = document.getElementById('main');
   const hasSteps = item.steps && item.steps.length;
   const hasPrebatch = item.ingredients.some(i => i.prebatch);
+  const defaultBatchVol = Math.round(prebatchBaseVolume(item) * 100) || 15000;
   const editing = cocktailEditMode;
   main.innerHTML = `
     <div class="crumb"><span class="type-tag">Cocktail</span> · ${item.category}</div>
@@ -2094,7 +2264,8 @@ function renderCocktailSheet(item){
         ${item.ingredients.map((ing, idx) => ingredientRowHtml(ing, ing.qty, item.id, idx, editing)).join('')}
         <li class="ingredient-row ingredient-total">
           <span class="ing-name">Volume total</span>
-          <span class="ing-qty" id="recipeTotalValue">${fmtNumber(recipeTotalMl(item))} ml</span>
+          <span class="ing-qty-edit"><span class="ing-qty" id="recipeTotalValue">${fmtNumber(recipeTotalMl(item))} ml</span></span>
+          <span class="pb-static" aria-hidden="true"></span>
         </li>
       </ul>
       ${editing ? `<select class="add-row-btn add-ing-select" onchange="handleAddIngredientChoice('${item.id}', this)">
@@ -2113,7 +2284,7 @@ function renderCocktailSheet(item){
         <span class="scaler-label">Quantité totale du batch</span>
         <div class="scaler-controls">
           <button class="scaler-btn" onclick="adjustBatchVolume(-1)">−</button>
-          <div class="scaler-value"><input type="number" id="batchVolValue" value="15000" min="1" step="1" oninput="setBatchVolume(this.value)"> <span class="unit">ml</span></div>
+          <div class="scaler-value"><input type="number" id="batchVolValue" value="${defaultBatchVol}" min="1" step="1" oninput="setBatchVolume(this.value)"> <span class="unit">ml</span></div>
           <button class="scaler-btn" onclick="adjustBatchVolume(1)">+</button>
         </div>
       </div>
@@ -2130,8 +2301,8 @@ function renderCocktailSheet(item){
   `;
 
   if(hasPrebatch){
-    window._currentBatchVolume = 15000;
-    renderBatchIngredients(item, 15000, false);
+    window._currentBatchVolume = defaultBatchVol;
+    renderBatchIngredients(item, defaultBatchVol, false);
   }
 }
 
@@ -2245,6 +2416,8 @@ let modalMode = 'create'; // 'create' | 'link'
 let modalType = 'prep';   // 'prep' | 'cocktail'
 let modalIngredients = [];
 let modalSteps = [];
+let modalRatioParts = [];
+let mfBaseVolumeTouched = false; // true dès que l'utilisateur modifie le volume de référence à la main
 let lastCreatedPrep = null;
 
 function slugify(str){
@@ -2290,11 +2463,16 @@ function openEditPrepModal(prepId){
   document.getElementById('mfIngLabel').textContent = 'Ingrédients (pour le volume de référence)';
   document.getElementById('mfPrepFields').style.display = '';
   document.getElementById('mfCocktailFields').style.display = 'none';
+  document.getElementById('mfRatioFields').style.display = 'none';
+  document.getElementById('mfIngSection').style.display = '';
+  document.getElementById('mfRatioPartsSection').style.display = 'none';
+  document.getElementById('mfStepsSection').style.display = '';
   document.getElementById('mfName').value = item.name;
   document.getElementById('mfCategory').value = item.category;
   document.getElementById('mfBaseVolume').value = item.baseVolume;
   document.getElementById('mfBaseUnit').value = item.unit;
   document.getElementById('mfShelfLife').value = item.shelfLife || '';
+  mfBaseVolumeTouched = true;
   modalIngredients = item.ingredients.map(i => ({ name: i.name, qty: i.qty, unit: i.unit }));
   modalSteps = (item.steps || []).map(s => ({ title: s.title, icon: s.icon, text: s.text, timer: s.timer || '' }));
   if(!modalIngredients.length) modalIngredients = [{ name: '', qty: '', unit: 'ml' }];
@@ -2317,6 +2495,10 @@ function openEditCocktailModal(cocktailId){
   document.getElementById('mfIngLabel').textContent = 'Ingrédients (pour 1 verre)';
   document.getElementById('mfPrepFields').style.display = 'none';
   document.getElementById('mfCocktailFields').style.display = '';
+  document.getElementById('mfRatioFields').style.display = 'none';
+  document.getElementById('mfIngSection').style.display = '';
+  document.getElementById('mfRatioPartsSection').style.display = 'none';
+  document.getElementById('mfStepsSection').style.display = '';
   document.getElementById('mfName').value = item.name;
   document.getElementById('mfCktCategory').value = item.category || '';
   document.getElementById('mfGlass').value = item.glass || '';
@@ -2346,31 +2528,68 @@ function openCreateModal(type){
   modalCtx = null;
   modalMode = 'create';
   modalType = type;
-  document.getElementById('modalTitle').textContent = type === 'cocktail' ? 'Nouveau cocktail' : 'Nouvelle préparation';
-  document.getElementById('modalNameLabel').textContent = type === 'cocktail' ? 'Nom du cocktail' : 'Nom de la préparation';
+  const titles = { cocktail: 'Nouveau cocktail', prep: 'Nouvelle préparation', ratio: 'Nouveau ratio' };
+  const nameLabels = { cocktail: 'Nom du cocktail', prep: 'Nom de la préparation', ratio: 'Nom du ratio' };
+  document.getElementById('modalTitle').textContent = titles[type];
+  document.getElementById('modalNameLabel').textContent = nameLabels[type];
   document.getElementById('mfIngLabel').textContent = type === 'cocktail' ? 'Ingrédients (pour 1 verre)' : 'Ingrédients (pour le volume de référence)';
   document.getElementById('mfPrepFields').style.display = type === 'prep' ? '' : 'none';
   document.getElementById('mfCocktailFields').style.display = type === 'cocktail' ? '' : 'none';
+  document.getElementById('mfRatioFields').style.display = type === 'ratio' ? '' : 'none';
+  document.getElementById('mfIngSection').style.display = type === 'ratio' ? 'none' : '';
+  document.getElementById('mfRatioPartsSection').style.display = type === 'ratio' ? '' : 'none';
+  document.getElementById('mfStepsSection').style.display = type === 'ratio' ? 'none' : '';
   document.getElementById('mfName').value = '';
+  mfBaseVolumeTouched = false;
   if(type === 'prep'){
     document.getElementById('mfCategory').value = 'Sirop';
     document.getElementById('mfBaseVolume').value = 1000;
     document.getElementById('mfBaseUnit').value = 'ml';
     document.getElementById('mfShelfLife').value = '';
     modalIngredients = [{ name: '', qty: '', unit: 'ml' }];
-  } else {
+  } else if(type === 'cocktail'){
     document.getElementById('mfCktCategory').value = '';
     document.getElementById('mfGlass').value = '';
     document.getElementById('mfIce').value = '';
     document.getElementById('mfGarnish').value = '';
     document.getElementById('mfMethod').value = '';
     modalIngredients = [{ kind: 'raw', name: '', ref: '', pendingName: '', qty: '', unit: 'ml', prebatch: false }];
+  } else {
+    document.getElementById('mfRatioCategory').value = '';
+    document.getElementById('mfRatioNote').value = '';
+    modalRatioParts = [{ label: '', value: '', unit: '' }, { label: '', value: '', unit: '' }];
   }
   modalSteps = [{ title: '', text: '', icon: 'leaf', timer: '' }];
   renderModalIngredients();
   renderModalSteps();
+  renderModalRatioParts();
   const submitBtn1 = document.getElementById('modalSubmitBtn');
   if(submitBtn1) submitBtn1.textContent = 'Créer la fiche';
+  document.getElementById('modalOverlay').classList.add('open');
+}
+
+function openEditRatioModal(ratioId){
+  const item = byId(ratioId);
+  if(!item) return;
+  modalCtx = { editId: ratioId };
+  modalMode = 'edit';
+  modalType = 'ratio';
+  document.getElementById('modalTitle').textContent = 'Modifier le ratio';
+  document.getElementById('modalNameLabel').textContent = 'Nom du ratio';
+  document.getElementById('mfPrepFields').style.display = 'none';
+  document.getElementById('mfCocktailFields').style.display = 'none';
+  document.getElementById('mfRatioFields').style.display = '';
+  document.getElementById('mfIngSection').style.display = 'none';
+  document.getElementById('mfRatioPartsSection').style.display = '';
+  document.getElementById('mfStepsSection').style.display = 'none';
+  document.getElementById('mfName').value = item.name;
+  document.getElementById('mfRatioCategory').value = item.category || '';
+  document.getElementById('mfRatioNote').value = item.note || '';
+  modalRatioParts = item.parts.map(p => ({ label: p.label, value: p.value, unit: p.unit || '' }));
+  if(!modalRatioParts.length) modalRatioParts = [{ label: '', value: '', unit: '' }, { label: '', value: '', unit: '' }];
+  renderModalRatioParts();
+  const submitBtn = document.getElementById('modalSubmitBtn');
+  if(submitBtn) submitBtn.textContent = 'Enregistrer les modifications';
   document.getElementById('modalOverlay').classList.add('open');
 }
 
@@ -2451,9 +2670,51 @@ function renderModalIngredients(){
 function addModalIngredient(){
   modalIngredients.push(modalType === 'cocktail' ? { kind:'raw', name:'', ref:'', pendingName:'', qty:'', unit:'ml', prebatch:false } : { name:'', qty:'', unit:'ml' });
   renderModalIngredients();
+  suggestBaseVolume();
 }
-function removeModalIng(i){ if(modalIngredients.length>1){ modalIngredients.splice(i,1); renderModalIngredients(); } }
-function updateModalIng(i, field, val){ modalIngredients[i][field] = val; }
+function removeModalIng(i){ if(modalIngredients.length>1){ modalIngredients.splice(i,1); renderModalIngredients(); suggestBaseVolume(); } }
+function updateModalIng(i, field, val){
+  modalIngredients[i][field] = val;
+  if(field === 'qty') suggestBaseVolume();
+}
+function suggestBaseVolume(){
+  if(modalType !== 'prep' || mfBaseVolumeTouched) return;
+  const sum = modalIngredients.reduce((s, r) => s + (parseFloat(r.qty) || 0), 0);
+  const field = document.getElementById('mfBaseVolume');
+  if(field && sum > 0) field.value = Math.round(sum * 100);
+}
+
+function renderModalRatioParts(){
+  const wrap = document.getElementById('mfRatioPartRows');
+  if(!wrap) return;
+  wrap.innerHTML = modalRatioParts.map((row, i) => `
+    <div class="dyn-row row-4">
+      <div class="field" style="margin-bottom:0;">
+        ${i===0?'<label>Élément</label>':''}
+        <input type="text" placeholder="ex. Miel" value="${row.label||''}" oninput="updateModalRatioPart(${i},'label',this.value)">
+      </div>
+      <div class="field" style="margin-bottom:0;">
+        ${i===0?'<label>Valeur</label>':''}
+        <input type="number" step="0.1" placeholder="ex. 64" value="${row.value}" oninput="updateModalRatioPart(${i},'value',this.value)">
+      </div>
+      <div class="field" style="margin-bottom:0;">
+        ${i===0?'<label>Unité</label>':''}
+        <select onchange="updateModalRatioPart(${i},'unit',this.value)">
+          ${['','ml','L','g','kg','cl','pièce'].map(u => `<option value="${u}" ${row.unit===u?'selected':''}>${u || '—'}</option>`).join('')}
+        </select>
+      </div>
+      <button type="button" class="remove-row" onclick="removeModalRatioPart(${i})" title="Retirer">×</button>
+    </div>
+  `).join('');
+}
+function addModalRatioPart(){
+  modalRatioParts.push({ label: '', value: '', unit: '' });
+  renderModalRatioParts();
+}
+function removeModalRatioPart(i){
+  if(modalRatioParts.length > 2){ modalRatioParts.splice(i,1); renderModalRatioParts(); }
+}
+function updateModalRatioPart(i, field, val){ modalRatioParts[i][field] = val; }
 function setModalIngKind(i, val){
   modalIngredients[i].kind = val;
   if(val === 'prep'){
@@ -2471,7 +2732,7 @@ function selectModalIngPrep(i, val){
   renderModalIngredients();
 }
 
-const stepIconOptions = ['jar','leaf','clock','strain','bottle','pan','shaker','blender','snowflake','flame','scale','drop','spoon','knife','fridge','press','filter','mortar','vacuum','bubble','barrel'];
+const stepIconOptions = ['jar','leaf','clock','strain','bottle','pan','shaker','blender','snowflake','flame','scale','drop','spoon','knife','fridge','press','filter','mortar','vacuum','bubble','barrel','whisk'];
 function renderModalSteps(){
   const wrap = document.getElementById('mfStepRows');
   wrap.innerHTML = modalSteps.map((row, i) => `
@@ -2519,6 +2780,12 @@ function buildCocktailIngredientsFromModal(){
       }
       return { kind: 'raw', name: r.name.trim(), qty: parseFloat(r.qty), unit: r.unit, prebatch: !!r.prebatch };
     });
+}
+
+function buildRatioPartsFromModal(){
+  return modalRatioParts
+    .filter(r => (r.label||'').trim() && r.value !== '')
+    .map(r => ({ label: r.label.trim(), value: parseFloat(r.value), unit: r.unit || '' }));
 }
 
 function submitPrepModal(){
@@ -2580,6 +2847,23 @@ function submitPrepModal(){
     return;
   }
 
+  if(modalMode === 'edit' && modalType === 'ratio'){
+    const item = byId(modalCtx.editId);
+    if(!item){ closePrepModal(); return; }
+    const category = document.getElementById('mfRatioCategory').value.trim() || 'Autre';
+    const note = document.getElementById('mfRatioNote').value.trim();
+    const parts = buildRatioPartsFromModal();
+    item.name = name;
+    item.category = category;
+    item.note = note || null;
+    if(parts.length >= 2) item.parts = parts;
+    closePrepModal();
+    renderList();
+    renderMain();
+    showToast(`Ratio "${name}" mis à jour.`);
+    return;
+  }
+
   let id = slugify(name);
   if(byId(id)) id = id + '-' + Math.floor(Math.random()*900 + 100);
 
@@ -2610,6 +2894,25 @@ function submitPrepModal(){
     renderList();
     selectItem(id);
     showToast(`Cocktail "${name}" créé pour cette session.`);
+    return;
+  }
+
+  if(modalType === 'ratio'){
+    const category = document.getElementById('mfRatioCategory').value.trim() || 'Autre';
+    const note = document.getElementById('mfRatioNote').value.trim();
+    const parts = buildRatioPartsFromModal();
+
+    const newRatio = {
+      id, type: 'ratio', category, name,
+      parts: parts.length >= 2 ? parts : [{ label: 'Élément 1', value: 1 }, { label: 'Élément 2', value: 1 }],
+      note: note || null,
+    };
+    ratios.push(newRatio);
+    lastCreatedPrep = newRatio;
+    closePrepModal();
+    renderList();
+    selectItem(id);
+    showToast(`Ratio "${name}" créé pour cette session.`);
     return;
   }
 
