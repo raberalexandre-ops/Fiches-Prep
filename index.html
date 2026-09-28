@@ -323,6 +323,64 @@
   .rail-item.drag-over{box-shadow: inset 0 2px 0 0 var(--copper);}
   .rail-item.type-prep .dot{background:var(--verdigris);}
   .rail-item.type-ratio .dot{background:var(--slate);}
+  .rail-submenu{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:11px 10px;
+    margin:8px 0 3px;
+    font-size:15px;
+    font-weight:400;
+    color:#fff;
+    background:var(--bg-card);
+    border:1px solid var(--border);
+    border-radius:6px;
+    cursor:pointer;
+    user-select:none;
+  }
+  .rail-submenu:hover{background:var(--bg-card-hover); border-color:var(--copper);}
+  .rail-submenu .chev{display:inline-block; width:12px; font-size:12px; transition:transform .15s;}
+  .rail-submenu.open .chev{transform:rotate(90deg);}
+  .rail-submenu .submenu-name{flex:1; min-width:0;}
+  .rail-submenu .submenu-count{font-size:13px; font-weight:500; color:var(--text-soft); font-variant-numeric:tabular-nums;}
+  .rail-sub-sep{height:1px; background:var(--border-soft); margin:6px 4px;}
+  .submenu-edit{
+    background:transparent; border:none; cursor:pointer; padding:3px 4px;
+    color:var(--text-soft); border-radius:3px; display:inline-flex; align-items:center;
+  }
+  .submenu-edit:hover{color:var(--copper-bright); background:var(--bg-card-hover);}
+  .submenu-edit svg{width:15px; height:15px; stroke:currentColor;}
+  .settings-action{
+    width:100%;
+    display:flex;
+    align-items:center;
+    gap:14px;
+    text-align:left;
+    padding:14px 16px;
+    margin-bottom:10px;
+    border-radius:8px;
+    border:1px solid var(--border);
+    background:var(--bg-card);
+    color:var(--text);
+    cursor:pointer;
+    font-family:inherit;
+  }
+  .settings-action:hover{border-color:var(--copper);}
+  .settings-action svg{width:24px; height:24px; stroke:var(--text-faint); flex-shrink:0; transition:stroke .15s;}
+  .settings-action:hover svg{stroke:var(--copper-bright);}
+  .settings-action .sa-title{display:block; font-size:14.5px; font-weight:600; color:var(--text); transition:color .15s;}
+  .settings-action:hover .sa-title{color:var(--copper-bright);}
+  .settings-action .sa-desc{display:block; font-size:12.5px; color:var(--text-soft); margin-top:2px;}
+  .settings-action.cloud-save-btn:hover{border-color:var(--verdigris-bright);}
+  .settings-action.cloud-save-btn:hover svg{stroke:var(--verdigris-bright);}
+  .settings-action.cloud-save-btn:hover .sa-title{color:var(--verdigris-bright);}
+  .rail-sub-list{margin:2px 0 6px 12px; padding-left: 6px; border-left:1px solid var(--border-soft);}
+  .rail-sub-empty{font-size:12.5px; color:var(--text-soft); padding:8px 8px 8px 10px;}
+  .rail-sep{height:1px; background:var(--border); margin:14px 10px;}
+  .menu-mini-list{max-height:24vh;}
+  .menu-preps-label{display:block; font-size:12px; color:var(--text-soft); margin-bottom:5px;}
+  .menu-delete-btn{margin-right:auto; color:var(--danger); border-color:transparent;}
+  .menu-delete-btn:hover{border-color:var(--danger); color:var(--danger);}
   .rail-item.rail-add{border-left:2px dashed transparent;}
   .rail-item.rail-add:hover{background:var(--bg-card-hover);}
   .rail-item.rail-add .rail-item-name{color:var(--text-soft);}
@@ -421,7 +479,7 @@
     color:var(--verdigris-bright);
     font-weight:600;
     white-space:nowrap;
-    width:28px;
+    width:68px;
     text-align:right;
     flex-shrink:0;
   }
@@ -541,7 +599,7 @@
   .scaler-value{
     font-family:var(--serif);
     font-size:22px;
-    min-width:86px;
+    min-width:150px;
     text-align:center;
     font-variant-numeric:tabular-nums;
     display:flex;
@@ -552,7 +610,7 @@
   .scaler-value input{
     font-family:var(--serif);
     font-size:22px;
-    width:84px;
+    width:130px;
     text-align:right;
     background:transparent;
     border:none;
@@ -759,6 +817,22 @@
     padding:0 4px;
   }
   .remove-row:hover{color:var(--danger);}
+  .row-actions{
+    display:flex;
+    align-items:center;
+    justify-content:flex-end;
+    gap:2px;
+  }
+  .row-actions .rail-drag-handle{margin:0;}
+  .row-4, .row-ckt-ing{padding-left:20px;}
+  .row-drag-handle{
+    position:absolute;
+    left:0;
+    top:50%;
+    transform:translateY(-50%);
+  }
+  .dyn-row.dragging{opacity:.4;}
+  .dyn-row.drag-over{box-shadow: inset 0 2px 0 0 var(--copper);}
   .add-row-btn{
     background:transparent;
     border:1px dashed var(--border);
@@ -826,13 +900,11 @@
     }
     .row-4 > *:nth-child(1){grid-column:1/-1;}
     .row-ckt-ing > *:nth-child(5){grid-column:1/-1;}
-    .row-3 .remove-row, .row-4 .remove-row, .row-ckt-ing .remove-row{
-      position:absolute;
-      top:-4px; right:-4px;
-      font-size:22px;
-      line-height:1;
-      padding:6px 8px;
+    .row-3 .row-actions, .row-4 .row-actions, .row-ckt-ing .row-actions{
+      grid-column:1/-1;
+      margin-top:-4px;
     }
+    .remove-row{font-size:20px; padding:5px 7px;}
     .add-row-btn{padding:11px 10px; font-size:13.5px;}
     .subgroup{padding:14px 12px 8px;}
     .search input{font-size:16px; padding:10px 12px;}
@@ -1178,19 +1250,12 @@
     </div>
     <div class="rail-list" id="railList"></div>
     <div class="rail-foot">
-      <button class="export-btn cloud-save-btn" id="cloudSaveBtn" onclick="saveToCloud()" title="Envoyer tes modifications en ligne, visibles par toute l'équipe">
+      <button class="export-btn" onclick="openSettings()" title="Réglages">
         <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M7 18a4.5 4.5 0 0 1-1-8.9A5.5 5.5 0 0 1 16.9 7.2 4 4 0 0 1 17 15h-1" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
-          <path d="M12 12v7M9.5 16.5 12 14l2.5 2.5" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="12" cy="12" r="3" stroke-width="1.6"/>
+          <path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
-        Publier en ligne
-      </button>
-      <button class="export-btn" onclick="exportUpdatedApp()" title="Télécharger le fichier avec les fiches à jour, à réenvoyer sur l'hébergement">
-        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M12 4v11M8 11l4 4 4-4" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
-          <path d="M5 19h14" stroke-width="1.6" stroke-linecap="round"/>
-        </svg>
-        Exporter en fichier
+        Réglages
       </button>
     </div>
   </aside>
@@ -1221,6 +1286,9 @@
             <option>Cordial</option>
             <option>Clarification</option>
             <option>Glace</option>
+            <option>Mousse</option>
+            <option>Soda</option>
+            <option>Fat Wash</option>
             <option>Autre</option>
           </select>
         </div>
@@ -1304,10 +1372,58 @@
   </div>
 </div>
 
+<div class="modal-overlay" id="settingsModalOverlay">
+  <div class="modal" style="max-width:440px;">
+    <h2>Réglages</h2>
+    <p class="modal-sub">Publication et sauvegarde des fiches. Un code est demandé pour chaque action.</p>
+    <button class="settings-action cloud-save-btn" id="cloudSaveBtn" onclick="closeSettings(); saveToCloud()">
+      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M7 18a4.5 4.5 0 0 1-1-8.9A5.5 5.5 0 0 1 16.9 7.2 4 4 0 0 1 17 15h-1" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M12 12v7M9.5 16.5 12 14l2.5 2.5" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <span><span class="sa-title">Publier en ligne</span><span class="sa-desc">Envoie tes fiches en ligne, visibles par toute l'équipe.</span></span>
+    </button>
+    <button class="settings-action" onclick="closeSettings(); exportUpdatedApp()">
+      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 4v11M8 11l4 4 4-4" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M5 19h14" stroke-width="1.6" stroke-linecap="round"/>
+      </svg>
+      <span><span class="sa-title">Exporter en fichier</span><span class="sa-desc">Télécharge une copie de l'application avec tes fiches à jour.</span></span>
+    </button>
+    <div class="modal-actions">
+      <button class="btn btn-primary" onclick="closeSettings()">Fermer</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="menuModalOverlay">
+  <div class="modal" style="max-width:480px;">
+    <h2 id="menuModalTitle">Nouveau menu</h2>
+    <p class="modal-sub">Donne un nom au menu (ex. Été 25) et sélectionne ses cocktails. Leurs preps sont ajoutées automatiquement.</p>
+    <div class="field">
+      <label>Nom du menu</label>
+      <input type="text" id="menuName" placeholder="ex. Été 25">
+    </div>
+    <label class="menu-preps-label">Cocktails du menu</label>
+    <div id="menuCocktailList" class="today-selector-list menu-mini-list"></div>
+    <label class="menu-preps-label" style="margin-top:14px;">Preps du menu</label>
+    <div id="menuPrepList" class="today-selector-list menu-mini-list"></div>
+    <div class="modal-actions">
+      <button class="btn menu-delete-btn" id="menuDeleteBtn" onclick="deleteMenuFromModal()">Supprimer</button>
+      <button class="btn" onclick="closeMenuModal()">Annuler</button>
+      <button class="btn btn-primary" onclick="saveMenuModal()">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-overlay" id="todayModalOverlay">
   <div class="modal" style="max-width:480px;">
     <h2>Preps du jour</h2>
     <p class="modal-sub">Sélectionne les préparations à afficher sur l'écran d'accueil aujourd'hui.</p>
+    <div class="field" id="todayMenuField" style="display:none;">
+      <label>Menu</label>
+      <select id="todayMenuFilter" onchange="setTodayMenuFilter(this.value)"></select>
+    </div>
     <div id="todaySelectorList" class="today-selector-list"></div>
     <div class="modal-actions">
       <button class="btn" onclick="closeTodaySelector()">Annuler</button>
@@ -1405,6 +1521,9 @@ const ratios = [
     note: 'Chauffer légèrement l\u2019eau pour dissoudre le miel, laisser refroidir avant embouteillage.',
   },
 ];
+
+// ---- Menus (sous-menus de preps, ex. Été 25) ----
+const menus = [];
 /* DATA_END */
 
 // ---- Persistance locale (sauvegarde automatique dans ce navigateur) ----
@@ -1418,12 +1537,13 @@ const LOCAL_STORAGE_KEY = 'fiches-prep-data-v1';
       preps.length = 0; preps.push(...saved.preps);
       cocktails.length = 0; cocktails.push(...saved.cocktails);
       if(Array.isArray(saved.ratios)){ ratios.length = 0; ratios.push(...saved.ratios); }
+      if(Array.isArray(saved.menus)){ menus.length = 0; menus.push(...saved.menus); }
     }
   }catch(e){ /* données locales illisibles, on garde les données par défaut */ }
 })();
 function saveToLocalStorage(){
   try{
-    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify({ preps, cocktails, ratios }));
+    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify({ preps, cocktails, ratios, menus }));
   }catch(e){ /* stockage indisponible (navigation privée…) — pas bloquant */ }
 }
 
@@ -1444,6 +1564,7 @@ async function loadFromCloud(silent){
       preps.length = 0; preps.push(...record.preps);
       cocktails.length = 0; cocktails.push(...record.cocktails);
       if(Array.isArray(record.ratios)){ ratios.length = 0; ratios.push(...record.ratios); }
+      if(Array.isArray(record.menus)){ menus.length = 0; menus.push(...record.menus); }
       saveToLocalStorage();
       renderList();
       renderMain();
@@ -1464,7 +1585,7 @@ async function saveToCloud(){
     const res = await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_ID}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json', 'X-Master-Key': JSONBIN_KEY },
-      body: JSON.stringify({ preps, cocktails, ratios })
+      body: JSON.stringify({ preps, cocktails, ratios, menus })
     });
     if(!res.ok) throw new Error('HTTP ' + res.status);
     showToast('Publié en ligne — visible par toute l’équipe au prochain chargement.');
@@ -1497,6 +1618,9 @@ const cocktails = ${JSON.stringify(cocktails, null, 2)};
 
 // ---- Ratios (fiches de proportions génériques) ----
 const ratios = ${JSON.stringify(ratios, null, 2)};
+
+// ---- Menus (sous-menus de preps, ex. Été 25) ----
+const menus = ${JSON.stringify(menus, null, 2)};
 /* DATA_END */`;
 
   html = html.replace(/\/\* DATA_START \*\/[\s\S]*?\/\* DATA_END \*\//, newDataBlock);
@@ -1552,6 +1676,7 @@ let state = { tab: 'all', activeId: null };
 let cocktailEditMode = false; // édition des ingrédients d'un cocktail activée via le bouton "Modifier"
 let dailyChecklist = {}; // { prepId: true/false } — statut fait/pas fait
 let todaySelection = {}; // { prepId: true } — preps choisies pour l'écran d'accueil du jour
+let menuOpen = { all: true }; // sous-menus dépliés dans le menu latéral
 let todaySelectorDraft = {}; // brouillon en cours d'édition dans la fenêtre de sélection
 
 const DAILY_STORAGE_KEY = 'fiches-prep-daily-v1';
@@ -1563,12 +1688,13 @@ const DAILY_STORAGE_KEY = 'fiches-prep-daily-v1';
     if(saved && typeof saved === 'object'){
       dailyChecklist = saved.dailyChecklist || {};
       todaySelection = saved.todaySelection || {};
+      if(saved.menuOpen && typeof saved.menuOpen === 'object') menuOpen = saved.menuOpen;
     }
   }catch(e){ /* rien à faire, on repart de listes vides */ }
 })();
 function saveDailyToLocalStorage(){
   try{
-    localStorage.setItem(DAILY_STORAGE_KEY, JSON.stringify({ dailyChecklist, todaySelection }));
+    localStorage.setItem(DAILY_STORAGE_KEY, JSON.stringify({ dailyChecklist, todaySelection, menuOpen }));
   }catch(e){ /* stockage indisponible — pas bloquant */ }
 }
 
@@ -1578,7 +1704,7 @@ let futureStack = [];
 const HISTORY_LIMIT = 50;
 
 function snapshot(){
-  historyStack.push(JSON.stringify({ cocktails, preps, ratios }));
+  historyStack.push(JSON.stringify({ cocktails, preps, ratios, menus }));
   if(historyStack.length > HISTORY_LIMIT) historyStack.shift();
   futureStack = [];
   updateHistoryButtons();
@@ -1589,6 +1715,7 @@ function applySnapshot(json){
   cocktails.length = 0; cocktails.push(...data.cocktails);
   preps.length = 0; preps.push(...data.preps);
   if(Array.isArray(data.ratios)){ ratios.length = 0; ratios.push(...data.ratios); }
+  if(Array.isArray(data.menus)){ menus.length = 0; menus.push(...data.menus); }
   if(state.activeId && !byId(state.activeId)) state.activeId = null;
   cocktailEditMode = false;
   const overlay = document.getElementById('modalOverlay');
@@ -1600,13 +1727,13 @@ function applySnapshot(json){
 
 function undoAction(){
   if(!historyStack.length) return;
-  futureStack.push(JSON.stringify({ cocktails, preps, ratios }));
+  futureStack.push(JSON.stringify({ cocktails, preps, ratios, menus }));
   applySnapshot(historyStack.pop());
 }
 
 function redoAction(){
   if(!futureStack.length) return;
-  historyStack.push(JSON.stringify({ cocktails, preps, ratios }));
+  historyStack.push(JSON.stringify({ cocktails, preps, ratios, menus }));
   applySnapshot(futureStack.pop());
 }
 
@@ -1696,6 +1823,7 @@ function confirmDeleteItem(id, type){
   }
   delete dailyChecklist[id];
   delete todaySelection[id];
+  menus.forEach(m => { m.prepIds = (m.prepIds || []).filter(x => x !== id); m.cocktailIds = (m.cocktailIds || []).filter(x => x !== id); });
   saveDailyToLocalStorage();
   if(state.activeId === id) state.activeId = null;
   renderList();
@@ -1782,6 +1910,53 @@ function reorderItem(sourceId, targetId){
   renderList();
 }
 
+// ---------- réorganisation par glisser-déposer dans les panneaux (ingrédients / parts de ratio) ----------
+let modalDragIndex = null;
+let modalDragKind = null; // 'ing' | 'ratio'
+function modalRowDragStart(e, kind, i){
+  modalDragKind = kind;
+  modalDragIndex = i;
+  e.dataTransfer.effectAllowed = 'move';
+  try{ e.dataTransfer.setData('text/plain', String(i)); }catch(err){}
+  const row = e.target.closest('.dyn-row');
+  if(row) row.classList.add('dragging');
+}
+function modalRowDragOver(e, rowEl){
+  if(modalDragIndex === null) return;
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  rowEl.classList.add('drag-over');
+}
+function modalRowDragLeave(e, rowEl){
+  rowEl.classList.remove('drag-over');
+}
+function modalRowDrop(e, rowEl, kind, targetIndex){
+  e.preventDefault();
+  rowEl.classList.remove('drag-over');
+  if(modalDragIndex === null || modalDragKind !== kind || modalDragIndex === targetIndex){
+    modalDragIndex = null; modalDragKind = null;
+    return;
+  }
+  const arr = kind === 'ing' ? modalIngredients : modalRatioParts;
+  const [moved] = arr.splice(modalDragIndex, 1);
+  arr.splice(targetIndex, 0, moved);
+  modalDragIndex = null; modalDragKind = null;
+  if(kind === 'ing') renderModalIngredients(); else renderModalRatioParts();
+}
+function modalRowDragEnd(){
+  document.querySelectorAll('.dyn-row.dragging').forEach(el => el.classList.remove('dragging'));
+  document.querySelectorAll('.dyn-row.drag-over').forEach(el => el.classList.remove('drag-over'));
+  modalDragIndex = null; modalDragKind = null;
+}
+
+// ---------- réglages ----------
+function openSettings(){
+  document.getElementById('settingsModalOverlay').classList.add('open');
+}
+function closeSettings(){
+  document.getElementById('settingsModalOverlay').classList.remove('open');
+}
+
 function toggleRail(){
   const app = document.querySelector('.app');
   if(window.innerWidth <= 860){
@@ -1799,7 +1974,25 @@ window.addEventListener('resize', () => {
   else { app.classList.remove('rail-collapsed'); }
 });
 
+function syncMenuPreps(){
+  // Les preps utilisées par les cocktails d'un menu rejoignent automatiquement ce menu
+  menus.forEach(m => {
+    if(!Array.isArray(m.prepIds)) m.prepIds = [];
+    if(!Array.isArray(m.cocktailIds)) m.cocktailIds = [];
+    m.cocktailIds.forEach(cid => {
+      const c = cocktails.find(x => x.id === cid);
+      if(!c) return;
+      c.ingredients.forEach(ing => {
+        if(ing.kind === 'prep' && ing.ref && !m.prepIds.includes(ing.ref) && preps.some(p => p.id === ing.ref)){
+          m.prepIds.push(ing.ref);
+        }
+      });
+    });
+  });
+}
+
 function renderList(){
+  syncMenuPreps();
   saveToLocalStorage();
   const q = document.getElementById('searchInput').value.trim().toLowerCase();
   const list = document.getElementById('railList');
@@ -1810,12 +2003,7 @@ function renderList(){
   const prepItems = items.filter(i => i.type === 'prep');
   const ratioItems = items.filter(i => i.type === 'ratio');
 
-  let html = '';
-  const renderGroup = (label, arr, type, addLabel) => {
-    if(!arr.length && q) return '';
-    let h = `<div class="rail-group-label">${label}</div>`;
-    arr.forEach(i => {
-      h += `<div class="swipe-wrapper">
+  const dragItemHtml = (i) => `<div class="swipe-wrapper">
         <div class="swipe-delete" onclick="confirmDeleteItem('${i.id}','${i.type}')">Supprimé</div>
         <div class="swipe-content rail-item type-${i.type} ${state.activeId===i.id?'active':''}"
           data-id="${i.id}"
@@ -1835,32 +2023,200 @@ function renderList(){
           </span>
         </div>
       </div>`;
-    });
-    if(!q){
-      h += `<div class="rail-item rail-add" onclick="openCreateModal('${type}')">
-        <span class="dot add-dot">+</span>
-        <span class="rail-item-text"><div class="rail-item-name">${addLabel}</div></span>
+
+  const plainItemHtml = (i) => `<div class="rail-item type-${i.type} ${state.activeId===i.id?'active':''}" data-id="${i.id}" onclick="selectItem('${i.id}')">
+        <span class="dot"></span>
+        <span class="rail-item-text">
+          <div class="rail-item-name">${i.name}</div>
+          <div class="rail-item-cat">${i.category}</div>
+        </span>
       </div>`;
+
+  const addRowHtml = (onclick, label) => `<div class="rail-item rail-add" onclick="${onclick}">
+        <span class="dot add-dot">+</span>
+        <span class="rail-item-text"><div class="rail-item-name">${label}</div></span>
+      </div>`;
+
+  const submenuHeader = (key, name, count, menuId, chevColor) => `<div class="rail-submenu ${menuOpen[key] ? 'open' : ''}" onclick="toggleMenuOpen('${key}')">
+        <span class="chev" style="color:${chevColor}">▸</span>
+        <span class="submenu-name">${name}</span>
+        <span class="submenu-count">${count}</span>
+        ${menuId ? `<button class="submenu-edit" title="Modifier le menu" onclick="event.stopPropagation(); openMenuModal('${menuId}')">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4 20l.9-3.6L16.6 4.7a1.5 1.5 0 0 1 2.1 0l.6.6a1.5 1.5 0 0 1 0 2.1L7.6 19.1 4 20z" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>` : ''}
+      </div>`;
+
+  // "Cocktails" ou "Preps" : bibliothèque complète, repliable
+  const renderLibraryGroup = (key, label, type, arr, addLabel, chevColor) => {
+    if(!arr.length && q) return '';
+    if(q) return arr.map(dragItemHtml).join('');
+    let h = submenuHeader(key, label, arr.length, null, chevColor);
+    if(menuOpen[key]){
+      h += `<div class="rail-sub-list">${arr.map(dragItemHtml).join('')}${addRowHtml(`openCreateModal('${type}')`, addLabel)}</div>`;
     }
     return h;
   };
 
-  if(state.tab === 'all'){
-    html += renderGroup('Cocktails', cocktailItems, 'cocktail', 'Nouveau cocktail');
-    html += renderGroup('Préparations maison', prepItems, 'prep', 'Nouvelle prep');
-    html += renderGroup('Ratios', ratioItems, 'ratio', 'Nouveau ratio');
-  } else if(state.tab === 'cocktail'){
-    html += renderGroup('Cocktails', cocktailItems, 'cocktail', 'Nouveau cocktail');
-  } else if(state.tab === 'ratio'){
-    html += renderGroup('Ratios', ratioItems, 'ratio', 'Nouveau ratio');
-  } else {
-    html += renderGroup('Préparations maison', prepItems, 'prep', 'Nouvelle prep');
-  }
+  // Un groupe par menu : cocktails, puis un petit trait, puis les preps (une seule fois, pas dupliqué)
+  const renderMenusGroup = () => {
+    if(q) return '';
+    let h = '';
+    menus.forEach(m => {
+      const mCocktails = cocktailItems.filter(i => (m.cocktailIds || []).includes(i.id));
+      const mPreps = prepItems.filter(i => (m.prepIds || []).includes(i.id));
+      const total = mCocktails.length + mPreps.length;
+      const key = 'm-' + m.id;
+      h += submenuHeader(key, m.name, total, m.id, 'var(--copper-bright)');
+      if(menuOpen[key]){
+        h += `<div class="rail-sub-list">`;
+        if(!total){
+          h += `<div class="rail-sub-empty">Menu vide — clique sur le crayon pour ajouter des cocktails ou des preps.</div>`;
+        } else {
+          if(mCocktails.length) h += mCocktails.map(plainItemHtml).join('');
+          if(mCocktails.length && mPreps.length) h += `<div class="rail-sub-sep"></div>`;
+          if(mPreps.length) h += mPreps.map(plainItemHtml).join('');
+        }
+        h += `</div>`;
+      }
+    });
+    h += addRowHtml('openMenuModal(null)', 'Nouveau menu');
+    return h;
+  };
+
+  const renderRatioGroup = () => {
+    if(!ratioItems.length && q) return '';
+    if(q) return ratioItems.map(dragItemHtml).join('');
+    let h = submenuHeader('all-ratios', 'Ratios', ratioItems.length, null, 'var(--slate-bright)');
+    if(menuOpen['all-ratios']){
+      h += `<div class="rail-sub-list">${ratioItems.map(dragItemHtml).join('')}${addRowHtml("openCreateModal('ratio')", 'Nouveau ratio')}</div>`;
+    }
+    return h;
+  };
+
+  const cocktailsGroup = () => renderLibraryGroup('all-cocktails', 'Cocktails', 'cocktail', cocktailItems, 'Nouveau cocktail', 'var(--copper-bright)');
+  const prepsGroup = () => renderLibraryGroup('all', 'Preps', 'prep', prepItems, 'Nouvelle prep', 'var(--verdigris-bright)');
+
+  let groups;
+  if(state.tab === 'all') groups = [cocktailsGroup(), prepsGroup(), renderMenusGroup(), renderRatioGroup()];
+  else if(state.tab === 'cocktail') groups = [cocktailsGroup(), renderMenusGroup()];
+  else if(state.tab === 'ratio') groups = [renderRatioGroup()];
+  else groups = [prepsGroup(), renderMenusGroup()];
+  let html = groups.filter(Boolean).join('<div class="rail-sep"></div>');
 
   if(q && !cocktailItems.length && !prepItems.length && !ratioItems.length){
     html = `<div class="rail-empty">Aucune fiche ne correspond.</div>`;
   }
   list.innerHTML = html;
+}
+
+function toggleMenuOpen(key){
+  menuOpen[key] = !menuOpen[key];
+  saveDailyToLocalStorage();
+  renderList();
+}
+
+// ---------- menus (sous-menus de cocktails et de preps) ----------
+let menuDraft = null;
+function openMenuModal(id){
+  const m = id ? menus.find(x => x.id === id) : null;
+  menuDraft = { id: m ? m.id : null, prepIds: {}, cocktailIds: {} };
+  if(m){
+    (m.prepIds || []).forEach(pid => { menuDraft.prepIds[pid] = true; });
+    (m.cocktailIds || []).forEach(cid => { menuDraft.cocktailIds[cid] = true; });
+  }
+  document.getElementById('menuModalTitle').textContent = m ? 'Modifier le menu' : 'Nouveau menu';
+  document.getElementById('menuName').value = m ? m.name : '';
+  document.getElementById('menuDeleteBtn').style.display = m ? '' : 'none';
+  renderMenuLists();
+  document.getElementById('menuModalOverlay').classList.add('open');
+}
+function closeMenuModal(){
+  document.getElementById('menuModalOverlay').classList.remove('open');
+  menuDraft = null;
+}
+function menuRequiredPreps(){
+  const req = {};
+  cocktails.filter(c => menuDraft.cocktailIds[c.id]).forEach(c => {
+    c.ingredients.forEach(ing => { if(ing.kind === 'prep' && ing.ref) req[ing.ref] = true; });
+  });
+  return req;
+}
+function renderMenuLists(){
+  const cl = document.getElementById('menuCocktailList');
+  const pl = document.getElementById('menuPrepList');
+  if(!cocktails.length){
+    cl.innerHTML = `<div class="today-selector-empty">Aucun cocktail créé pour l'instant.</div>`;
+  } else {
+    const sortedC = [...cocktails].sort((a,b) => a.name.localeCompare(b.name, 'fr'));
+    cl.innerHTML = sortedC.map(c => `
+      <div class="today-selector-row">
+        <label>
+          <input type="checkbox" ${menuDraft.cocktailIds[c.id] ? 'checked' : ''} onchange="toggleMenuDraftCocktail('${c.id}', this.checked)">
+          <span class="today-selector-name">${c.name}</span>
+          <span class="today-selector-cat">${c.category}</span>
+        </label>
+      </div>`).join('');
+  }
+  if(!preps.length){
+    pl.innerHTML = `<div class="today-selector-empty">Aucune préparation créée pour l'instant.</div>`;
+  } else {
+    const req = menuRequiredPreps();
+    const sortedP = [...preps].sort((a,b) => a.name.localeCompare(b.name, 'fr'));
+    pl.innerHTML = sortedP.map(p => {
+      const locked = !!req[p.id];
+      return `
+      <div class="today-selector-row">
+        <label>
+          <input type="checkbox" ${(menuDraft.prepIds[p.id] || locked) ? 'checked' : ''} ${locked ? 'disabled' : ''} onchange="toggleMenuDraft('${p.id}', this.checked)">
+          <span class="today-selector-name">${p.name}</span>
+          <span class="today-selector-cat">${locked ? 'requise par un cocktail' : p.category}</span>
+        </label>
+      </div>`;
+    }).join('');
+  }
+}
+function toggleMenuDraft(id, val){
+  if(val) menuDraft.prepIds[id] = true;
+  else delete menuDraft.prepIds[id];
+}
+function toggleMenuDraftCocktail(id, val){
+  if(val){
+    menuDraft.cocktailIds[id] = true;
+    const c = cocktails.find(x => x.id === id);
+    if(c) c.ingredients.forEach(ing => { if(ing.kind === 'prep' && ing.ref) menuDraft.prepIds[ing.ref] = true; });
+  } else {
+    delete menuDraft.cocktailIds[id];
+  }
+  renderMenuLists();
+}
+function saveMenuModal(){
+  const name = document.getElementById('menuName').value.trim();
+  if(!name){ alert('Donne un nom au menu.'); return; }
+  snapshot();
+  const prepIds = preps.filter(p => menuDraft.prepIds[p.id]).map(p => p.id);
+  const cocktailIds = cocktails.filter(c => menuDraft.cocktailIds[c.id]).map(c => c.id);
+  if(menuDraft.id){
+    const m = menus.find(x => x.id === menuDraft.id);
+    if(m){ m.name = name; m.prepIds = prepIds; m.cocktailIds = cocktailIds; }
+  } else {
+    let id = 'menu-' + slugify(name);
+    if(menus.some(x => x.id === id)) id += '-' + Math.floor(Math.random()*900 + 100);
+    menus.push({ id, name, prepIds, cocktailIds });
+    menuOpen[id] = true;
+    menuOpen['c-' + id] = true;
+    saveDailyToLocalStorage();
+  }
+  closeMenuModal();
+  renderList();
+}
+function deleteMenuFromModal(){
+  if(!menuDraft || !menuDraft.id) return;
+  if(!window.confirm('Supprimer ce menu ? Les cocktails et les preps ne sont pas supprimés.')) return;
+  snapshot();
+  const idx = menus.findIndex(x => x.id === menuDraft.id);
+  if(idx > -1) menus.splice(idx, 1);
+  closeMenuModal();
+  renderList();
 }
 
 function fmtQty(qty, unit){
@@ -1922,7 +2278,7 @@ function renderRatioSheet(item){
           <li class="ingredient-row">
             <span class="ing-name">${p.label}</span>
             <span class="ing-qty-edit"><span class="ing-qty">${fmtNumber(p.value)}${p.unit || ''}</span></span>
-            <span class="ratio-pct">${Math.round(segs[i].pct)}%</span>
+            <span class="ratio-pct">${segs[i].pct.toFixed(2)}%</span>
           </li>
         `).join('')}
       </ul>
@@ -1998,8 +2354,20 @@ function toggleDaily(id, val){
   if(countEl) countEl.textContent = `${done}/${todayPreps.length}`;
 }
 
+let todayMenuFilter = '';
+function setTodayMenuFilter(v){
+  todayMenuFilter = v;
+  renderTodaySelectorList();
+}
 function openTodaySelector(){
   todaySelectorDraft = { ...todaySelection };
+  todayMenuFilter = '';
+  const field = document.getElementById('todayMenuField');
+  if(field){
+    field.style.display = menus.length ? '' : 'none';
+    document.getElementById('todayMenuFilter').innerHTML =
+      `<option value="">Toutes les preps</option>` + menus.map(m => `<option value="${m.id}">${m.name}</option>`).join('');
+  }
   renderTodaySelectorList();
   document.getElementById('todayModalOverlay').classList.add('open');
 }
@@ -2012,7 +2380,13 @@ function renderTodaySelectorList(){
     list.innerHTML = `<div class="today-selector-empty">Aucune préparation créée pour l'instant.</div>`;
     return;
   }
-  const sorted = [...preps].sort((a,b) => a.name.localeCompare(b.name, 'fr'));
+  const activeMenu = todayMenuFilter ? menus.find(m => m.id === todayMenuFilter) : null;
+  const pool = activeMenu ? preps.filter(p => activeMenu.prepIds.includes(p.id)) : preps;
+  const sorted = [...pool].sort((a,b) => a.name.localeCompare(b.name, 'fr'));
+  if(!sorted.length){
+    list.innerHTML = `<div class="today-selector-empty">Aucune prep dans ce menu.</div>`;
+    return;
+  }
   list.innerHTML = sorted.map(p => `
     <div class="today-selector-row">
       <label>
@@ -2600,17 +2974,25 @@ function closePrepModal(){
 
 function renderModalIngredients(){
   const wrap = document.getElementById('mfIngRows');
+  const dragHandle = (kind, i) => `
+    <span class="rail-drag-handle row-drag-handle" draggable="true" ondragstart="modalRowDragStart(event,'${kind}',${i})" ondragend="modalRowDragEnd(event)" title="Glisser pour réordonner">
+      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="9" cy="6" r="1.3" fill="currentColor"/><circle cx="9" cy="12" r="1.3" fill="currentColor"/><circle cx="9" cy="18" r="1.3" fill="currentColor"/>
+        <circle cx="15" cy="6" r="1.3" fill="currentColor"/><circle cx="15" cy="12" r="1.3" fill="currentColor"/><circle cx="15" cy="18" r="1.3" fill="currentColor"/>
+      </svg>
+    </span>`;
   if(modalType === 'cocktail'){
     wrap.innerHTML = modalIngredients.map((row, i) => {
       const isPrepKind = row.kind === 'prep';
       const isPendingNew = isPrepKind && row.ref === '__new__';
       return `
-      <div class="dyn-row row-ckt-ing">
+      <div class="dyn-row row-ckt-ing" ondragover="modalRowDragOver(event,this)" ondragleave="modalRowDragLeave(event,this)" ondrop="modalRowDrop(event,this,'ing',${i})">
+        ${dragHandle('ing', i)}
         <div class="field" style="margin-bottom:0;">
           ${i===0?'<label>Type</label>':''}
           <select onchange="setModalIngKind(${i}, this.value)">
             <option value="raw" ${!isPrepKind?'selected':''}>Brut</option>
-            <option value="prep" ${isPrepKind?'selected':''}>Prep existante</option>
+            <option value="prep" ${isPrepKind?'selected':''}>Prep</option>
           </select>
         </div>
         <div class="field" style="margin-bottom:0;">
@@ -2642,13 +3024,16 @@ function renderModalIngredients(){
           ${i===0?'<label>PB</label>':''}
           <input type="checkbox" style="width:auto;" ${row.prebatch?'checked':''} onchange="updateModalIng(${i},'prebatch',this.checked)">
         </div>
-        <button type="button" class="remove-row" onclick="removeModalIng(${i})" title="Retirer">×</button>
+        <div class="row-actions">
+          <button type="button" class="remove-row" onclick="removeModalIng(${i})" title="Retirer">×</button>
+        </div>
       </div>`;
     }).join('');
     return;
   }
   wrap.innerHTML = modalIngredients.map((row, i) => `
-    <div class="dyn-row row-4">
+    <div class="dyn-row row-4" ondragover="modalRowDragOver(event,this)" ondragleave="modalRowDragLeave(event,this)" ondrop="modalRowDrop(event,this,'ing',${i})">
+      ${dragHandle('ing', i)}
       <div class="field" style="margin-bottom:0;">
         ${i===0?'<label>Nom</label>':''}
         <input type="text" value="${row.name}" oninput="updateModalIng(${i},'name',this.value)">
@@ -2663,7 +3048,9 @@ function renderModalIngredients(){
           ${['ml','g','pièce'].map(u => `<option value="${u}" ${row.unit===u?'selected':''}>${u}</option>`).join('')}
         </select>
       </div>
-      <button type="button" class="remove-row" onclick="removeModalIng(${i})" title="Retirer">×</button>
+      <div class="row-actions">
+        <button type="button" class="remove-row" onclick="removeModalIng(${i})" title="Retirer">×</button>
+      </div>
     </div>
   `).join('');
 }
@@ -2687,8 +3074,16 @@ function suggestBaseVolume(){
 function renderModalRatioParts(){
   const wrap = document.getElementById('mfRatioPartRows');
   if(!wrap) return;
+  const dragHandle = (i) => `
+    <span class="rail-drag-handle row-drag-handle" draggable="true" ondragstart="modalRowDragStart(event,'ratio',${i})" ondragend="modalRowDragEnd(event)" title="Glisser pour réordonner">
+      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="9" cy="6" r="1.3" fill="currentColor"/><circle cx="9" cy="12" r="1.3" fill="currentColor"/><circle cx="9" cy="18" r="1.3" fill="currentColor"/>
+        <circle cx="15" cy="6" r="1.3" fill="currentColor"/><circle cx="15" cy="12" r="1.3" fill="currentColor"/><circle cx="15" cy="18" r="1.3" fill="currentColor"/>
+      </svg>
+    </span>`;
   wrap.innerHTML = modalRatioParts.map((row, i) => `
-    <div class="dyn-row row-4">
+    <div class="dyn-row row-4" ondragover="modalRowDragOver(event,this)" ondragleave="modalRowDragLeave(event,this)" ondrop="modalRowDrop(event,this,'ratio',${i})">
+      ${dragHandle(i)}
       <div class="field" style="margin-bottom:0;">
         ${i===0?'<label>Élément</label>':''}
         <input type="text" placeholder="ex. Miel" value="${row.label||''}" oninput="updateModalRatioPart(${i},'label',this.value)">
@@ -2703,7 +3098,9 @@ function renderModalRatioParts(){
           ${['','ml','L','g','kg','cl','pièce'].map(u => `<option value="${u}" ${row.unit===u?'selected':''}>${u || '—'}</option>`).join('')}
         </select>
       </div>
-      <button type="button" class="remove-row" onclick="removeModalRatioPart(${i})" title="Retirer">×</button>
+      <div class="row-actions">
+        <button type="button" class="remove-row" onclick="removeModalRatioPart(${i})" title="Retirer">×</button>
+      </div>
     </div>
   `).join('');
 }
