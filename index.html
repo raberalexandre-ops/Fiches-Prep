@@ -22,6 +22,8 @@
     --verdigris-bright: #8bb8ad;
     --slate: #7d8ba3;
     --slate-bright: #a3aec2;
+    --amber: #ad8a3d;
+    --amber-bright: #d0ac5c;
     --text: #f1e9dc;
     --text-soft: #b3a692;
     --text-faint: #6e6355;
@@ -237,7 +239,7 @@
     flex:1;
     text-align:center;
     padding:7px 2px;
-    font-size:11.5px;
+    font-size:10.5px;
     color:var(--text-soft);
     border-radius:2px;
     cursor:pointer;
@@ -323,6 +325,7 @@
   .rail-item.drag-over{box-shadow: inset 0 2px 0 0 var(--copper);}
   .rail-item.type-prep .dot{background:var(--verdigris);}
   .rail-item.type-ratio .dot{background:var(--slate);}
+  .rail-item.type-garnish .dot{background:var(--amber);}
   .rail-submenu{
     display:flex;
     align-items:center;
@@ -474,6 +477,11 @@
   .crumb .type-tag{color:var(--copper);}
   .crumb.is-prep .type-tag{color:var(--verdigris-bright);}
   .crumb.is-ratio .type-tag{color:var(--slate-bright);}
+  .crumb.is-garnish .type-tag{color:var(--amber-bright);}
+  .garnish-link{cursor:pointer; text-decoration:underline; text-decoration-color:transparent; transition:color .12s, text-decoration-color .12s; display:inline-flex; align-items:center; gap:2px;}
+  .garnish-link:hover{color:var(--amber-bright); text-decoration-color:var(--amber-bright);}
+  .garnish-link.garnish-exists{color:var(--amber-bright);}
+  .garnish-link .add-prep-btn{margin-right:2px;}
   .ratio-pct{
     font-variant-numeric:tabular-nums;
     color:var(--verdigris-bright);
@@ -779,7 +787,7 @@
     color:var(--text-soft);
     margin-bottom:5px;
   }
-  .field input[type=text], .field input[type=number], .field textarea, .field select{
+  .field input[type=text], .field input[type=number], .field input[type=tel], .field textarea, .field select{
     width:100%;
     background:var(--bg-card);
     border:1px solid var(--border);
@@ -789,6 +797,12 @@
     font-size:13.5px;
     font-family:inherit;
     outline:none;
+  }
+  .pin-input{
+    font-size:22px !important;
+    letter-spacing:6px;
+    text-align:center;
+    font-variant-numeric:tabular-nums;
   }
   .field input:focus, .field textarea:focus, .field select:focus{border-color:var(--copper);}
   .field textarea{resize:vertical; min-height:44px;}
@@ -886,7 +900,7 @@
     .modal h2{font-size:19px;}
     .field{margin-bottom:18px;}
     .field label{font-size:12.5px; margin-bottom:6px;}
-    .field input[type=text], .field input[type=number], .field textarea, .field select{
+    .field input[type=text], .field input[type=number], .field input[type=tel], .field textarea, .field select{
       padding:11px 12px;
       font-size:16px;
       border-radius:6px;
@@ -1245,6 +1259,7 @@
         <button class="tab active" data-tab="all" onclick="setTab('all')">Tout</button>
         <button class="tab" data-tab="cocktail" onclick="setTab('cocktail')">Cocktails</button>
         <button class="tab" data-tab="prep" onclick="setTab('prep')">Preps</button>
+        <button class="tab" data-tab="garnish" onclick="setTab('garnish')">Garnish</button>
         <button class="tab" data-tab="ratio" onclick="setTab('ratio')">Ratios</button>
       </div>
     </div>
@@ -1343,6 +1358,13 @@
       </div>
     </div>
 
+    <div id="mfGarnishFields" style="display:none;">
+      <div class="field">
+        <label>Catégorie</label>
+        <input type="text" id="mfGarnishCategory" placeholder="ex. Agrume, Herbe, Épice, Fruit…">
+      </div>
+    </div>
+
     <div class="subgroup" id="mfIngSection">
       <p class="subgroup-label" id="mfIngLabel">Ingrédients (pour le volume de référence)</p>
       <div id="mfIngRows"></div>
@@ -1396,10 +1418,24 @@
   </div>
 </div>
 
+<div class="modal-overlay" id="pinModalOverlay">
+  <div class="modal" style="max-width:340px;">
+    <h2 id="pinModalTitle">Code requis</h2>
+    <div class="field">
+      <label>Code</label>
+      <input type="tel" inputmode="numeric" pattern="[0-9]*" autocomplete="off" id="pinInput" class="pin-input" placeholder="••••" onkeydown="if(event.key==='Enter') submitPinModal()">
+    </div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closePinModal()">Annuler</button>
+      <button class="btn btn-primary" onclick="submitPinModal()">Valider</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-overlay" id="menuModalOverlay">
   <div class="modal" style="max-width:480px;">
     <h2 id="menuModalTitle">Nouveau menu</h2>
-    <p class="modal-sub">Donne un nom au menu (ex. Été 25) et sélectionne ses cocktails. Leurs preps sont ajoutées automatiquement.</p>
+    <p class="modal-sub">Donne un nom au menu (ex. Été 25) et sélectionne ses cocktails. Leurs preps et leur garniture sont ajoutées automatiquement.</p>
     <div class="field">
       <label>Nom du menu</label>
       <input type="text" id="menuName" placeholder="ex. Été 25">
@@ -1408,6 +1444,8 @@
     <div id="menuCocktailList" class="today-selector-list menu-mini-list"></div>
     <label class="menu-preps-label" style="margin-top:14px;">Preps du menu</label>
     <div id="menuPrepList" class="today-selector-list menu-mini-list"></div>
+    <label class="menu-preps-label" style="margin-top:14px;">Garnitures du menu</label>
+    <div id="menuGarnishList" class="today-selector-list menu-mini-list"></div>
     <div class="modal-actions">
       <button class="btn menu-delete-btn" id="menuDeleteBtn" onclick="deleteMenuFromModal()">Supprimer</button>
       <button class="btn" onclick="closeMenuModal()">Annuler</button>
@@ -1418,7 +1456,7 @@
 
 <div class="modal-overlay" id="todayModalOverlay">
   <div class="modal" style="max-width:480px;">
-    <h2>Preps du jour</h2>
+    <h2>À faire aujourd’hui</h2>
     <p class="modal-sub">Sélectionne les préparations à afficher sur l'écran d'accueil aujourd'hui.</p>
     <div class="field" id="todayMenuField" style="display:none;">
       <label>Menu</label>
@@ -1507,6 +1545,9 @@ const cocktails = [
   },
 ];
 
+// ---- Garnitures (fiches de garnish) ----
+const garnishes = [];
+
 // ---- Ratios (fiches de proportions génériques) ----
 const ratios = [
   {
@@ -1537,13 +1578,14 @@ const LOCAL_STORAGE_KEY = 'fiches-prep-data-v1';
       preps.length = 0; preps.push(...saved.preps);
       cocktails.length = 0; cocktails.push(...saved.cocktails);
       if(Array.isArray(saved.ratios)){ ratios.length = 0; ratios.push(...saved.ratios); }
+      if(Array.isArray(saved.garnishes)){ garnishes.length = 0; garnishes.push(...saved.garnishes); }
       if(Array.isArray(saved.menus)){ menus.length = 0; menus.push(...saved.menus); }
     }
   }catch(e){ /* données locales illisibles, on garde les données par défaut */ }
 })();
 function saveToLocalStorage(){
   try{
-    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify({ preps, cocktails, ratios, menus }));
+    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify({ preps, cocktails, ratios, menus, garnishes }));
   }catch(e){ /* stockage indisponible (navigation privée…) — pas bloquant */ }
 }
 
@@ -1564,6 +1606,7 @@ async function loadFromCloud(silent){
       preps.length = 0; preps.push(...record.preps);
       cocktails.length = 0; cocktails.push(...record.cocktails);
       if(Array.isArray(record.ratios)){ ratios.length = 0; ratios.push(...record.ratios); }
+      if(Array.isArray(record.garnishes)){ garnishes.length = 0; garnishes.push(...record.garnishes); }
       if(Array.isArray(record.menus)){ menus.length = 0; menus.push(...record.menus); }
       saveToLocalStorage();
       renderList();
@@ -1574,10 +1617,29 @@ async function loadFromCloud(silent){
   }
 }
 
-async function saveToCloud(){
-  const pin = window.prompt('Code pour publier en ligne :');
-  if(pin === null) return;
+// ---------- code PIN (clavier numérique sur mobile) ----------
+let pinModalAction = null;
+function openPinModal(title, action){
+  pinModalAction = action;
+  document.getElementById('pinModalTitle').textContent = title;
+  const input = document.getElementById('pinInput');
+  input.value = '';
+  document.getElementById('pinModalOverlay').classList.add('open');
+  setTimeout(() => input.focus(), 50);
+}
+function closePinModal(){
+  document.getElementById('pinModalOverlay').classList.remove('open');
+  pinModalAction = null;
+}
+function submitPinModal(){
+  const pin = document.getElementById('pinInput').value;
   if(pin !== SAVE_PIN){ alert('Code incorrect.'); return; }
+  const action = pinModalAction;
+  closePinModal();
+  if(action) action();
+}
+
+async function doSaveToCloud(){
   const btn = document.getElementById('cloudSaveBtn');
   const originalLabel = btn ? btn.innerHTML : null;
   if(btn){ btn.disabled = true; btn.textContent = 'Publication…'; }
@@ -1585,7 +1647,7 @@ async function saveToCloud(){
     const res = await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_ID}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json', 'X-Master-Key': JSONBIN_KEY },
-      body: JSON.stringify({ preps, cocktails, ratios, menus })
+      body: JSON.stringify({ preps, cocktails, ratios, menus, garnishes })
     });
     if(!res.ok) throw new Error('HTTP ' + res.status);
     showToast('Publié en ligne — visible par toute l’équipe au prochain chargement.');
@@ -1595,12 +1657,12 @@ async function saveToCloud(){
     if(btn){ btn.disabled = false; if(originalLabel !== null) btn.innerHTML = originalLabel; }
   }
 }
+function saveToCloud(){
+  openPinModal('Code pour publier en ligne', doSaveToCloud);
+}
 
 // ---- Export d'un fichier HTML à jour, prêt à réenvoyer sur l'hébergement ----
-function exportUpdatedApp(){
-  const pin = window.prompt('Code pour exporter le fichier :');
-  if(pin === null) return;
-  if(pin !== SAVE_PIN){ alert('Code incorrect.'); return; }
+function doExportUpdatedApp(){
   const clone = document.documentElement.cloneNode(true);
   const appEl = clone.querySelector('.app');
   if(appEl) appEl.classList.remove('rail-collapsed', 'rail-mobile-open');
@@ -1619,6 +1681,9 @@ const cocktails = ${JSON.stringify(cocktails, null, 2)};
 // ---- Ratios (fiches de proportions génériques) ----
 const ratios = ${JSON.stringify(ratios, null, 2)};
 
+// ---- Garnitures (fiches de garnish) ----
+const garnishes = ${JSON.stringify(garnishes, null, 2)};
+
 // ---- Menus (sous-menus de preps, ex. Été 25) ----
 const menus = ${JSON.stringify(menus, null, 2)};
 /* DATA_END */`;
@@ -1635,6 +1700,9 @@ const menus = ${JSON.stringify(menus, null, 2)};
   a.click();
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
+}
+function exportUpdatedApp(){
+  openPinModal('Code pour exporter le fichier', doExportUpdatedApp);
 }
 
 /* ============================================================
@@ -1704,7 +1772,7 @@ let futureStack = [];
 const HISTORY_LIMIT = 50;
 
 function snapshot(){
-  historyStack.push(JSON.stringify({ cocktails, preps, ratios, menus }));
+  historyStack.push(JSON.stringify({ cocktails, preps, ratios, menus, garnishes }));
   if(historyStack.length > HISTORY_LIMIT) historyStack.shift();
   futureStack = [];
   updateHistoryButtons();
@@ -1715,6 +1783,7 @@ function applySnapshot(json){
   cocktails.length = 0; cocktails.push(...data.cocktails);
   preps.length = 0; preps.push(...data.preps);
   if(Array.isArray(data.ratios)){ ratios.length = 0; ratios.push(...data.ratios); }
+  if(Array.isArray(data.garnishes)){ garnishes.length = 0; garnishes.push(...data.garnishes); }
   if(Array.isArray(data.menus)){ menus.length = 0; menus.push(...data.menus); }
   if(state.activeId && !byId(state.activeId)) state.activeId = null;
   cocktailEditMode = false;
@@ -1727,13 +1796,13 @@ function applySnapshot(json){
 
 function undoAction(){
   if(!historyStack.length) return;
-  futureStack.push(JSON.stringify({ cocktails, preps, ratios, menus }));
+  futureStack.push(JSON.stringify({ cocktails, preps, ratios, menus, garnishes }));
   applySnapshot(historyStack.pop());
 }
 
 function redoAction(){
   if(!futureStack.length) return;
-  historyStack.push(JSON.stringify({ cocktails, preps, ratios, menus }));
+  historyStack.push(JSON.stringify({ cocktails, preps, ratios, menus, garnishes }));
   applySnapshot(futureStack.pop());
 }
 
@@ -1743,7 +1812,7 @@ function updateHistoryButtons(){
   if(undoBtn) undoBtn.disabled = historyStack.length === 0;
   if(redoBtn) redoBtn.disabled = futureStack.length === 0;
 }
-const allItems = () => [...cocktails, ...preps, ...ratios];
+const allItems = () => [...cocktails, ...preps, ...ratios, ...garnishes];
 const byId = (id) => allItems().find(i => i.id === id);
 
 function goHome(){
@@ -1817,13 +1886,16 @@ function confirmDeleteItem(id, type){
   } else if(type === 'ratio'){
     const idx = ratios.findIndex(r => r.id === id);
     if(idx > -1) ratios.splice(idx, 1);
+  } else if(type === 'garnish'){
+    const idx = garnishes.findIndex(g => g.id === id);
+    if(idx > -1) garnishes.splice(idx, 1);
   } else {
     const idx = preps.findIndex(p => p.id === id);
     if(idx > -1) preps.splice(idx, 1);
   }
   delete dailyChecklist[id];
   delete todaySelection[id];
-  menus.forEach(m => { m.prepIds = (m.prepIds || []).filter(x => x !== id); m.cocktailIds = (m.cocktailIds || []).filter(x => x !== id); });
+  menus.forEach(m => { m.prepIds = (m.prepIds || []).filter(x => x !== id); m.cocktailIds = (m.cocktailIds || []).filter(x => x !== id); m.garnishIds = (m.garnishIds || []).filter(x => x !== id); });
   saveDailyToLocalStorage();
   if(state.activeId === id) state.activeId = null;
   renderList();
@@ -1975,10 +2047,11 @@ window.addEventListener('resize', () => {
 });
 
 function syncMenuPreps(){
-  // Les preps utilisées par les cocktails d'un menu rejoignent automatiquement ce menu
+  // Les preps et la garniture utilisées par les cocktails d'un menu rejoignent automatiquement ce menu
   menus.forEach(m => {
     if(!Array.isArray(m.prepIds)) m.prepIds = [];
     if(!Array.isArray(m.cocktailIds)) m.cocktailIds = [];
+    if(!Array.isArray(m.garnishIds)) m.garnishIds = [];
     m.cocktailIds.forEach(cid => {
       const c = cocktails.find(x => x.id === cid);
       if(!c) return;
@@ -1987,6 +2060,10 @@ function syncMenuPreps(){
           m.prepIds.push(ing.ref);
         }
       });
+      if(c.garnish){
+        const g = garnishes.find(x => x.name.trim().toLowerCase() === c.garnish.trim().toLowerCase());
+        if(g && !m.garnishIds.includes(g.id)) m.garnishIds.push(g.id);
+      }
     });
   });
 }
@@ -2002,6 +2079,7 @@ function renderList(){
   const cocktailItems = items.filter(i => i.type === 'cocktail');
   const prepItems = items.filter(i => i.type === 'prep');
   const ratioItems = items.filter(i => i.type === 'ratio');
+  const garnishItems = items.filter(i => i.type === 'garnish');
 
   const dragItemHtml = (i) => `<div class="swipe-wrapper">
         <div class="swipe-delete" onclick="confirmDeleteItem('${i.id}','${i.type}')">Supprimé</div>
@@ -2064,17 +2142,20 @@ function renderList(){
     menus.forEach(m => {
       const mCocktails = cocktailItems.filter(i => (m.cocktailIds || []).includes(i.id));
       const mPreps = prepItems.filter(i => (m.prepIds || []).includes(i.id));
-      const total = mCocktails.length + mPreps.length;
+      const mGarnish = garnishItems.filter(i => (m.garnishIds || []).includes(i.id));
+      const total = mCocktails.length + mPreps.length + mGarnish.length;
       const key = 'm-' + m.id;
       h += submenuHeader(key, m.name, total, m.id, 'var(--copper-bright)');
       if(menuOpen[key]){
         h += `<div class="rail-sub-list">`;
         if(!total){
-          h += `<div class="rail-sub-empty">Menu vide — clique sur le crayon pour ajouter des cocktails ou des preps.</div>`;
+          h += `<div class="rail-sub-empty">Menu vide — clique sur le crayon pour ajouter des cocktails, des preps ou des garnitures.</div>`;
         } else {
           if(mCocktails.length) h += mCocktails.map(plainItemHtml).join('');
           if(mCocktails.length && mPreps.length) h += `<div class="rail-sub-sep"></div>`;
           if(mPreps.length) h += mPreps.map(plainItemHtml).join('');
+          if((mCocktails.length || mPreps.length) && mGarnish.length) h += `<div class="rail-sub-sep"></div>`;
+          if(mGarnish.length) h += mGarnish.map(plainItemHtml).join('');
         }
         h += `</div>`;
       }
@@ -2095,15 +2176,17 @@ function renderList(){
 
   const cocktailsGroup = () => renderLibraryGroup('all-cocktails', 'Cocktails', 'cocktail', cocktailItems, 'Nouveau cocktail', 'var(--copper-bright)');
   const prepsGroup = () => renderLibraryGroup('all', 'Preps', 'prep', prepItems, 'Nouvelle prep', 'var(--verdigris-bright)');
+  const garnishGroup = () => renderLibraryGroup('all-garnish', 'Garnish', 'garnish', garnishItems, 'Nouvelle garniture', 'var(--amber-bright)');
 
   let groups;
-  if(state.tab === 'all') groups = [cocktailsGroup(), prepsGroup(), renderMenusGroup(), renderRatioGroup()];
+  if(state.tab === 'all') groups = [cocktailsGroup(), prepsGroup(), garnishGroup(), renderMenusGroup(), renderRatioGroup()];
   else if(state.tab === 'cocktail') groups = [cocktailsGroup(), renderMenusGroup()];
   else if(state.tab === 'ratio') groups = [renderRatioGroup()];
+  else if(state.tab === 'garnish') groups = [garnishGroup()];
   else groups = [prepsGroup(), renderMenusGroup()];
   let html = groups.filter(Boolean).join('<div class="rail-sep"></div>');
 
-  if(q && !cocktailItems.length && !prepItems.length && !ratioItems.length){
+  if(q && !cocktailItems.length && !prepItems.length && !ratioItems.length && !garnishItems.length){
     html = `<div class="rail-empty">Aucune fiche ne correspond.</div>`;
   }
   list.innerHTML = html;
@@ -2119,10 +2202,11 @@ function toggleMenuOpen(key){
 let menuDraft = null;
 function openMenuModal(id){
   const m = id ? menus.find(x => x.id === id) : null;
-  menuDraft = { id: m ? m.id : null, prepIds: {}, cocktailIds: {} };
+  menuDraft = { id: m ? m.id : null, prepIds: {}, cocktailIds: {}, garnishIds: {} };
   if(m){
     (m.prepIds || []).forEach(pid => { menuDraft.prepIds[pid] = true; });
     (m.cocktailIds || []).forEach(cid => { menuDraft.cocktailIds[cid] = true; });
+    (m.garnishIds || []).forEach(gid => { menuDraft.garnishIds[gid] = true; });
   }
   document.getElementById('menuModalTitle').textContent = m ? 'Modifier le menu' : 'Nouveau menu';
   document.getElementById('menuName').value = m ? m.name : '';
@@ -2141,9 +2225,19 @@ function menuRequiredPreps(){
   });
   return req;
 }
+function menuRequiredGarnish(){
+  const req = {};
+  cocktails.filter(c => menuDraft.cocktailIds[c.id]).forEach(c => {
+    if(!c.garnish) return;
+    const g = garnishes.find(x => x.name.trim().toLowerCase() === c.garnish.trim().toLowerCase());
+    if(g) req[g.id] = true;
+  });
+  return req;
+}
 function renderMenuLists(){
   const cl = document.getElementById('menuCocktailList');
   const pl = document.getElementById('menuPrepList');
+  const gl = document.getElementById('menuGarnishList');
   if(!cocktails.length){
     cl.innerHTML = `<div class="today-selector-empty">Aucun cocktail créé pour l'instant.</div>`;
   } else {
@@ -2174,16 +2268,43 @@ function renderMenuLists(){
       </div>`;
     }).join('');
   }
+  if(!garnishes.length){
+    gl.innerHTML = `<div class="today-selector-empty">Aucune garniture créée pour l'instant.</div>`;
+  } else {
+    const reqG = menuRequiredGarnish();
+    const sortedG = [...garnishes].sort((a,b) => a.name.localeCompare(b.name, 'fr'));
+    gl.innerHTML = sortedG.map(g => {
+      const locked = !!reqG[g.id];
+      return `
+      <div class="today-selector-row">
+        <label>
+          <input type="checkbox" ${(menuDraft.garnishIds[g.id] || locked) ? 'checked' : ''} ${locked ? 'disabled' : ''} onchange="toggleMenuDraftGarnish('${g.id}', this.checked)">
+          <span class="today-selector-name">${g.name}</span>
+          <span class="today-selector-cat">${locked ? 'requise par un cocktail' : g.category}</span>
+        </label>
+      </div>`;
+    }).join('');
+  }
 }
 function toggleMenuDraft(id, val){
   if(val) menuDraft.prepIds[id] = true;
   else delete menuDraft.prepIds[id];
 }
+function toggleMenuDraftGarnish(id, val){
+  if(val) menuDraft.garnishIds[id] = true;
+  else delete menuDraft.garnishIds[id];
+}
 function toggleMenuDraftCocktail(id, val){
   if(val){
     menuDraft.cocktailIds[id] = true;
     const c = cocktails.find(x => x.id === id);
-    if(c) c.ingredients.forEach(ing => { if(ing.kind === 'prep' && ing.ref) menuDraft.prepIds[ing.ref] = true; });
+    if(c){
+      c.ingredients.forEach(ing => { if(ing.kind === 'prep' && ing.ref) menuDraft.prepIds[ing.ref] = true; });
+      if(c.garnish){
+        const g = garnishes.find(x => x.name.trim().toLowerCase() === c.garnish.trim().toLowerCase());
+        if(g) menuDraft.garnishIds[g.id] = true;
+      }
+    }
   } else {
     delete menuDraft.cocktailIds[id];
   }
@@ -2195,15 +2316,15 @@ function saveMenuModal(){
   snapshot();
   const prepIds = preps.filter(p => menuDraft.prepIds[p.id]).map(p => p.id);
   const cocktailIds = cocktails.filter(c => menuDraft.cocktailIds[c.id]).map(c => c.id);
+  const garnishIds = garnishes.filter(g => menuDraft.garnishIds[g.id]).map(g => g.id);
   if(menuDraft.id){
     const m = menus.find(x => x.id === menuDraft.id);
-    if(m){ m.name = name; m.prepIds = prepIds; m.cocktailIds = cocktailIds; }
+    if(m){ m.name = name; m.prepIds = prepIds; m.cocktailIds = cocktailIds; m.garnishIds = garnishIds; }
   } else {
     let id = 'menu-' + slugify(name);
     if(menus.some(x => x.id === id)) id += '-' + Math.floor(Math.random()*900 + 100);
-    menus.push({ id, name, prepIds, cocktailIds });
-    menuOpen[id] = true;
-    menuOpen['c-' + id] = true;
+    menus.push({ id, name, prepIds, cocktailIds, garnishIds });
+    menuOpen['m-' + id] = true;
     saveDailyToLocalStorage();
   }
   closeMenuModal();
@@ -2234,7 +2355,7 @@ function renderMain(){
       <div class="welcome">
         <h1 class="daily-prep-title">Daily Prep</h1>
         <div class="hint">
-          <button class="hint-chip hint-chip-add" onclick="openTodaySelector()">Choisir les preps du jour</button>
+          <button class="hint-chip hint-chip-add" onclick="openTodaySelector()">Choisir pour aujourd’hui</button>
         </div>
       </div>
       ${renderDailyChecklistHtml()}`;
@@ -2242,7 +2363,44 @@ function renderMain(){
   }
   if(item.type === 'prep') renderPrepSheet(item);
   else if(item.type === 'ratio') renderRatioSheet(item);
+  else if(item.type === 'garnish') renderGarnishSheet(item);
   else renderCocktailSheet(item);
+}
+
+function renderGarnishSheet(item){
+  const main = document.getElementById('main');
+  const ingredients = item.ingredients || [];
+  const steps = item.steps || [];
+  main.innerHTML = `
+    <div class="crumb is-garnish"><span class="type-tag">Garniture</span> · ${item.category}</div>
+    <div class="sheet-head">
+      <div class="sheet-head-main">
+        <h1 class="sheet-title">${item.name}</h1>
+      </div>
+      <button class="edit-sheet-btn" onclick="openEditGarnishModal('${item.id}')">Modifier</button>
+    </div>
+
+    ${ingredients.length ? `<div class="section">
+      <p class="section-label">Ingrédients</p>
+      <ul class="ingredient-list">
+        ${ingredients.map(ing => `
+          <li class="ingredient-row">
+            <span class="ing-name">${ing.name}</span>
+            <span class="ing-qty-edit"><span class="ing-qty">${fmtQty(ing.qty, ing.unit)}</span></span>
+          </li>
+        `).join('')}
+      </ul>
+    </div>` : ''}
+
+    ${steps.length ? `<div class="section">
+      <p class="section-label">Processus</p>
+      <div class="steps">
+        ${steps.map((s, idx) => stepHtml(s, idx === steps.length - 1, true)).join('')}
+      </div>
+    </div>` : ''}
+
+    ${!ingredients.length && !steps.length ? `<div class="section"><p class="section-label">Préparation</p><div class="checklist-empty">Rien pour l'instant — clique sur « Modifier » pour ajouter des ingrédients ou des étapes.</div></div>` : ''}
+  `;
 }
 
 function ratioColor(i){
@@ -2292,23 +2450,23 @@ function renderRatioSheet(item){
 }
 
 function renderDailyChecklistHtml(){
-  const todayPreps = preps.filter(p => todaySelection[p.id]);
+  const todayPreps = [...preps, ...garnishes].filter(p => todaySelection[p.id]);
   const viderBtn = `<button class="today-edit-btn" onclick="clearTodaySelection()" title="Vider la liste du jour">
     <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
       <path d="M5 7h14M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2m-8 0 1 12a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1l1-12" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
     </svg>
     Vider
   </button>`;
-  if(!preps.length){
-    return `<div class="checklist-section"><p class="section-label">Preps du jour</p><div class="checklist-empty">Aucune préparation pour l'instant.</div></div>`;
+  if(!preps.length && !garnishes.length){
+    return `<div class="checklist-section"><p class="section-label">À faire aujourd'hui</p><div class="checklist-empty">Aucune préparation pour l'instant.</div></div>`;
   }
   if(!todayPreps.length){
     return `
       <div class="checklist-section">
         <div class="checklist-head">
-          <p class="section-label" style="margin:0; border:none; padding:0;">Preps du jour</p>
+          <p class="section-label" style="margin:0; border:none; padding:0;">À faire aujourd'hui</p>
         </div>
-        <div class="checklist-empty">Aucune prep sélectionnée pour aujourd'hui. Clique sur « Choisir les preps du jour » ci-dessus pour en ajouter.</div>
+        <div class="checklist-empty">Rien sélectionné pour aujourd'hui. Clique sur « Choisir pour aujourd'hui » ci-dessus pour ajouter des preps ou des garnitures.</div>
       </div>
     `;
   }
@@ -2316,7 +2474,7 @@ function renderDailyChecklistHtml(){
   return `
     <div class="checklist-section">
       <div class="checklist-head">
-        <p class="section-label" style="margin:0; border:none; padding:0;">Preps du jour</p>
+        <p class="section-label" style="margin:0; border:none; padding:0;">À faire aujourd'hui</p>
         <div class="checklist-head-right">
           <span class="checklist-count" id="checklistCount">${done}/${todayPreps.length}</span>
           ${viderBtn}
@@ -2348,7 +2506,7 @@ function toggleDaily(id, val){
   saveDailyToLocalStorage();
   const row = document.querySelector(`.checklist-row[data-id="${id}"]`);
   if(row) row.classList.toggle('done', val);
-  const todayPreps = preps.filter(p => todaySelection[p.id]);
+  const todayPreps = [...preps, ...garnishes].filter(p => todaySelection[p.id]);
   const done = todayPreps.filter(p => dailyChecklist[p.id]).length;
   const countEl = document.getElementById('checklistCount');
   if(countEl) countEl.textContent = `${done}/${todayPreps.length}`;
@@ -2366,7 +2524,7 @@ function openTodaySelector(){
   if(field){
     field.style.display = menus.length ? '' : 'none';
     document.getElementById('todayMenuFilter').innerHTML =
-      `<option value="">Toutes les preps</option>` + menus.map(m => `<option value="${m.id}">${m.name}</option>`).join('');
+      `<option value="">Tout</option>` + menus.map(m => `<option value="${m.id}">${m.name}</option>`).join('');
   }
   renderTodaySelectorList();
   document.getElementById('todayModalOverlay').classList.add('open');
@@ -2376,18 +2534,20 @@ function closeTodaySelector(){
 }
 function renderTodaySelectorList(){
   const list = document.getElementById('todaySelectorList');
-  if(!preps.length){
-    list.innerHTML = `<div class="today-selector-empty">Aucune préparation créée pour l'instant.</div>`;
+  if(!preps.length && !garnishes.length){
+    list.innerHTML = `<div class="today-selector-empty">Aucune préparation ni garniture créée pour l'instant.</div>`;
     return;
   }
   const activeMenu = todayMenuFilter ? menus.find(m => m.id === todayMenuFilter) : null;
-  const pool = activeMenu ? preps.filter(p => activeMenu.prepIds.includes(p.id)) : preps;
-  const sorted = [...pool].sort((a,b) => a.name.localeCompare(b.name, 'fr'));
-  if(!sorted.length){
-    list.innerHTML = `<div class="today-selector-empty">Aucune prep dans ce menu.</div>`;
+  const prepPool = activeMenu ? preps.filter(p => (activeMenu.prepIds || []).includes(p.id)) : preps;
+  const garnishPool = activeMenu ? garnishes.filter(g => (activeMenu.garnishIds || []).includes(g.id)) : garnishes;
+  const sortedPreps = [...prepPool].sort((a,b) => a.name.localeCompare(b.name, 'fr'));
+  const sortedGarnish = [...garnishPool].sort((a,b) => a.name.localeCompare(b.name, 'fr'));
+  if(!sortedPreps.length && !sortedGarnish.length){
+    list.innerHTML = `<div class="today-selector-empty">Rien dans ce menu.</div>`;
     return;
   }
-  list.innerHTML = sorted.map(p => `
+  const row = (p) => `
     <div class="today-selector-row">
       <label>
         <input type="checkbox" ${todaySelectorDraft[p.id] ? 'checked' : ''} onchange="toggleTodayDraft('${p.id}', this.checked)">
@@ -2395,7 +2555,11 @@ function renderTodaySelectorList(){
         <span class="today-selector-cat">${p.category}</span>
       </label>
     </div>
-  `).join('');
+  `;
+  let html = sortedPreps.map(row).join('');
+  if(sortedPreps.length && sortedGarnish.length) html += `<div class="rail-sub-sep"></div>`;
+  html += sortedGarnish.map(row).join('');
+  list.innerHTML = html;
 }
 function toggleTodayDraft(id, val){
   if(val) todaySelectorDraft[id] = true;
@@ -2608,6 +2772,7 @@ function renderCocktailSheet(item){
   const hasPrebatch = item.ingredients.some(i => i.prebatch);
   const defaultBatchVol = Math.round(prebatchBaseVolume(item) * 100) || 15000;
   const editing = cocktailEditMode;
+  const garnishFiche = item.garnish ? garnishes.find(g => g.name.trim().toLowerCase() === item.garnish.trim().toLowerCase()) : null;
   main.innerHTML = `
     <div class="crumb"><span class="type-tag">Cocktail</span> · ${item.category}</div>
     <div class="sheet-head">
@@ -2624,7 +2789,7 @@ function renderCocktailSheet(item){
           ` : `
             <span>Verre — <b>${item.glass}</b></span>
             ${item.ice ? `<span>Glace — <b>${item.ice}</b></span>` : ''}
-            ${item.garnish ? `<span>Garniture — <b>${item.garnish}</b></span>` : ''}
+            ${item.garnish ? `<span>Garniture — <b class="garnish-link ${garnishFiche ? 'garnish-exists' : ''}" onclick="openOrCreateGarnish('${item.garnish.replace(/'/g, "\\'")}')" title="${garnishFiche ? 'Ouvrir la fiche de cette garniture' : 'Créer la fiche de cette garniture'}">${!garnishFiche ? '<span class="add-prep-btn" style="pointer-events:none;">+</span>' : ''}${item.garnish}</b></span>` : ''}
             ${item.methodType ? `<span>Méthode — <b>${item.methodType}</b></span>` : ''}
           `}
         </div>
@@ -2902,14 +3067,15 @@ function openCreateModal(type){
   modalCtx = null;
   modalMode = 'create';
   modalType = type;
-  const titles = { cocktail: 'Nouveau cocktail', prep: 'Nouvelle préparation', ratio: 'Nouveau ratio' };
-  const nameLabels = { cocktail: 'Nom du cocktail', prep: 'Nom de la préparation', ratio: 'Nom du ratio' };
+  const titles = { cocktail: 'Nouveau cocktail', prep: 'Nouvelle préparation', ratio: 'Nouveau ratio', garnish: 'Nouvelle garniture' };
+  const nameLabels = { cocktail: 'Nom du cocktail', prep: 'Nom de la préparation', ratio: 'Nom du ratio', garnish: 'Nom de la garniture' };
   document.getElementById('modalTitle').textContent = titles[type];
   document.getElementById('modalNameLabel').textContent = nameLabels[type];
-  document.getElementById('mfIngLabel').textContent = type === 'cocktail' ? 'Ingrédients (pour 1 verre)' : 'Ingrédients (pour le volume de référence)';
+  document.getElementById('mfIngLabel').textContent = type === 'cocktail' ? 'Ingrédients (pour 1 verre)' : (type === 'garnish' ? 'Ingrédients' : 'Ingrédients (pour le volume de référence)');
   document.getElementById('mfPrepFields').style.display = type === 'prep' ? '' : 'none';
   document.getElementById('mfCocktailFields').style.display = type === 'cocktail' ? '' : 'none';
   document.getElementById('mfRatioFields').style.display = type === 'ratio' ? '' : 'none';
+  document.getElementById('mfGarnishFields').style.display = type === 'garnish' ? '' : 'none';
   document.getElementById('mfIngSection').style.display = type === 'ratio' ? 'none' : '';
   document.getElementById('mfRatioPartsSection').style.display = type === 'ratio' ? '' : 'none';
   document.getElementById('mfStepsSection').style.display = type === 'ratio' ? 'none' : '';
@@ -2928,10 +3094,13 @@ function openCreateModal(type){
     document.getElementById('mfGarnish').value = '';
     document.getElementById('mfMethod').value = '';
     modalIngredients = [{ kind: 'raw', name: '', ref: '', pendingName: '', qty: '', unit: 'ml', prebatch: false }];
-  } else {
+  } else if(type === 'ratio'){
     document.getElementById('mfRatioCategory').value = '';
     document.getElementById('mfRatioNote').value = '';
     modalRatioParts = [{ label: '', value: '', unit: '' }, { label: '', value: '', unit: '' }];
+  } else {
+    document.getElementById('mfGarnishCategory').value = '';
+    modalIngredients = [{ name: '', qty: '', unit: 'ml' }];
   }
   modalSteps = [{ title: '', text: '', icon: 'leaf', timer: '' }];
   renderModalIngredients();
@@ -2965,6 +3134,48 @@ function openEditRatioModal(ratioId){
   const submitBtn = document.getElementById('modalSubmitBtn');
   if(submitBtn) submitBtn.textContent = 'Enregistrer les modifications';
   document.getElementById('modalOverlay').classList.add('open');
+}
+
+function openEditGarnishModal(garnishId){
+  const item = byId(garnishId);
+  if(!item) return;
+  modalCtx = { editId: garnishId };
+  modalMode = 'edit';
+  modalType = 'garnish';
+  document.getElementById('modalTitle').textContent = 'Modifier la garniture';
+  document.getElementById('modalNameLabel').textContent = 'Nom de la garniture';
+  document.getElementById('mfIngLabel').textContent = 'Ingrédients';
+  document.getElementById('mfPrepFields').style.display = 'none';
+  document.getElementById('mfCocktailFields').style.display = 'none';
+  document.getElementById('mfRatioFields').style.display = 'none';
+  document.getElementById('mfGarnishFields').style.display = '';
+  document.getElementById('mfIngSection').style.display = '';
+  document.getElementById('mfRatioPartsSection').style.display = 'none';
+  document.getElementById('mfStepsSection').style.display = '';
+  document.getElementById('mfName').value = item.name;
+  document.getElementById('mfGarnishCategory').value = item.category || '';
+  modalIngredients = (item.ingredients || []).map(i => ({ name: i.name, qty: i.qty, unit: i.unit }));
+  if(!modalIngredients.length) modalIngredients = [{ name: '', qty: '', unit: 'ml' }];
+  modalSteps = (item.steps || []).map(s => ({ title: s.title, icon: s.icon, text: s.text, timer: s.timer || '' }));
+  if(!modalSteps.length) modalSteps = [{ title: '', text: '', icon: 'leaf', timer: '' }];
+  renderModalIngredients();
+  renderModalSteps();
+  const submitBtn = document.getElementById('modalSubmitBtn');
+  if(submitBtn) submitBtn.textContent = 'Enregistrer les modifications';
+  document.getElementById('modalOverlay').classList.add('open');
+}
+
+// Ouvre la fiche existante si une garniture porte déjà ce nom, sinon ouvre la création pré-remplie
+function openOrCreateGarnish(name){
+  if(!name) return;
+  const trimmed = name.trim();
+  const existing = garnishes.find(g => g.name.trim().toLowerCase() === trimmed.toLowerCase());
+  if(existing){
+    selectItem(existing.id);
+    return;
+  }
+  openCreateModal('garnish');
+  document.getElementById('mfName').value = trimmed;
 }
 
 function closePrepModal(){
@@ -3261,6 +3472,26 @@ function submitPrepModal(){
     return;
   }
 
+  if(modalMode === 'edit' && modalType === 'garnish'){
+    const item = byId(modalCtx.editId);
+    if(!item){ closePrepModal(); return; }
+    const ingredients = modalIngredients
+      .filter(r => r.name.trim() && r.qty !== '')
+      .map(r => ({ name: r.name.trim(), qty: parseFloat(r.qty), unit: r.unit }));
+    const steps = modalSteps
+      .filter(s => s.title.trim())
+      .map(s => ({ icon: s.icon, title: s.title.trim(), text: s.text.trim(), timer: s.timer.trim() || null }));
+    item.name = name;
+    item.category = document.getElementById('mfGarnishCategory').value.trim() || 'Autre';
+    if(ingredients.length) item.ingredients = ingredients;
+    if(steps.length) item.steps = steps;
+    closePrepModal();
+    renderList();
+    renderMain();
+    showToast(`Garniture "${name}" mise à jour.`);
+    return;
+  }
+
   let id = slugify(name);
   if(byId(id)) id = id + '-' + Math.floor(Math.random()*900 + 100);
 
@@ -3310,6 +3541,30 @@ function submitPrepModal(){
     renderList();
     selectItem(id);
     showToast(`Ratio "${name}" créé pour cette session.`);
+    return;
+  }
+
+  if(modalType === 'garnish'){
+    const ingredients = modalIngredients
+      .filter(r => r.name.trim() && r.qty !== '')
+      .map(r => ({ name: r.name.trim(), qty: parseFloat(r.qty), unit: r.unit }));
+    const steps = modalSteps
+      .filter(s => s.title.trim())
+      .map(s => ({ icon: s.icon, title: s.title.trim(), text: s.text.trim(), timer: s.timer.trim() || null }));
+
+    const newGarnish = {
+      id, type: 'garnish',
+      category: document.getElementById('mfGarnishCategory').value.trim() || 'Autre',
+      name,
+      ingredients,
+      steps,
+    };
+    garnishes.push(newGarnish);
+    lastCreatedPrep = newGarnish;
+    closePrepModal();
+    renderList();
+    selectItem(id);
+    showToast(`Garniture "${name}" créée pour cette session.`);
     return;
   }
 
