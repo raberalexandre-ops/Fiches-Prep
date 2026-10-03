@@ -60,7 +60,7 @@
     position:relative;
     z-index:1;
     display:grid;
-    grid-template-columns:300px 1fr;
+    grid-template-columns:324px 1fr;
     min-height:100vh;
     transition:grid-template-columns .22s ease;
   }
@@ -219,9 +219,9 @@
     background:var(--bg-card);
     border:1px solid var(--border);
     color:var(--text);
-    padding:9px 12px;
+    padding:11px 14px;
     border-radius:var(--radius-card);
-    font-size:13.5px;
+    font-size:15px;
     outline:none;
   }
   .search input:focus{border-color:var(--copper);}
@@ -238,8 +238,8 @@
   .tab{
     flex:1;
     text-align:center;
-    padding:7px 2px;
-    font-size:10.5px;
+    padding:10px 3px;
+    font-size:12.5px;
     color:var(--text-soft);
     border-radius:2px;
     cursor:pointer;
@@ -427,7 +427,7 @@
   .app.rail-collapsed .main{
     max-width:1040px;
   }
-  @media (max-width: 640px){
+  @media (max-width: 640px), (max-height: 500px) and (orientation: landscape){
     .main{padding:66px 18px 60px;}
   }
 
@@ -531,12 +531,16 @@
   }
   .sheet-meta{
     display:flex;
-    gap:16px;
+    gap:10px 22px;
     flex-wrap:wrap;
-    font-size:13px;
+    font-size:14.5px;
     color:var(--text-soft);
+    background:var(--bg-card);
+    border:1px solid var(--border);
+    border-radius:8px;
+    padding:12px 16px;
   }
-  .sheet-meta span b{color:var(--text);font-weight:600;}
+  .sheet-meta span b{color:var(--copper-bright); font-weight:600;}
   .sheet-meta-edit{display:inline-flex; align-items:center;}
   .sheet-meta-input{
     background:transparent;
@@ -810,6 +814,7 @@
   .row-3{display:grid; grid-template-columns:1fr 90px 80px; gap:8px; align-items:end;}
   .row-4{display:grid; grid-template-columns:1fr 90px 1fr 90px; gap:8px; align-items:end;}
   .row-ckt-ing{display:grid; grid-template-columns:100px 1fr 60px 60px 34px 18px; gap:8px; align-items:end; margin-bottom:10px;}
+  .row-garnish-ing{display:grid; grid-template-columns:100px 1fr 60px 60px 18px; gap:8px; align-items:end; margin-bottom:10px;}
   .subgroup{
     border:1px solid var(--border-soft);
     border-radius:var(--radius-card);
@@ -838,7 +843,7 @@
     gap:2px;
   }
   .row-actions .rail-drag-handle{margin:0;}
-  .row-4, .row-ckt-ing{padding-left:20px;}
+  .row-4, .row-ckt-ing, .row-garnish-ing{padding-left:20px;}
   .row-drag-handle{
     position:absolute;
     left:0;
@@ -894,7 +899,7 @@
   .today-selector-name{flex:1; font-size:14px; color:var(--text);}
   .today-selector-cat{font-size:11.5px; color:var(--text-faint);}
   .today-selector-empty{padding:16px 2px; color:var(--text-faint); font-size:13px;}
-  @media (max-width: 640px){
+  @media (max-width: 640px), (max-height: 500px) and (orientation: landscape){
     .modal-overlay{padding:16px 10px;}
     .modal{padding:20px 16px 22px;}
     .modal h2{font-size:19px;}
@@ -907,21 +912,23 @@
     }
     .row-2{grid-template-columns:1fr; gap:16px;}
     .field > .row-2{grid-template-columns:1fr 1fr; gap:10px;}
-    .row-3, .row-4, .row-ckt-ing{
+    .row-3, .row-4, .row-ckt-ing, .row-garnish-ing{
       grid-template-columns:1fr 1fr;
       gap:12px 10px;
       row-gap:16px;
     }
-    .row-4 > *:nth-child(1){grid-column:1/-1;}
-    .row-ckt-ing > *:nth-child(5){grid-column:1/-1;}
-    .row-3 .row-actions, .row-4 .row-actions, .row-ckt-ing .row-actions{
+    .row-4 > *:nth-child(2){grid-column:1/-1;}
+    .row-ckt-ing > *:nth-child(6){grid-column:1/-1;}
+    .row-garnish-ing > *:nth-child(3){grid-column:1/-1;}
+    .row-3 .row-actions, .row-4 .row-actions, .row-ckt-ing .row-actions, .row-garnish-ing .row-actions{
       grid-column:1/-1;
       margin-top:-4px;
     }
     .remove-row{font-size:20px; padding:5px 7px;}
+    .row-drag-handle{top:14px; transform:none;}
     .add-row-btn{padding:11px 10px; font-size:13.5px;}
     .subgroup{padding:14px 12px 8px;}
-    .search input{font-size:16px; padding:10px 12px;}
+    .search input{font-size:16px; padding:12px 14px;}
     .ing-name-input, .ing-qty-input, .ing-pct-input{font-size:16px;}
     .ing-qty-input{width:66px;}
     .ing-pct-input{width:54px;}
@@ -1256,7 +1263,7 @@
         <input type="text" id="searchInput" placeholder="Chercher une fiche…" oninput="renderList()">
       </div>
       <div class="tabs">
-        <button class="tab active" data-tab="all" onclick="setTab('all')">Tout</button>
+        <button class="tab active" data-tab="menu" onclick="setTab('menu')">Menu</button>
         <button class="tab" data-tab="cocktail" onclick="setTab('cocktail')">Cocktails</button>
         <button class="tab" data-tab="prep" onclick="setTab('prep')">Preps</button>
         <button class="tab" data-tab="garnish" onclick="setTab('garnish')">Garnish</button>
@@ -1358,13 +1365,6 @@
       </div>
     </div>
 
-    <div id="mfGarnishFields" style="display:none;">
-      <div class="field">
-        <label>Catégorie</label>
-        <input type="text" id="mfGarnishCategory" placeholder="ex. Agrume, Herbe, Épice, Fruit…">
-      </div>
-    </div>
-
     <div class="subgroup" id="mfIngSection">
       <p class="subgroup-label" id="mfIngLabel">Ingrédients (pour le volume de référence)</p>
       <div id="mfIngRows"></div>
@@ -1423,7 +1423,7 @@
     <h2 id="pinModalTitle">Code requis</h2>
     <div class="field">
       <label>Code</label>
-      <input type="tel" inputmode="numeric" pattern="[0-9]*" autocomplete="off" id="pinInput" class="pin-input" placeholder="••••" onkeydown="if(event.key==='Enter') submitPinModal()">
+      <input type="password" inputmode="numeric" pattern="[0-9]*" autocomplete="off" id="pinInput" class="pin-input" placeholder="••••" onkeydown="if(event.key==='Enter') submitPinModal()">
     </div>
     <div class="modal-actions">
       <button class="btn" onclick="closePinModal()">Annuler</button>
@@ -1740,7 +1740,7 @@ function iconSvg(name){
 /* ============================================================
    STATE + RENDER
    ============================================================ */
-let state = { tab: 'all', activeId: null };
+let state = { tab: 'menu', activeId: null };
 let cocktailEditMode = false; // édition des ingrédients d'un cocktail activée via le bouton "Modifier"
 let dailyChecklist = {}; // { prepId: true/false } — statut fait/pas fait
 let todaySelection = {}; // { prepId: true } — preps choisies pour l'écran d'accueil du jour
@@ -2073,7 +2073,7 @@ function renderList(){
   saveToLocalStorage();
   const q = document.getElementById('searchInput').value.trim().toLowerCase();
   const list = document.getElementById('railList');
-  let items = allItems().filter(i => state.tab === 'all' || i.type === state.tab);
+  let items = allItems().filter(i => state.tab === 'menu' || i.type === state.tab);
   if(q) items = items.filter(i => i.name.toLowerCase().includes(q) || i.category.toLowerCase().includes(q));
 
   const cocktailItems = items.filter(i => i.type === 'cocktail');
@@ -2124,18 +2124,15 @@ function renderList(){
         </button>` : ''}
       </div>`;
 
-  // "Cocktails" ou "Preps" : bibliothèque complète, repliable
-  const renderLibraryGroup = (key, label, type, arr, addLabel, chevColor) => {
+  // liste à plat : tous les cocktails, toutes les preps, etc. (utilisé par chaque onglet dédié)
+  const flatGroup = (arr, type, addLabel) => {
     if(!arr.length && q) return '';
-    if(q) return arr.map(dragItemHtml).join('');
-    let h = submenuHeader(key, label, arr.length, null, chevColor);
-    if(menuOpen[key]){
-      h += `<div class="rail-sub-list">${arr.map(dragItemHtml).join('')}${addRowHtml(`openCreateModal('${type}')`, addLabel)}</div>`;
-    }
+    let h = arr.map(dragItemHtml).join('');
+    if(!q) h += addRowHtml(`openCreateModal('${type}')`, addLabel);
     return h;
   };
 
-  // Un groupe par menu : cocktails, puis un petit trait, puis les preps (une seule fois, pas dupliqué)
+  // Un groupe par menu : cocktails, puis un petit trait, puis les preps, puis les garnitures (une seule fois, pas dupliqué)
   const renderMenusGroup = () => {
     if(q) return '';
     let h = '';
@@ -2164,26 +2161,22 @@ function renderList(){
     return h;
   };
 
-  const renderRatioGroup = () => {
-    if(!ratioItems.length && q) return '';
-    if(q) return ratioItems.map(dragItemHtml).join('');
-    let h = submenuHeader('all-ratios', 'Ratios', ratioItems.length, null, 'var(--slate-bright)');
-    if(menuOpen['all-ratios']){
-      h += `<div class="rail-sub-list">${ratioItems.map(dragItemHtml).join('')}${addRowHtml("openCreateModal('ratio')", 'Nouveau ratio')}</div>`;
-    }
-    return h;
-  };
-
-  const cocktailsGroup = () => renderLibraryGroup('all-cocktails', 'Cocktails', 'cocktail', cocktailItems, 'Nouveau cocktail', 'var(--copper-bright)');
-  const prepsGroup = () => renderLibraryGroup('all', 'Preps', 'prep', prepItems, 'Nouvelle prep', 'var(--verdigris-bright)');
-  const garnishGroup = () => renderLibraryGroup('all-garnish', 'Garnish', 'garnish', garnishItems, 'Nouvelle garniture', 'var(--amber-bright)');
-
   let groups;
-  if(state.tab === 'all') groups = [cocktailsGroup(), prepsGroup(), garnishGroup(), renderMenusGroup(), renderRatioGroup()];
-  else if(state.tab === 'cocktail') groups = [cocktailsGroup(), renderMenusGroup()];
-  else if(state.tab === 'ratio') groups = [renderRatioGroup()];
-  else if(state.tab === 'garnish') groups = [garnishGroup()];
-  else groups = [prepsGroup(), renderMenusGroup()];
+  if(state.tab === 'menu'){
+    if(q){
+      groups = [
+        flatGroup(cocktailItems, 'cocktail', 'Nouveau cocktail'),
+        flatGroup(prepItems, 'prep', 'Nouvelle prep'),
+        flatGroup(garnishItems, 'garnish', 'Nouvelle garniture'),
+        flatGroup(ratioItems, 'ratio', 'Nouveau ratio'),
+      ];
+    } else {
+      groups = [renderMenusGroup()];
+    }
+  } else if(state.tab === 'cocktail') groups = [flatGroup(cocktailItems, 'cocktail', 'Nouveau cocktail')];
+  else if(state.tab === 'prep') groups = [flatGroup(prepItems, 'prep', 'Nouvelle prep')];
+  else if(state.tab === 'garnish') groups = [flatGroup(garnishItems, 'garnish', 'Nouvelle garniture')];
+  else groups = [flatGroup(ratioItems, 'ratio', 'Nouveau ratio')];
   let html = groups.filter(Boolean).join('<div class="rail-sep"></div>');
 
   if(q && !cocktailItems.length && !prepItems.length && !ratioItems.length && !garnishItems.length){
@@ -2372,7 +2365,6 @@ function renderGarnishSheet(item){
   const ingredients = item.ingredients || [];
   const steps = item.steps || [];
   main.innerHTML = `
-    <div class="crumb is-garnish"><span class="type-tag">Garniture</span> · ${item.category}</div>
     <div class="sheet-head">
       <div class="sheet-head-main">
         <h1 class="sheet-title">${item.name}</h1>
@@ -2383,12 +2375,22 @@ function renderGarnishSheet(item){
     ${ingredients.length ? `<div class="section">
       <p class="section-label">Ingrédients</p>
       <ul class="ingredient-list">
-        ${ingredients.map(ing => `
+        ${ingredients.map((ing, idx) => {
+          const isPending = ing.kind === 'raw' && ing.note === 'prep — fiche à créer';
+          const nameHtml = ing.kind === 'prep'
+            ? `<span class="ing-name is-link" onclick="selectItem('${ing.ref}')">${(byId(ing.ref) || {}).name || ing.ref}</span>`
+            : (isPending
+                ? `<span class="ing-name">
+                    <button class="add-prep-btn" title="Créer la recette liée" onclick="openPrepModalForGarnish('${item.id}', ${idx})">+</button>
+                    ${ing.name}
+                  </span>`
+                : `<span class="ing-name">${ing.name}</span>`);
+          return `
           <li class="ingredient-row">
-            <span class="ing-name">${ing.name}</span>
+            ${nameHtml}
             <span class="ing-qty-edit"><span class="ing-qty">${fmtQty(ing.qty, ing.unit)}</span></span>
-          </li>
-        `).join('')}
+          </li>`;
+        }).join('')}
       </ul>
     </div>` : ''}
 
@@ -2575,11 +2577,9 @@ function confirmTodaySelection(){
 function renderPrepSheet(item){
   const main = document.getElementById('main');
   main.innerHTML = `
-    <div class="crumb is-prep"><span class="type-tag">Préparation maison</span> · ${item.category}</div>
     <div class="sheet-head">
       <div class="sheet-head-main">
         <h1 class="sheet-title">${item.name}</h1>
-        <div class="sheet-meta"><span>Lot de référence — <b>${item.baseVolume} ${item.unit}</b></span></div>
       </div>
       <button class="edit-sheet-btn" onclick="openEditPrepModal('${item.id}')">Modifier</button>
     </div>
@@ -2774,7 +2774,6 @@ function renderCocktailSheet(item){
   const editing = cocktailEditMode;
   const garnishFiche = item.garnish ? garnishes.find(g => g.name.trim().toLowerCase() === item.garnish.trim().toLowerCase()) : null;
   main.innerHTML = `
-    <div class="crumb"><span class="type-tag">Cocktail</span> · ${item.category}</div>
     <div class="sheet-head">
       <div class="sheet-head-main">
         ${editing
@@ -2991,6 +2990,34 @@ function openPrepModal(cocktailId, idx){
   document.getElementById('modalOverlay').classList.add('open');
 }
 
+function openPrepModalForGarnish(garnishId, idx){
+  const garnish = byId(garnishId);
+  const ing = garnish.ingredients[idx];
+  modalCtx = { garnishId, idx };
+  modalMode = 'link';
+  modalType = 'prep';
+  document.getElementById('modalTitle').textContent = 'Nouvelle fiche de prep';
+  document.getElementById('modalNameLabel').textContent = 'Nom de la préparation';
+  document.getElementById('mfIngLabel').textContent = 'Ingrédients (pour le volume de référence)';
+  document.getElementById('mfPrepFields').style.display = '';
+  document.getElementById('mfCocktailFields').style.display = 'none';
+  document.getElementById('mfIngSection').style.display = '';
+  document.getElementById('mfRatioPartsSection').style.display = 'none';
+  document.getElementById('mfStepsSection').style.display = '';
+  document.getElementById('mfName').value = ing.name;
+  document.getElementById('mfCategory').value = 'Sirop';
+  document.getElementById('mfBaseVolume').value = 1000;
+  document.getElementById('mfBaseUnit').value = 'ml';
+  document.getElementById('mfShelfLife').value = '';
+  modalIngredients = [{ name: '', qty: '', unit: 'ml' }];
+  modalSteps = [{ title: '', text: '', icon: 'leaf', timer: '' }];
+  renderModalIngredients();
+  renderModalSteps();
+  const submitBtn1 = document.getElementById('modalSubmitBtn');
+  if(submitBtn1) submitBtn1.textContent = 'Créer la fiche';
+  document.getElementById('modalOverlay').classList.add('open');
+}
+
 function openEditPrepModal(prepId){
   const item = byId(prepId);
   if(!item) return;
@@ -3075,7 +3102,6 @@ function openCreateModal(type){
   document.getElementById('mfPrepFields').style.display = type === 'prep' ? '' : 'none';
   document.getElementById('mfCocktailFields').style.display = type === 'cocktail' ? '' : 'none';
   document.getElementById('mfRatioFields').style.display = type === 'ratio' ? '' : 'none';
-  document.getElementById('mfGarnishFields').style.display = type === 'garnish' ? '' : 'none';
   document.getElementById('mfIngSection').style.display = type === 'ratio' ? 'none' : '';
   document.getElementById('mfRatioPartsSection').style.display = type === 'ratio' ? '' : 'none';
   document.getElementById('mfStepsSection').style.display = type === 'ratio' ? 'none' : '';
@@ -3099,8 +3125,7 @@ function openCreateModal(type){
     document.getElementById('mfRatioNote').value = '';
     modalRatioParts = [{ label: '', value: '', unit: '' }, { label: '', value: '', unit: '' }];
   } else {
-    document.getElementById('mfGarnishCategory').value = '';
-    modalIngredients = [{ name: '', qty: '', unit: 'ml' }];
+    modalIngredients = [{ kind: 'raw', name: '', ref: '', pendingName: '', qty: '', unit: 'ml' }];
   }
   modalSteps = [{ title: '', text: '', icon: 'leaf', timer: '' }];
   renderModalIngredients();
@@ -3148,14 +3173,16 @@ function openEditGarnishModal(garnishId){
   document.getElementById('mfPrepFields').style.display = 'none';
   document.getElementById('mfCocktailFields').style.display = 'none';
   document.getElementById('mfRatioFields').style.display = 'none';
-  document.getElementById('mfGarnishFields').style.display = '';
   document.getElementById('mfIngSection').style.display = '';
   document.getElementById('mfRatioPartsSection').style.display = 'none';
   document.getElementById('mfStepsSection').style.display = '';
   document.getElementById('mfName').value = item.name;
-  document.getElementById('mfGarnishCategory').value = item.category || '';
-  modalIngredients = (item.ingredients || []).map(i => ({ name: i.name, qty: i.qty, unit: i.unit }));
-  if(!modalIngredients.length) modalIngredients = [{ name: '', qty: '', unit: 'ml' }];
+  modalIngredients = (item.ingredients || []).map(i => {
+    if(i.kind === 'prep') return { kind: 'prep', ref: i.ref, pendingName: '', qty: i.qty, unit: i.unit };
+    if(i.note === 'prep — fiche à créer') return { kind: 'prep', ref: '__new__', pendingName: i.name, qty: i.qty, unit: i.unit };
+    return { kind: 'raw', name: i.name, ref: '', pendingName: '', qty: i.qty, unit: i.unit };
+  });
+  if(!modalIngredients.length) modalIngredients = [{ kind: 'raw', name: '', ref: '', pendingName: '', qty: '', unit: 'ml' }];
   modalSteps = (item.steps || []).map(s => ({ title: s.title, icon: s.icon, text: s.text, timer: s.timer || '' }));
   if(!modalSteps.length) modalSteps = [{ title: '', text: '', icon: 'leaf', timer: '' }];
   renderModalIngredients();
@@ -3192,6 +3219,52 @@ function renderModalIngredients(){
         <circle cx="15" cy="6" r="1.3" fill="currentColor"/><circle cx="15" cy="12" r="1.3" fill="currentColor"/><circle cx="15" cy="18" r="1.3" fill="currentColor"/>
       </svg>
     </span>`;
+  if(modalType === 'garnish'){
+    wrap.innerHTML = modalIngredients.map((row, i) => {
+      const isPrepKind = row.kind === 'prep';
+      const isPendingNew = isPrepKind && row.ref === '__new__';
+      return `
+      <div class="dyn-row row-garnish-ing" ondragover="modalRowDragOver(event,this)" ondragleave="modalRowDragLeave(event,this)" ondrop="modalRowDrop(event,this,'ing',${i})">
+        ${dragHandle('ing', i)}
+        <div class="field" style="margin-bottom:0;">
+          ${i===0?'<label>Type</label>':''}
+          <select onchange="setModalIngKind(${i}, this.value)">
+            <option value="raw" ${!isPrepKind?'selected':''}>Brut</option>
+            <option value="prep" ${isPrepKind?'selected':''}>Recette</option>
+          </select>
+        </div>
+        <div class="field" style="margin-bottom:0;">
+          ${i===0?'<label>Nom</label>':''}
+          ${isPrepKind
+            ? (isPendingNew
+                ? `<span class="pending-prep-name">
+                    <input type="text" placeholder="Nom de la nouvelle recette…" value="${row.pendingName||''}" oninput="updateModalIng(${i},'pendingName',this.value)">
+                  </span>`
+                : `<select onchange="selectModalIngPrep(${i}, this.value)">
+                    <option value="">— choisir —</option>
+                    ${preps.map(p => `<option value="${p.id}" ${row.ref===p.id?'selected':''}>${p.name}</option>`).join('')}
+                    <option value="__new__">+ Créer une nouvelle recette</option>
+                  </select>`)
+            : `<input type="text" value="${row.name||''}" oninput="updateModalIng(${i},'name',this.value)">`
+          }
+        </div>
+        <div class="field" style="margin-bottom:0;">
+          ${i===0?'<label>Qté</label>':''}
+          <input type="number" value="${row.qty}" step="0.1" oninput="updateModalIng(${i},'qty',this.value)">
+        </div>
+        <div class="field" style="margin-bottom:0;">
+          ${i===0?'<label>Unité</label>':''}
+          <select onchange="updateModalIng(${i},'unit',this.value)">
+            ${['ml','g','cl','pièce'].map(u => `<option value="${u}" ${row.unit===u?'selected':''}>${u}</option>`).join('')}
+          </select>
+        </div>
+        <div class="row-actions">
+          <button type="button" class="remove-row" onclick="removeModalIng(${i})" title="Retirer">×</button>
+        </div>
+      </div>`;
+    }).join('');
+    return;
+  }
   if(modalType === 'cocktail'){
     wrap.innerHTML = modalIngredients.map((row, i) => {
       const isPrepKind = row.kind === 'prep';
@@ -3266,7 +3339,9 @@ function renderModalIngredients(){
   `).join('');
 }
 function addModalIngredient(){
-  modalIngredients.push(modalType === 'cocktail' ? { kind:'raw', name:'', ref:'', pendingName:'', qty:'', unit:'ml', prebatch:false } : { name:'', qty:'', unit:'ml' });
+  if(modalType === 'cocktail') modalIngredients.push({ kind:'raw', name:'', ref:'', pendingName:'', qty:'', unit:'ml', prebatch:false });
+  else if(modalType === 'garnish') modalIngredients.push({ kind:'raw', name:'', ref:'', pendingName:'', qty:'', unit:'ml' });
+  else modalIngredients.push({ name:'', qty:'', unit:'ml' });
   renderModalIngredients();
   suggestBaseVolume();
 }
@@ -3390,6 +3465,23 @@ function buildCocktailIngredientsFromModal(){
     });
 }
 
+function buildGarnishIngredientsFromModal(){
+  return modalIngredients
+    .filter(r => {
+      if(r.kind === 'prep') return (r.ref === '__new__' ? (r.pendingName||'').trim() : r.ref) && r.qty !== '';
+      return (r.name||'').trim() && r.qty !== '';
+    })
+    .map(r => {
+      if(r.kind === 'prep' && r.ref === '__new__'){
+        return { kind: 'raw', name: r.pendingName.trim(), qty: parseFloat(r.qty), unit: r.unit, note: 'prep — fiche à créer' };
+      }
+      if(r.kind === 'prep'){
+        return { kind: 'prep', ref: r.ref, qty: parseFloat(r.qty), unit: r.unit };
+      }
+      return { kind: 'raw', name: r.name.trim(), qty: parseFloat(r.qty), unit: r.unit };
+    });
+}
+
 function buildRatioPartsFromModal(){
   return modalRatioParts
     .filter(r => (r.label||'').trim() && r.value !== '')
@@ -3475,14 +3567,12 @@ function submitPrepModal(){
   if(modalMode === 'edit' && modalType === 'garnish'){
     const item = byId(modalCtx.editId);
     if(!item){ closePrepModal(); return; }
-    const ingredients = modalIngredients
-      .filter(r => r.name.trim() && r.qty !== '')
-      .map(r => ({ name: r.name.trim(), qty: parseFloat(r.qty), unit: r.unit }));
+    const ingredients = buildGarnishIngredientsFromModal();
     const steps = modalSteps
       .filter(s => s.title.trim())
       .map(s => ({ icon: s.icon, title: s.title.trim(), text: s.text.trim(), timer: s.timer.trim() || null }));
     item.name = name;
-    item.category = document.getElementById('mfGarnishCategory').value.trim() || 'Autre';
+    item.category = 'Garnish';
     if(ingredients.length) item.ingredients = ingredients;
     if(steps.length) item.steps = steps;
     closePrepModal();
@@ -3545,16 +3635,14 @@ function submitPrepModal(){
   }
 
   if(modalType === 'garnish'){
-    const ingredients = modalIngredients
-      .filter(r => r.name.trim() && r.qty !== '')
-      .map(r => ({ name: r.name.trim(), qty: parseFloat(r.qty), unit: r.unit }));
+    const ingredients = buildGarnishIngredientsFromModal();
     const steps = modalSteps
       .filter(s => s.title.trim())
       .map(s => ({ icon: s.icon, title: s.title.trim(), text: s.text.trim(), timer: s.timer.trim() || null }));
 
     const newGarnish = {
       id, type: 'garnish',
-      category: document.getElementById('mfGarnishCategory').value.trim() || 'Autre',
+      category: 'Garnish',
       name,
       ingredients,
       steps,
@@ -3588,16 +3676,21 @@ function submitPrepModal(){
   };
   preps.push(newPrep);
 
-  if(modalCtx){
+  if(modalCtx && modalCtx.cocktailId){
     const cocktail = byId(modalCtx.cocktailId);
     const ing = cocktail.ingredients[modalCtx.idx];
     cocktail.ingredients[modalCtx.idx] = { kind: 'prep', ref: id, qty: ing.qty, unit: ing.unit, prebatch: !!ing.prebatch };
+  } else if(modalCtx && modalCtx.garnishId){
+    const garnish = byId(modalCtx.garnishId);
+    const ing = garnish.ingredients[modalCtx.idx];
+    garnish.ingredients[modalCtx.idx] = { kind: 'prep', ref: id, qty: ing.qty, unit: ing.unit };
   }
 
   lastCreatedPrep = newPrep;
+  const wasLinking = !!modalCtx;
   closePrepModal();
   renderList();
-  if(modalCtx){ renderMain(); } else { selectItem(id); }
+  if(wasLinking){ renderMain(); } else { selectItem(id); }
   showToast(`Fiche "${name}" créée pour cette session.`);
 }
 
