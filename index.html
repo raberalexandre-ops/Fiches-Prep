@@ -60,7 +60,7 @@
     position:relative;
     z-index:1;
     display:grid;
-    grid-template-columns:324px 1fr;
+    grid-template-columns:340px 1fr;
     min-height:100vh;
     transition:grid-template-columns .22s ease;
   }
@@ -229,17 +229,18 @@
 
   .tabs{
     display:flex;
-    margin:16px 20px 8px;
+    margin:16px 14px 8px;
     background:var(--bg-card);
     border:1px solid var(--border);
     border-radius:var(--radius-card);
     padding:3px;
   }
   .tab{
-    flex:1;
+    flex:1 1 0;
+    min-width:0;
     text-align:center;
-    padding:10px 3px;
-    font-size:12.5px;
+    padding:10px 1px;
+    font-size:11px;
     color:var(--text-soft);
     border-radius:2px;
     cursor:pointer;
@@ -247,6 +248,8 @@
     background:transparent;
     transition:background .15s, color .15s;
     white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
   }
   .tab.active{
     background:var(--copper);
@@ -807,6 +810,9 @@
     letter-spacing:6px;
     text-align:center;
     font-variant-numeric:tabular-nums;
+    box-sizing:border-box;
+    width:100%;
+    max-width:100%;
   }
   .field input:focus, .field textarea:focus, .field select:focus{border-color:var(--copper);}
   .field textarea{resize:vertical; min-height:44px;}
@@ -951,7 +957,7 @@
     color:#1a140c;
     font-weight:600;
   }
-  .btn-primary:hover{background:var(--copper-bright); border-color:var(--copper-bright); color:#1a140c;}
+  .btn-primary:hover{background:var(--copper-bright); border-color:var(--copper-bright); color:#1b1f25;}
 
   .toast{
     position:fixed;
@@ -1423,7 +1429,7 @@
     <h2 id="pinModalTitle">Code requis</h2>
     <div class="field">
       <label>Code</label>
-      <input type="password" inputmode="numeric" pattern="[0-9]*" autocomplete="off" id="pinInput" class="pin-input" placeholder="••••" onkeydown="if(event.key==='Enter') submitPinModal()">
+      <input type="password" inputmode="numeric" pattern="[0-9]*" maxlength="8" autocomplete="off" id="pinInput" class="pin-input" placeholder="••••" onkeydown="if(event.key==='Enter') submitPinModal()">
     </div>
     <div class="modal-actions">
       <button class="btn" onclick="closePinModal()">Annuler</button>
