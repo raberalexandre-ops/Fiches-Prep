@@ -22,8 +22,8 @@
     --verdigris-bright: #8bb8ad;
     --slate: #7d8ba3;
     --slate-bright: #a3aec2;
-    --amber: #ad8a3d;
-    --amber-bright: #d0ac5c;
+    --amber: #9a5a8a;
+    --amber-bright: #c589b3;
     --text: #f1e9dc;
     --text-soft: #b3a692;
     --text-faint: #6e6355;
@@ -505,6 +505,12 @@
     margin-bottom:28px;
   }
   .sheet-head-main{flex:1; min-width:0;}
+  .sheet-head.cocktail-head{
+    border-bottom:none;
+    padding-bottom:0;
+    margin-bottom:14px;
+  }
+
   .sheet-title{
     font-family:var(--serif);
     font-size:32px;
@@ -659,6 +665,20 @@
     padding-bottom:8px;
     border-bottom:1px solid var(--border-soft);
   }
+  .section-label-row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:16px;
+    margin:0 0 12px;
+    padding-bottom:8px;
+    border-bottom:1px solid var(--border-soft);
+  }
+  .section-label-row .section-label{
+    margin:0;
+    padding-bottom:0;
+    border-bottom:none;
+  }
 
   /* scaler */
   .scaler{
@@ -751,6 +771,8 @@
   .ingredient-row:last-child{border-bottom:none;}
   .ingredient-list > li:last-child > .swipe-content.ingredient-row{border-bottom:none;}
   .ing-name{color:var(--text); flex:1; min-width:0;}
+  .ingredient-row.ing-bold .ing-name{font-weight:700;}
+  .ingredient-row.ing-bold .ing-qty{font-weight:700;}
   .pb-toggle{
     position:relative;
     display:inline-flex;
@@ -781,9 +803,11 @@
     margin:-2px -4px;
     border-radius:3px;
     display:inline-block;
-    transition:color .12s ease;
+    text-decoration:underline;
+    text-decoration-color:transparent;
+    transition:text-decoration-color .12s ease;
   }
-  .ing-name.is-link:hover, .ing-name.is-link:active{color:var(--text);}
+  .ing-name.is-link:hover, .ing-name.is-link:active{text-decoration-color:var(--verdigris-bright);}
   .edit-ing-btn{
     width:18px;height:18px;
     border-radius:50%;
@@ -1436,7 +1460,13 @@
         </div>
         <div class="field">
           <label>Garniture</label>
-          <input type="text" id="mfGarnish">
+          <div class="row-2">
+            <select id="mfGarnishType" onchange="setModalGarnishType(this.value)">
+              <option value="raw">Brut</option>
+              <option value="prep">Recette</option>
+            </select>
+            <div id="mfGarnishFieldWrap"></div>
+          </div>
         </div>
       </div>
       <div class="field">
@@ -2142,6 +2172,35 @@ window.addEventListener('resize', () => {
   else { app.classList.remove('rail-collapsed'); }
 });
 
+// ---------- glisser du doigt pour ouvrir/fermer le menu sur mobile ----------
+let railSwipeStartX = null;
+let railSwipeStartY = null;
+let railSwipeTracking = false;
+document.addEventListener('pointerdown', (e) => {
+  if(e.pointerType === 'mouse') return;
+  if(window.innerWidth > 860) return;
+  const app = document.querySelector('.app');
+  const isOpen = app.classList.contains('rail-mobile-open');
+  if(!isOpen && e.clientX > 28) return; // ouverture : uniquement depuis le bord gauche
+  if(isOpen && e.target.closest('input, textarea, select, button, .swipe-content, .color-swatch')) return;
+  railSwipeStartX = e.clientX;
+  railSwipeStartY = e.clientY;
+  railSwipeTracking = true;
+}, { passive: true });
+document.addEventListener('pointerup', (e) => {
+  if(!railSwipeTracking) return;
+  railSwipeTracking = false;
+  if(window.innerWidth > 860) return;
+  const dx = e.clientX - railSwipeStartX;
+  const dy = e.clientY - railSwipeStartY;
+  if(Math.abs(dx) < 45 || Math.abs(dx) < Math.abs(dy) * 1.4) return;
+  const app = document.querySelector('.app');
+  const isOpen = app.classList.contains('rail-mobile-open');
+  if(!isOpen && dx > 0) app.classList.add('rail-mobile-open');
+  else if(isOpen && dx < 0) app.classList.remove('rail-mobile-open');
+}, { passive: true });
+document.addEventListener('pointercancel', () => { railSwipeTracking = false; });
+
 function syncMenuPreps(){
   // Les preps et la garniture utilisées par les cocktails d'un menu rejoignent automatiquement ce menu
   menus.forEach(m => {
@@ -2156,7 +2215,7 @@ function syncMenuPreps(){
           m.prepIds.push(ing.ref);
         }
       });
-      if(c.garnish){
+      if(c.garnish && c.garnishType === 'prep'){
         const g = garnishes.find(x => x.name.trim().toLowerCase() === c.garnish.trim().toLowerCase());
         if(g && !m.garnishIds.includes(g.id)) m.garnishIds.push(g.id);
       }
@@ -2317,7 +2376,7 @@ function menuRequiredPreps(){
 function menuRequiredGarnish(){
   const req = {};
   cocktails.filter(c => menuDraft.cocktailIds[c.id]).forEach(c => {
-    if(!c.garnish) return;
+    if(!c.garnish || c.garnishType !== 'prep') return;
     const g = garnishes.find(x => x.name.trim().toLowerCase() === c.garnish.trim().toLowerCase());
     if(g) req[g.id] = true;
   });
@@ -2389,7 +2448,7 @@ function toggleMenuDraftCocktail(id, val){
     const c = cocktails.find(x => x.id === id);
     if(c){
       c.ingredients.forEach(ing => { if(ing.kind === 'prep' && ing.ref) menuDraft.prepIds[ing.ref] = true; });
-      if(c.garnish){
+      if(c.garnish && c.garnishType === 'prep'){
         const g = garnishes.find(x => x.name.trim().toLowerCase() === c.garnish.trim().toLowerCase());
         if(g) menuDraft.garnishIds[g.id] = true;
       }
@@ -2471,22 +2530,11 @@ function renderGarnishSheet(item){
     ${ingredients.length ? `<div class="section">
       <p class="section-label">Ingrédients</p>
       <ul class="ingredient-list">
-        ${ingredients.map((ing, idx) => {
-          const isPending = ing.kind === 'raw' && ing.note === 'prep — fiche à créer';
-          const nameHtml = ing.kind === 'prep'
-            ? `<span class="ing-name is-link" onclick="selectItem('${ing.ref}')">${(byId(ing.ref) || {}).name || ing.ref}</span>`
-            : (isPending
-                ? `<span class="ing-name">
-                    <button class="add-prep-btn" title="Créer la recette liée" onclick="openPrepModalForGarnish('${item.id}', ${idx})">+</button>
-                    ${ing.name}
-                  </span>`
-                : `<span class="ing-name">${ing.name}</span>`);
-          return `
+        ${ingredients.map(ing => `
           <li class="ingredient-row">
-            ${nameHtml}
+            <span class="ing-name">${ing.name}</span>
             <span class="ing-qty-edit"><span class="ing-qty">${fmtQty(ing.qty, ing.unit)}</span></span>
-          </li>`;
-        }).join('')}
+          </li>`).join('')}
       </ul>
     </div>` : ''}
 
@@ -2804,7 +2852,7 @@ function ingredientRowHtml(ing, qty, cocktailId, idx, editing){
           <path d="M10 6h4l1 2.3a6 6 0 0 1 2 4.5V17a4 4 0 0 1-4 4h-2a4 4 0 0 1-4-4v-4.2a6 6 0 0 1 2-4.5L10 6z" fill="none" stroke-width="1.6" stroke-linejoin="round"/>
         </svg>
       </span>` : `<span class="pb-static" aria-hidden="true"></span>`;
-    return `<li class="ingredient-row">
+    return `<li class="ingredient-row ing-bold">
       ${nameHtml}
       <span class="ing-qty-edit"><span class="ing-qty">${fmtQty(qty, ing.unit)}</span></span>
       ${pbStatic}
@@ -2868,9 +2916,9 @@ function renderCocktailSheet(item){
   const hasPrebatch = item.ingredients.some(i => i.prebatch);
   const defaultBatchVol = Math.round(prebatchBaseVolume(item) * 100) || 15000;
   const editing = cocktailEditMode;
-  const garnishFiche = item.garnish ? garnishes.find(g => g.name.trim().toLowerCase() === item.garnish.trim().toLowerCase()) : null;
+  const garnishFiche = (item.garnish && item.garnishType === 'prep') ? garnishes.find(g => g.name.trim().toLowerCase() === item.garnish.trim().toLowerCase()) : null;
   main.innerHTML = `
-    <div class="sheet-head">
+    <div class="sheet-head cocktail-head">
       <div class="sheet-head-main">
         <details class="sheet-details color-${item.detailsColor || 'default'}">
           <summary class="sheet-details-summary">
@@ -2893,17 +2941,20 @@ function renderCocktailSheet(item){
             <div class="detail-row">
               <span class="detail-label">Garnish</span>
               <span class="detail-value">${item.garnish
-                ? `<b class="garnish-link ${garnishFiche ? 'garnish-exists' : ''}" onclick="openOrCreateGarnish('${item.garnish.replace(/'/g, "\\'")}')" title="${garnishFiche ? 'Ouvrir la fiche de cette garniture' : 'Créer la fiche de cette garniture'}">${!garnishFiche ? '<span class="add-prep-btn" style="pointer-events:none;">+</span>' : ''}${item.garnish}</b>`
+                ? (item.garnishType === 'prep'
+                    ? `<b class="garnish-link ${garnishFiche ? 'garnish-exists' : ''}" onclick="openOrCreateGarnish('${item.garnish.replace(/'/g, "\\'")}')" title="${garnishFiche ? 'Ouvrir la fiche de cette garniture' : 'Créer la fiche de cette garniture'}">${!garnishFiche ? '<span class="add-prep-btn" style="pointer-events:none;">+</span>' : ''}${item.garnish}</b>`
+                    : item.garnish)
                 : 'None'}</span>
             </div>
           </div>
         </details>
       </div>
-      <button class="edit-sheet-btn" onclick="openEditCocktailModal('${item.id}')">Modifier</button>
     </div>
-
     <div class="section">
-      <p class="section-label">Recette (1 verre)</p>
+      <div class="section-label-row">
+        <p class="section-label">Recette (1 verre)</p>
+        <button class="edit-sheet-btn" onclick="openEditCocktailModal('${item.id}')">Modifier</button>
+      </div>
       <ul class="ingredient-list">
         ${item.ingredients.map((ing, idx) => ingredientRowHtml(ing, ing.qty, item.id, idx, editing)).join('')}
         <li class="ingredient-row ingredient-total">
@@ -3012,7 +3063,7 @@ function renderBatchIngredients(item, volume, animate){
   const factor = volume / prebatchBaseVolume(item);
   const list = document.getElementById('batchIngList');
   list.innerHTML = item.ingredients.filter(ing => ing.prebatch).map(ing => `
-    <li class="ingredient-row">
+    <li class="ingredient-row ing-bold">
       <span class="ing-name">${ing.kind === 'prep' ? (byId(ing.ref) ? byId(ing.ref).name : ing.ref) : ing.name}${ing.note ? ` <span class="ing-note">(${ing.note})</span>` : ''}</span>
       <span class="ing-qty ${animate?'flash':''}">${fmtQty(ing.qty * factor, ing.unit)}</span>
     </li>
@@ -3061,6 +3112,47 @@ let modalType = 'prep';   // 'prep' | 'cocktail'
 let modalIngredients = [];
 let modalSteps = [];
 let modalRatioParts = [];
+let modalGarnish = { type: 'raw', name: '', ref: '', pendingName: '' };
+
+function renderModalGarnishField(){
+  const wrap = document.getElementById('mfGarnishFieldWrap');
+  if(!wrap) return;
+  const g = modalGarnish;
+  if(g.type === 'raw'){
+    wrap.innerHTML = `<input type="text" placeholder="ex. Zeste de citron" value="${g.name || ''}" oninput="updateModalGarnishName(this.value)">`;
+  } else if(g.ref === '__new__'){
+    wrap.innerHTML = `<input type="text" placeholder="Nom de la nouvelle garniture…" value="${g.pendingName || ''}" oninput="updateModalGarnishPending(this.value)">`;
+  } else {
+    wrap.innerHTML = `<select onchange="selectModalGarnishExisting(this.value)">
+      <option value="">— choisir —</option>
+      ${garnishes.map(gg => `<option value="${gg.id}" ${g.ref===gg.id?'selected':''}>${gg.name}</option>`).join('')}
+      <option value="__new__">+ Créer une nouvelle garniture</option>
+    </select>`;
+  }
+}
+function setModalGarnishType(val){
+  modalGarnish.type = val;
+  modalGarnish.ref = '';
+  modalGarnish.pendingName = '';
+  renderModalGarnishField();
+}
+function selectModalGarnishExisting(val){
+  modalGarnish.ref = val;
+  if(val !== '__new__') modalGarnish.pendingName = '';
+  renderModalGarnishField();
+}
+function updateModalGarnishName(val){ modalGarnish.name = val; }
+function updateModalGarnishPending(val){ modalGarnish.pendingName = val; }
+function resolveModalGarnish(){
+  if(modalGarnish.type === 'raw'){
+    return { name: (modalGarnish.name || '').trim(), type: 'raw' };
+  }
+  if(modalGarnish.ref === '__new__'){
+    return { name: (modalGarnish.pendingName || '').trim(), type: 'prep' };
+  }
+  const gg = garnishes.find(x => x.id === modalGarnish.ref);
+  return { name: gg ? gg.name : '', type: 'prep' };
+}
 let mfBaseVolumeTouched = false; // true dès que l'utilisateur modifie le volume de référence à la main
 let lastCreatedPrep = null;
 
@@ -3175,7 +3267,16 @@ function openEditCocktailModal(cocktailId){
   document.getElementById('mfCktCategory').value = item.category || '';
   document.getElementById('mfGlass').value = item.glass || '';
   document.getElementById('mfIce').value = item.ice || '';
-  document.getElementById('mfGarnish').value = item.garnish || '';
+  if(item.garnish && item.garnishType === 'prep'){
+    const existingG = garnishes.find(g => g.name.trim().toLowerCase() === item.garnish.trim().toLowerCase());
+    modalGarnish = existingG
+      ? { type: 'prep', ref: existingG.id, name: '', pendingName: '' }
+      : { type: 'prep', ref: '__new__', name: '', pendingName: item.garnish };
+  } else {
+    modalGarnish = { type: 'raw', name: item.garnish || '', ref: '', pendingName: '' };
+  }
+  document.getElementById('mfGarnishType').value = modalGarnish.type;
+  renderModalGarnishField();
   document.getElementById('mfMethod').value = item.methodType || '';
   document.getElementById('mfSpecs').value = item.specs || '';
   document.getElementById('mfDetailsColor').value = item.detailsColor || 'default';
@@ -3238,7 +3339,9 @@ function openCreateModal(type){
     document.getElementById('mfCktCategory').value = '';
     document.getElementById('mfGlass').value = '';
     document.getElementById('mfIce').value = '';
-    document.getElementById('mfGarnish').value = '';
+    document.getElementById('mfGarnishType').value = 'raw';
+    modalGarnish = { type: 'raw', name: '', ref: '', pendingName: '' };
+    renderModalGarnishField();
     document.getElementById('mfMethod').value = '';
     document.getElementById('mfSpecs').value = '';
     document.getElementById('mfDetailsColor').value = 'default';
@@ -3249,7 +3352,7 @@ function openCreateModal(type){
     document.getElementById('mfRatioNote').value = '';
     modalRatioParts = [{ label: '', value: '', unit: '' }, { label: '', value: '', unit: '' }];
   } else {
-    modalIngredients = [{ kind: 'raw', name: '', ref: '', pendingName: '', qty: '', unit: 'ml' }];
+    modalIngredients = [{ name: '', qty: '', unit: 'ml' }];
   }
   modalSteps = [{ title: '', text: '', icon: 'leaf', timer: '' }];
   renderModalIngredients();
@@ -3301,12 +3404,8 @@ function openEditGarnishModal(garnishId){
   document.getElementById('mfRatioPartsSection').style.display = 'none';
   document.getElementById('mfStepsSection').style.display = '';
   document.getElementById('mfName').value = item.name;
-  modalIngredients = (item.ingredients || []).map(i => {
-    if(i.kind === 'prep') return { kind: 'prep', ref: i.ref, pendingName: '', qty: i.qty, unit: i.unit };
-    if(i.note === 'prep — fiche à créer') return { kind: 'prep', ref: '__new__', pendingName: i.name, qty: i.qty, unit: i.unit };
-    return { kind: 'raw', name: i.name, ref: '', pendingName: '', qty: i.qty, unit: i.unit };
-  });
-  if(!modalIngredients.length) modalIngredients = [{ kind: 'raw', name: '', ref: '', pendingName: '', qty: '', unit: 'ml' }];
+  modalIngredients = (item.ingredients || []).map(i => ({ name: i.name, qty: i.qty, unit: i.unit }));
+  if(!modalIngredients.length) modalIngredients = [{ name: '', qty: '', unit: 'ml' }];
   modalSteps = (item.steps || []).map(s => ({ title: s.title, icon: s.icon, text: s.text, timer: s.timer || '' }));
   if(!modalSteps.length) modalSteps = [{ title: '', text: '', icon: 'leaf', timer: '' }];
   renderModalIngredients();
@@ -3343,52 +3442,6 @@ function renderModalIngredients(){
         <circle cx="15" cy="6" r="1.3" fill="currentColor"/><circle cx="15" cy="12" r="1.3" fill="currentColor"/><circle cx="15" cy="18" r="1.3" fill="currentColor"/>
       </svg>
     </span>`;
-  if(modalType === 'garnish'){
-    wrap.innerHTML = modalIngredients.map((row, i) => {
-      const isPrepKind = row.kind === 'prep';
-      const isPendingNew = isPrepKind && row.ref === '__new__';
-      return `
-      <div class="dyn-row row-garnish-ing" ondragover="modalRowDragOver(event,this)" ondragleave="modalRowDragLeave(event,this)" ondrop="modalRowDrop(event,this,'ing',${i})">
-        ${dragHandle('ing', i)}
-        <div class="field" style="margin-bottom:0;">
-          ${i===0?'<label>Type</label>':''}
-          <select onchange="setModalIngKind(${i}, this.value)">
-            <option value="raw" ${!isPrepKind?'selected':''}>Brut</option>
-            <option value="prep" ${isPrepKind?'selected':''}>Recette</option>
-          </select>
-        </div>
-        <div class="field" style="margin-bottom:0;">
-          ${i===0?'<label>Nom</label>':''}
-          ${isPrepKind
-            ? (isPendingNew
-                ? `<span class="pending-prep-name">
-                    <input type="text" placeholder="Nom de la nouvelle recette…" value="${row.pendingName||''}" oninput="updateModalIng(${i},'pendingName',this.value)">
-                  </span>`
-                : `<select onchange="selectModalIngPrep(${i}, this.value)">
-                    <option value="">— choisir —</option>
-                    ${preps.map(p => `<option value="${p.id}" ${row.ref===p.id?'selected':''}>${p.name}</option>`).join('')}
-                    <option value="__new__">+ Créer une nouvelle recette</option>
-                  </select>`)
-            : `<input type="text" value="${row.name||''}" oninput="updateModalIng(${i},'name',this.value)">`
-          }
-        </div>
-        <div class="field" style="margin-bottom:0;">
-          ${i===0?'<label>Qté</label>':''}
-          <input type="number" value="${row.qty}" step="0.1" oninput="updateModalIng(${i},'qty',this.value)">
-        </div>
-        <div class="field" style="margin-bottom:0;">
-          ${i===0?'<label>Unité</label>':''}
-          <select onchange="updateModalIng(${i},'unit',this.value)">
-            ${['ml','g','cl','pièce'].map(u => `<option value="${u}" ${row.unit===u?'selected':''}>${u}</option>`).join('')}
-          </select>
-        </div>
-        <div class="row-actions">
-          <button type="button" class="remove-row" onclick="removeModalIng(${i})" title="Retirer">×</button>
-        </div>
-      </div>`;
-    }).join('');
-    return;
-  }
   if(modalType === 'cocktail'){
     wrap.innerHTML = modalIngredients.map((row, i) => {
       const isPrepKind = row.kind === 'prep';
@@ -3464,7 +3517,6 @@ function renderModalIngredients(){
 }
 function addModalIngredient(){
   if(modalType === 'cocktail') modalIngredients.push({ kind:'raw', name:'', ref:'', pendingName:'', qty:'', unit:'ml', prebatch:false });
-  else if(modalType === 'garnish') modalIngredients.push({ kind:'raw', name:'', ref:'', pendingName:'', qty:'', unit:'ml' });
   else modalIngredients.push({ name:'', qty:'', unit:'ml' });
   renderModalIngredients();
   suggestBaseVolume();
@@ -3591,19 +3643,8 @@ function buildCocktailIngredientsFromModal(){
 
 function buildGarnishIngredientsFromModal(){
   return modalIngredients
-    .filter(r => {
-      if(r.kind === 'prep') return (r.ref === '__new__' ? (r.pendingName||'').trim() : r.ref) && r.qty !== '';
-      return (r.name||'').trim() && r.qty !== '';
-    })
-    .map(r => {
-      if(r.kind === 'prep' && r.ref === '__new__'){
-        return { kind: 'raw', name: r.pendingName.trim(), qty: parseFloat(r.qty), unit: r.unit, note: 'prep — fiche à créer' };
-      }
-      if(r.kind === 'prep'){
-        return { kind: 'prep', ref: r.ref, qty: parseFloat(r.qty), unit: r.unit };
-      }
-      return { kind: 'raw', name: r.name.trim(), qty: parseFloat(r.qty), unit: r.unit };
-    });
+    .filter(r => (r.name||'').trim() && r.qty !== '')
+    .map(r => ({ name: r.name.trim(), qty: parseFloat(r.qty), unit: r.unit }));
 }
 
 function buildRatioPartsFromModal(){
@@ -3650,7 +3691,7 @@ function submitPrepModal(){
     const category = document.getElementById('mfCktCategory').value.trim() || 'Signature';
     const glass = document.getElementById('mfGlass').value.trim();
     const ice = document.getElementById('mfIce').value.trim();
-    const garnish = document.getElementById('mfGarnish').value.trim();
+    const garnishResolved = resolveModalGarnish();
     const methodType = document.getElementById('mfMethod').value.trim();
     const specs = document.getElementById('mfSpecs').value.trim();
     const ingredients = buildCocktailIngredientsFromModal();
@@ -3661,7 +3702,8 @@ function submitPrepModal(){
     item.category = category;
     item.glass = glass || 'À préciser';
     item.ice = ice || null;
-    item.garnish = garnish || null;
+    item.garnish = garnishResolved.name || null;
+    item.garnishType = garnishResolved.name ? garnishResolved.type : null;
     item.specs = specs || null;
     item.detailsColor = document.getElementById('mfDetailsColor').value || 'default';
     item.methodType = methodType || null;
@@ -3716,7 +3758,7 @@ function submitPrepModal(){
     const category = document.getElementById('mfCktCategory').value.trim() || 'Signature';
     const glass = document.getElementById('mfGlass').value.trim();
     const ice = document.getElementById('mfIce').value.trim();
-    const garnish = document.getElementById('mfGarnish').value.trim();
+    const garnishResolved = resolveModalGarnish();
     const methodType = document.getElementById('mfMethod').value.trim();
     const specs = document.getElementById('mfSpecs').value.trim();
 
@@ -3729,7 +3771,8 @@ function submitPrepModal(){
       id, type: 'cocktail', category, name,
       glass: glass || 'À préciser',
       ice: ice || null,
-      garnish: garnish || null,
+      garnish: garnishResolved.name || null,
+      garnishType: garnishResolved.name ? garnishResolved.type : null,
       methodType: methodType || null,
       specs: specs || null,
       detailsColor: document.getElementById('mfDetailsColor').value || 'default',
