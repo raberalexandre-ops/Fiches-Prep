@@ -72,27 +72,43 @@
     border-right-color:transparent;
   }
 
-  /* ---------- rail toggle (in-rail button + floating fab) ---------- */
+  /* ---------- rail toggle (in-rail button) ---------- */
   .rail-toggle-btn svg{width:16px;height:16px;}
-  .rail-fab{
+
+  .float-bar{
     position:fixed;
-    top:18px; left:18px;
-    z-index:70;
-    width:40px; height:40px;
-    border-radius:50%;
-    border:1px solid var(--border);
+    left:50%;
+    bottom:18px;
+    transform:translateX(-50%);
+    z-index:40;
+    display:flex;
+    align-items:center;
+    gap:4px;
+    padding:6px;
     background:var(--bg-card);
+    border:1px solid var(--border);
+    border-radius:999px;
+    box-shadow:0 4px 18px rgba(0,0,0,0.45);
+  }
+  .float-bar-btn{
+    width:42px; height:42px;
+    border-radius:50%;
+    border:none;
+    background:transparent;
     color:var(--text-soft);
-    display:none;
+    display:flex;
     align-items:center;
     justify-content:center;
     cursor:pointer;
-    box-shadow:0 2px 14px rgba(0,0,0,0.4);
   }
-  .rail-fab:hover{border-color:var(--copper);}
-  .rail-fab svg{width:18px;height:18px;stroke:var(--text-soft);}
-  .rail-fab:hover svg{stroke:var(--copper-bright);}
-  .app.rail-collapsed .rail-fab{display:flex;}
+  .float-bar-btn svg{width:19px; height:19px; stroke:currentColor;}
+  .float-bar-btn:hover{background:var(--bg-card-hover); color:var(--copper-bright);}
+  .float-bar-btn:disabled{opacity:.3; cursor:default;}
+  .float-bar-btn:disabled:hover{background:transparent; color:var(--text-soft);}
+  @media (max-width: 640px){
+    .float-bar{bottom:14px; padding:5px; gap:2px;}
+    .float-bar-btn{width:40px; height:40px;}
+  }
 
   .rail-foot{
     padding:12px 16px 16px;
@@ -102,6 +118,12 @@
     flex-direction:column;
     gap:8px;
   }
+  .rail-add-fixed{
+    border-color:var(--copper);
+    color:var(--copper-bright);
+    font-weight:600;
+  }
+  .rail-add-fixed:hover{border-color:var(--copper-bright); background:var(--bg-card-hover);}
   .cloud-save-btn{
     border-color:var(--verdigris);
     color:var(--verdigris-bright);
@@ -172,8 +194,6 @@
       opacity:1;
       pointer-events:auto;
     }
-    .rail-fab{display:flex;}
-    .app.rail-mobile-open .rail-fab{display:none;}
     .main{padding-top:66px;}
     .welcome{padding-top:0;}
   }
@@ -1314,6 +1334,23 @@
     line-height:1.6;
   }
   .notes-box.verdigris{border-left-color:var(--verdigris);}
+  .quick-note{
+    width:100%;
+    min-height:90px;
+    resize:vertical;
+    background:var(--bg-card);
+    border:none;
+    border-left:2px solid var(--copper);
+    border-radius:0 var(--radius-card) var(--radius-card) 0;
+    padding:14px 18px;
+    font-size:13.5px;
+    font-family:inherit;
+    color:var(--text);
+    line-height:1.6;
+    outline:none;
+  }
+  .quick-note::placeholder{color:var(--text-faint);}
+  .quick-note:focus{border-left-color:var(--copper-bright);}
 
   .tag-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:2px;}
   .tag{
@@ -1336,26 +1373,29 @@
 <body>
 
 <div class="app">
-  <button class="rail-fab" id="railFab" onclick="toggleRail()" title="Afficher le menu">
-    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M4 7h16M4 12h16M4 17h16" stroke-width="1.6" stroke-linecap="round"/>
-    </svg>
-  </button>
+  <nav class="float-bar" id="floatBar">
+    <button class="float-bar-btn" onclick="toggleRail()" title="Menu">
+      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4 7h16M4 12h16M4 17h16" stroke-width="1.6" stroke-linecap="round"/></svg>
+    </button>
+    <button class="float-bar-btn" onclick="goHome()" title="Accueil">
+      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M4 11l8-7 8 7" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M6 10v9a1 1 0 0 0 1 1h3v-6h4v6h3a1 1 0 0 0 1-1v-9" stroke-width="1.6" stroke-linejoin="round"/>
+      </svg>
+    </button>
+    <button class="float-bar-btn" id="navBackBtn" onclick="navigateBack()" title="Page précédente" disabled>
+      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M15 5l-7 7 7 7" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+    <button class="float-bar-btn" id="navForwardBtn" onclick="navigateForward()" title="Page suivante" disabled>
+      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M9 5l7 7-7 7" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+    <button class="float-bar-btn" onclick="focusSearch()" title="Rechercher">
+      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="11" cy="11" r="7" stroke-width="1.6"/><path d="M21 21l-4.3-4.3" stroke-width="1.6" stroke-linecap="round"/></svg>
+    </button>
+  </nav>
+
   <aside class="rail" id="rail">
     <div class="rail-head">
-      <div class="head-btn-row">
-        <button class="home-btn" onclick="goHome()" title="Retour à l'accueil">
-          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M4 11l8-7 8 7" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
-            <path d="M6 10v9a1 1 0 0 0 1 1h3v-6h4v6h3a1 1 0 0 0 1-1v-9" stroke-width="1.6" stroke-linejoin="round"/>
-          </svg>
-        </button>
-        <button class="home-btn rail-toggle-btn" onclick="toggleRail()" title="Réduire le menu">
-          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M15 5l-7 7 7 7" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-        </button>
-      </div>
       <div class="head-btn-row">
         <button class="home-btn" id="undoBtn" onclick="undoAction()" title="Annuler la dernière modification" disabled>
           <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -1383,6 +1423,10 @@
     </div>
     <div class="rail-list" id="railList"></div>
     <div class="rail-foot">
+      <button class="export-btn rail-add-fixed" id="railAddBtn">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 5v14M5 12h14" stroke-width="1.8" stroke-linecap="round"/></svg>
+        <span class="rail-add-label">Nouveau menu</span>
+      </button>
       <button class="export-btn" onclick="openSettings()" title="Réglages">
         <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
           <circle cx="12" cy="12" r="3" stroke-width="1.6"/>
@@ -1867,6 +1911,55 @@ function iconSvg(name){
    STATE + RENDER
    ============================================================ */
 let state = { tab: 'menu', activeId: null };
+
+// ---------- historique de navigation (page précédente / suivante) ----------
+let viewHistory = [null];
+let viewHistoryIndex = 0;
+let isHistoryNav = false;
+function pushViewHistory(id){
+  if(isHistoryNav) return;
+  if(viewHistory[viewHistoryIndex] === id) return;
+  viewHistory = viewHistory.slice(0, viewHistoryIndex + 1);
+  viewHistory.push(id);
+  viewHistoryIndex = viewHistory.length - 1;
+  updateNavButtons();
+}
+function navigateBack(){
+  if(viewHistoryIndex <= 0) return;
+  viewHistoryIndex--;
+  isHistoryNav = true;
+  const id = viewHistory[viewHistoryIndex];
+  if(id) selectItem(id); else goHome();
+  isHistoryNav = false;
+  updateNavButtons();
+}
+function navigateForward(){
+  if(viewHistoryIndex >= viewHistory.length - 1) return;
+  viewHistoryIndex++;
+  isHistoryNav = true;
+  const id = viewHistory[viewHistoryIndex];
+  if(id) selectItem(id); else goHome();
+  isHistoryNav = false;
+  updateNavButtons();
+}
+function updateNavButtons(){
+  const b = document.getElementById('navBackBtn');
+  const f = document.getElementById('navForwardBtn');
+  if(b) b.disabled = viewHistoryIndex <= 0;
+  if(f) f.disabled = viewHistoryIndex >= viewHistory.length - 1;
+}
+function focusSearch(){
+  const app = document.querySelector('.app');
+  if(window.innerWidth <= 860){
+    app.classList.add('rail-mobile-open');
+  } else {
+    app.classList.remove('rail-collapsed');
+  }
+  setTimeout(() => {
+    const input = document.getElementById('searchInput');
+    if(input) input.focus();
+  }, 150);
+}
 let cocktailEditMode = false; // édition des ingrédients d'un cocktail activée via le bouton "Modifier"
 let dailyChecklist = {}; // { prepId: true/false } — statut fait/pas fait
 let todaySelection = {}; // { prepId: true } — preps choisies pour l'écran d'accueil du jour
@@ -1944,6 +2037,7 @@ const byId = (id) => allItems().find(i => i.id === id);
 function goHome(){
   state.activeId = null;
   cocktailEditMode = false;
+  pushViewHistory(null);
   renderList();
   renderMain();
   if(window.innerWidth <= 860){ closeMobileRail(); }
@@ -2056,6 +2150,7 @@ function setTab(tab){
 function selectItem(id){
   state.activeId = id;
   cocktailEditMode = false;
+  pushViewHistory(id);
   renderList();
   renderMain();
   if(window.innerWidth <= 860){
@@ -2265,11 +2360,6 @@ function renderList(){
         </span>
       </div>`;
 
-  const addRowHtml = (onclick, label) => `<div class="rail-item rail-add" onclick="${onclick}">
-        <span class="dot add-dot">+</span>
-        <span class="rail-item-text"><div class="rail-item-name">${label}</div></span>
-      </div>`;
-
   const submenuHeader = (key, name, count, menuId, chevColor) => `<div class="rail-submenu ${menuOpen[key] ? 'open' : ''}" onclick="toggleMenuOpen('${key}')">
         <span class="chev" style="color:${chevColor}">▸</span>
         <span class="submenu-name">${name}</span>
@@ -2280,12 +2370,7 @@ function renderList(){
       </div>`;
 
   // liste à plat : tous les cocktails, toutes les preps, etc. (utilisé par chaque onglet dédié)
-  const flatGroup = (arr, type, addLabel) => {
-    if(!arr.length && q) return '';
-    let h = arr.map(dragItemHtml).join('');
-    if(!q) h += addRowHtml(`openCreateModal('${type}')`, addLabel);
-    return h;
-  };
+  const flatGroup = (arr) => arr.map(dragItemHtml).join('');
 
   // Un groupe par menu : cocktails, puis un petit trait, puis les preps, puis les garnitures (une seule fois, pas dupliqué)
   const renderMenusGroup = () => {
@@ -2312,7 +2397,6 @@ function renderList(){
         h += `</div>`;
       }
     });
-    h += addRowHtml('openMenuModal(null)', 'Nouveau menu');
     return h;
   };
 
@@ -2320,24 +2404,40 @@ function renderList(){
   if(state.tab === 'menu'){
     if(q){
       groups = [
-        flatGroup(cocktailItems, 'cocktail', 'Nouveau cocktail'),
-        flatGroup(prepItems, 'prep', 'Nouvelle prep'),
-        flatGroup(garnishItems, 'garnish', 'Nouvelle garniture'),
-        flatGroup(ratioItems, 'ratio', 'Nouveau ratio'),
+        flatGroup(cocktailItems),
+        flatGroup(prepItems),
+        flatGroup(garnishItems),
+        flatGroup(ratioItems),
       ];
     } else {
       groups = [renderMenusGroup()];
     }
-  } else if(state.tab === 'cocktail') groups = [flatGroup(cocktailItems, 'cocktail', 'Nouveau cocktail')];
-  else if(state.tab === 'prep') groups = [flatGroup(prepItems, 'prep', 'Nouvelle prep')];
-  else if(state.tab === 'garnish') groups = [flatGroup(garnishItems, 'garnish', 'Nouvelle garniture')];
-  else groups = [flatGroup(ratioItems, 'ratio', 'Nouveau ratio')];
+  } else if(state.tab === 'cocktail') groups = [flatGroup(cocktailItems)];
+  else if(state.tab === 'prep') groups = [flatGroup(prepItems)];
+  else if(state.tab === 'garnish') groups = [flatGroup(garnishItems)];
+  else groups = [flatGroup(ratioItems)];
   let html = groups.filter(Boolean).join('<div class="rail-sep"></div>');
 
   if(q && !cocktailItems.length && !prepItems.length && !ratioItems.length && !garnishItems.length){
     html = `<div class="rail-empty">Aucune fiche ne correspond.</div>`;
   }
   list.innerHTML = html;
+  updateRailAddButton();
+}
+
+function updateRailAddButton(){
+  const btn = document.getElementById('railAddBtn');
+  if(!btn) return;
+  const map = {
+    menu: { label: 'Nouveau menu', action: () => openMenuModal(null) },
+    cocktail: { label: 'Nouveau cocktail', action: () => openCreateModal('cocktail') },
+    prep: { label: 'Nouvelle prep', action: () => openCreateModal('prep') },
+    garnish: { label: 'Nouvelle garniture', action: () => openCreateModal('garnish') },
+    ratio: { label: 'Nouveau ratio', action: () => openCreateModal('ratio') },
+  };
+  const conf = map[state.tab] || map.menu;
+  btn.querySelector('.rail-add-label').textContent = conf.label;
+  btn.onclick = conf.action;
 }
 
 function toggleMenuOpen(key){
@@ -2557,7 +2657,7 @@ function ratioColor(i){
 function renderRatioSheet(item){
   const main = document.getElementById('main');
   const total = item.parts.reduce((s,p) => s + (Number(p.value)||0), 0) || 1;
-  const ratioText = item.parts.map(p => `${fmtNumber(p.value)}${p.unit || ''}`).join(' : ');
+  const ratioText = item.parts.map(p => fmtNumber(p.value)).join(' : ');
   let cursor = 0;
   const segs = item.parts.map((p,i) => {
     const pct = (Number(p.value)||0)/total*100;
@@ -2993,12 +3093,24 @@ function renderCocktailSheet(item){
         ${item.steps.map((s, idx) => stepHtml(s, idx === item.steps.length - 1, false)).join('')}
       </div>
     </div>` : ''}
+
+    <div class="section">
+      <p class="section-label">Note rapide</p>
+      <textarea class="quick-note" placeholder="Idées, ajustements, retours à tester…" onfocus="snapshot()" oninput="updateQuickNote('${item.id}', this.value)">${item.quickNote || ''}</textarea>
+    </div>
   `;
 
   if(hasPrebatch){
     window._currentBatchVolume = defaultBatchVol;
     renderBatchIngredients(item, defaultBatchVol, false);
   }
+}
+
+function updateQuickNote(id, value){
+  const item = byId(id);
+  if(!item) return;
+  item.quickNote = value;
+  saveToLocalStorage();
 }
 
 function handleAddIngredientChoice(cocktailId, selectEl){
