@@ -262,11 +262,12 @@
     padding:2px;
   }
   .tab{
-    flex:1 1 0;
+    flex:1 1 auto;
     min-width:0;
     text-align:center;
-    padding:13px 0;
-    font-size:12px;
+    padding:13px 4px;
+    font-size:11px;
+    letter-spacing:-.1px;
     color:var(--text-soft);
     border-radius:2px;
     cursor:pointer;
@@ -355,7 +356,11 @@
   .rail-item.type-prep .dot{background:var(--verdigris);}
   .rail-item.type-ratio .dot{background:var(--slate);}
   .rail-item.type-garnish .dot{background:var(--amber);}
-  .rail-item.type-ingredient .dot{background:var(--teal);}
+  .rail-item.type-ingredient .dot{background:var(--cat, var(--teal));}
+  .rail-submenu.cat-submenu{border-left:3px solid var(--cat);}
+  .rail-submenu.cat-submenu:hover{border-color:var(--cat); border-left-color:var(--cat);}
+  .rail-submenu.cat-submenu .submenu-name{color:var(--cat);}
+  .rail-sub-list[style*="--cat"]{border-left-color:var(--cat);}
   .rail-submenu{
     display:flex;
     align-items:center;
@@ -832,6 +837,8 @@
   .ingredient-list{list-style:none;margin:0;padding:0;}
 
   .ingredients-search{width:100%; box-sizing:border-box; margin:0 0 12px; padding:11px 14px; font-size:15px; background:var(--bg-card); color:var(--text); border:1px solid var(--border); border-radius:var(--radius-card);}
+  .new-ing-wrap{display:flex; flex-direction:column; gap:6px;}
+  .new-ing-cancel{align-self:flex-start; background:none; border:none; color:var(--text-soft); cursor:pointer; font-size:13px; padding:0 2px;}
   .ingredient-cost{display:block; width:100%; padding:0; border-bottom:none;}
   .cost-details{width:100%;}
   .cost-details summary{list-style:none; display:flex; align-items:center; gap:12px; padding:11px 2px; cursor:pointer;}
@@ -1494,7 +1501,7 @@
         <button class="tab" data-tab="cocktail" onclick="setTab('cocktail')">Cocktails</button>
         <button class="tab" data-tab="prep" onclick="setTab('prep')">Preps</button>
         <button class="tab" data-tab="garnish" onclick="setTab('garnish')">Garnish</button>
-        <button class="tab" data-tab="ratio" onclick="setTab('ratio')">Ratios</button>
+        <button class="tab" data-tab="ingredient" onclick="setTab('ingredient')">Ingrédients</button>
       </div>
     </div>
     <div class="rail-list" id="railList"></div>
@@ -2773,6 +2780,15 @@ function syncMenuPreps(){
   });
 }
 
+const INGREDIENT_CAT_COLORS = {
+  'ALCOOL':'#e5a066', 'VIN ET CHAMPAGNE':'#d0708a', 'SOFT':'#7fa6dc',
+  'FRUITS ET LÉGUMES':'#8fc06a', 'ÉPICERIE':'#d9bc5c', 'Autre':'#a79f93'
+};
+function ingCatColor(c){
+  if(INGREDIENT_CAT_COLORS[c]) return INGREDIENT_CAT_COLORS[c];
+  let h = 0; for(const ch of String(c)) h = (h*31 + ch.charCodeAt(0)) % 360;
+  return `hsl(${h} 45% 62%)`;
+}
 function renderList(){
   syncMenuPreps();
   saveToLocalStorage();
@@ -2872,7 +2888,33 @@ function renderList(){
   } else if(state.tab === 'cocktail') groups = [flatGroup(cocktailItems)];
   else if(state.tab === 'prep') groups = [flatGroup(prepItems)];
   else if(state.tab === 'garnish') groups = [flatGroup(garnishItems)];
-  else if(state.tab === 'ingredient') groups = [flatGroup(ingredientItems)];
+  else if(state.tab === 'ingredient'){
+    const ingItemHtml = (i) => {
+      const sub = i.costPrice != null && i.costPrice > 0 ? fmtEuro(i.costPrice) + (i.packSize ? ' · ' + i.packSize + ' ' + (i.packUnit||'') : '') : 'prix à renseigner';
+      return `<div class="rail-item type-ingredient ${state.activeId===i.id?'active':''}" style="--cat:${ingCatColor(i.category)}" data-id="${i.id}" onclick="openEditIngredientModal('${i.id}')">
+        <span class="dot"></span>
+        <span class="rail-item-text">
+          <div class="rail-item-name">${i.name}</div>
+          <div class="rail-item-cat">${sub}</div>
+        </span>
+      </div>`;
+    };
+    const cats = [...new Set(ingredientItems.map(i => i.category))].sort((a,b) => a.localeCompare(b,'fr'));
+    let h = '';
+    cats.forEach(c => {
+      const arr = ingredientItems.filter(i => i.category === c).sort((a,b) => a.name.localeCompare(b.name,'fr'));
+      const key = 'c-' + c;
+      const open = q ? true : menuOpen[key];
+      const cc = ingCatColor(c);
+      h += `<div class="rail-submenu cat-submenu ${open ? 'open' : ''}" style="--cat:${cc}" onclick="toggleMenuOpen('${key}')">
+        <span class="chev" style="color:${cc}">▸</span>
+        <span class="submenu-name">${c}</span>
+        <span class="submenu-count">${arr.length}</span>
+      </div>`;
+      if(open) h += `<div class="rail-sub-list" style="--cat:${cc}">${arr.map(ingItemHtml).join('')}</div>`;
+    });
+    groups = [h];
+  }
   else groups = [flatGroup(ratioItems)];
   let html = groups.filter(Boolean).join('<div class="rail-sep"></div>');
 
@@ -4193,6 +4235,52 @@ function renderRawIngredientsDatalist(){
   dl.innerHTML = ingredients.map(i => `<option value="${i.name}">`).join('');
 }
 
+
+function rawNameFieldHtml(i, row){
+  if(row.newIng){
+    return `<span class="pending-prep-name new-ing-wrap">
+      <input type="text" placeholder="Nom du nouvel ingrédient…" value="${(row.name||'').replace(/"/g,'&quot;')}" oninput="updateModalIng(${i},'name',this.value)">
+      <select onchange="updateModalIng(${i},'newCat',this.value)" title="Catégorie">
+        ${INGREDIENT_CATEGORIES.map(c => `<option value="${c}" ${(row.newCat||'ÉPICERIE')===c?'selected':''}>${c}</option>`).join('')}
+      </select>
+      <button type="button" class="new-ing-cancel" onclick="selectModalIngRaw(${i}, '')" title="Annuler">↩</button>
+    </span>`;
+  }
+  const cur = (row.name||'').trim();
+  const known = ingredients.some(x => x.name === row.name);
+  const cats = [...new Set(ingredients.map(x => x.category))].sort((a,b) => a.localeCompare(b,'fr'));
+  const esc = v => String(v).replace(/"/g,'&quot;');
+  return `<select onchange="selectModalIngRaw(${i}, this.value)">
+    <option value="" ${cur?'':'selected'}>— choisir —</option>
+    ${cur && !known ? `<option value="${esc(row.name)}" selected>${row.name}</option>` : ''}
+    ${cats.map(c => `<optgroup label="${c}">
+      ${ingredients.filter(x => x.category===c).sort((a,b)=>a.name.localeCompare(b.name,'fr')).map(x => `<option value="${esc(x.name)}" ${row.name===x.name?'selected':''}>${x.name}</option>`).join('')}
+    </optgroup>`).join('')}
+    <option value="__new__">+ Nouvel ingrédient</option>
+  </select>`;
+}
+function selectModalIngRaw(i, val){
+  const r = modalIngredients[i];
+  if(val === '__new__'){ r.newIng = true; r.name = ''; r.newCat = r.newCat || 'ÉPICERIE'; }
+  else { r.newIng = false; r.name = val; }
+  renderModalIngredients();
+}
+function registerNewModalIngredients(){
+  modalIngredients.forEach(r => {
+    if(!r.newIng) return;
+    const name = (r.name||'').trim();
+    if(!name) return;
+    const exists = ingredients.find(x => x.name.trim().toLowerCase() === name.toLowerCase());
+    if(exists){ r.name = exists.name; }
+    else {
+      let id = slugify(name), n = 2;
+      while(byId(id)) id = slugify(name) + '-' + (n++);
+      ingredients.push({ id, type:'ingredient', category: r.newCat || 'ÉPICERIE', name, costPrice: null, packSize: null, packUnit: null });
+    }
+    r.newIng = false;
+  });
+}
+
 function renderModalIngredients(){
   renderRawIngredientsDatalist();
   const wrap = document.getElementById('mfIngRows');
@@ -4229,7 +4317,7 @@ function renderModalIngredients(){
                     ${preps.map(p => `<option value="${p.id}" ${row.ref===p.id?'selected':''}>${p.name}</option>`).join('')}
                     <option value="__new__">+ Créer une nouvelle prep</option>
                   </select>`)
-            : `<input type="text" list="rawIngredientsList" value="${row.name||''}" oninput="updateModalIng(${i},'name',this.value)">`
+            : rawNameFieldHtml(i, row)
           }
         </div>
         <div class="field" style="margin-bottom:0;">
@@ -4258,7 +4346,7 @@ function renderModalIngredients(){
       ${dragHandle('ing', i)}
       <div class="field" style="margin-bottom:0;">
         ${i===0?'<label>Nom</label>':''}
-        <input type="text" list="rawIngredientsList" value="${row.name}" oninput="updateModalIng(${i},'name',this.value)">
+        ${rawNameFieldHtml(i, row)}
       </div>
       <div class="field" style="margin-bottom:0;">
         ${i===0?'<label>Qté</label>':''}
@@ -4418,6 +4506,7 @@ function submitPrepModal(){
   const name = document.getElementById('mfName').value.trim();
   if(!name){ alert('Donne un nom.'); return; }
   snapshot();
+  registerNewModalIngredients();
 
   if(modalMode === 'edit' && modalType === 'prep'){
     const item = byId(modalCtx.editId);
