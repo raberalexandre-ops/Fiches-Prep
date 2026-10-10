@@ -7,6 +7,10 @@
 <link rel="icon" type="image/png" href="icon.png">
 <link rel="apple-touch-icon" href="icon.png">
 <meta name="theme-color" content="#15130f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Fiches de prep">
 <meta property="og:image" content="icon.png">
 <style>
   :root{
@@ -24,6 +28,8 @@
     --slate-bright: #a3aec2;
     --amber: #9a5a8a;
     --amber-bright: #c589b3;
+    --teal: #3f8f8a;
+    --teal-bright: #6bb8b2;
     --text: #f1e9dc;
     --text-soft: #b3a692;
     --text-faint: #6e6355;
@@ -141,7 +147,7 @@
     border:1px solid var(--border);
     background:var(--bg-card);
     color:var(--text-soft);
-    font-size:12.5px;
+    font-size:12px;
     font-family:inherit;
     cursor:pointer;
   }
@@ -249,18 +255,18 @@
 
   .tabs{
     display:flex;
-    margin:16px 14px 8px;
+    margin:16px 6px 8px;
     background:var(--bg-card);
     border:1px solid var(--border);
     border-radius:var(--radius-card);
-    padding:3px;
+    padding:2px;
   }
   .tab{
     flex:1 1 0;
     min-width:0;
     text-align:center;
-    padding:10px 1px;
-    font-size:11px;
+    padding:13px 0;
+    font-size:12px;
     color:var(--text-soft);
     border-radius:2px;
     cursor:pointer;
@@ -349,6 +355,7 @@
   .rail-item.type-prep .dot{background:var(--verdigris);}
   .rail-item.type-ratio .dot{background:var(--slate);}
   .rail-item.type-garnish .dot{background:var(--amber);}
+  .rail-item.type-ingredient .dot{background:var(--teal);}
   .rail-submenu{
     display:flex;
     align-items:center;
@@ -396,14 +403,60 @@
   .settings-action:hover svg{stroke:var(--copper-bright);}
   .settings-action .sa-title{display:block; font-size:14.5px; font-weight:600; color:var(--text); transition:color .15s;}
   .settings-action:hover .sa-title{color:var(--copper-bright);}
-  .settings-action .sa-desc{display:block; font-size:12.5px; color:var(--text-soft); margin-top:2px;}
+  .settings-action .sa-desc{display:block; font-size:12px; color:var(--text-soft); margin-top:2px;}
   .settings-action.cloud-save-btn:hover{border-color:var(--verdigris-bright);}
   .settings-action.cloud-save-btn:hover svg{stroke:var(--verdigris-bright);}
   .settings-action.cloud-save-btn:hover .sa-title{color:var(--verdigris-bright);}
+  .settings-action.ingredients-manage-btn:hover{border-color:var(--teal-bright);}
+  .settings-action.ingredients-manage-btn:hover svg{stroke:var(--teal-bright);}
+  .settings-action.ingredients-manage-btn:hover .sa-title{color:var(--teal-bright);}
   .rail-sub-list{margin:2px 0 6px 12px; padding-left: 6px; border-left:1px solid var(--border-soft);}
-  .rail-sub-empty{font-size:12.5px; color:var(--text-soft); padding:8px 8px 8px 10px;}
+  .rail-sub-empty{font-size:12px; color:var(--text-soft); padding:8px 8px 8px 10px;}
   .rail-sep{height:1px; background:var(--border); margin:14px 10px;}
   .menu-mini-list{max-height:30vh;}
+  .ingredients-table-wrap{max-height:50vh; overflow-y:auto; border:1px solid var(--border); border-radius:8px; margin-bottom:14px;}
+  .ingredients-table{width:100%; table-layout:fixed; border-collapse:collapse; font-size:13.5px;}
+  .ingredients-table td{overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .ingredients-table td.ing-col-name{white-space:normal;}
+  .ingredients-table thead th{
+    position:sticky; top:0;
+    background:var(--bg-card);
+    color:var(--text-faint);
+    font-size:11.5px;
+    font-weight:600;
+    text-transform:uppercase;
+    letter-spacing:.3px;
+    text-align:left;
+    padding:10px 14px;
+    border-bottom:1px solid var(--border);
+    white-space:normal;
+    overflow-wrap:break-word;
+  }
+  .ingredients-table th.sortable{cursor:pointer; user-select:none;}
+  .ingredients-table th.sortable:hover{color:var(--text-soft);}
+  .ingredients-table th.sortable.sorted{color:var(--copper-bright);}
+  .ingredients-table .sort-arrow{font-size:9px;}
+  .ingredients-table td{
+    padding:10px 14px;
+    border-bottom:1px solid var(--border-soft);
+    color:var(--text);
+  }
+  .ingredients-table tbody tr:last-child td{border-bottom:none;}
+  .ingredients-table tbody tr:hover{background:var(--bg-card-hover);}
+  .ingredients-table td:nth-child(2){color:var(--text-soft);}
+  .ingredients-table-actions{white-space:nowrap; text-align:right; width:1%;}
+  .ingredients-table-actions button{
+    background:transparent;
+    border:none;
+    color:var(--text-faint);
+    cursor:pointer;
+    font-size:15px;
+    padding:4px 7px;
+    border-radius:4px;
+  }
+  .ingredients-table-actions button:hover{background:var(--bg-card-hover); color:var(--copper-bright);}
+  .ingredients-table-actions button.ing-delete-btn:hover{color:var(--danger);}
+  .ingredients-table-empty{padding:18px 14px; color:var(--text-faint); text-align:center;}
   .menu-preps-label{display:block; font-size:12px; color:var(--text-soft); margin-bottom:5px;}
   .menu-delete-btn{margin-right:auto; color:var(--danger); border-color:transparent;}
   .menu-delete-btn:hover{border-color:var(--danger); color:var(--danger);}
@@ -478,7 +531,7 @@
   .hint-chip{
     border:1px solid var(--border);
     color:var(--text-soft);
-    font-size:12.5px;
+    font-size:12px;
     padding:7px 12px;
     border-radius:20px;
   }
@@ -669,7 +722,7 @@
     color:var(--text-soft);
     padding:8px 14px;
     border-radius:var(--radius-card);
-    font-size:12.5px;
+    font-size:12px;
     cursor:pointer;
     white-space:nowrap;
   }
@@ -777,6 +830,24 @@
   }
 
   .ingredient-list{list-style:none;margin:0;padding:0;}
+
+  .ingredients-search{width:100%; box-sizing:border-box; margin:0 0 12px; padding:11px 14px; font-size:15px; background:var(--bg-card); color:var(--text); border:1px solid var(--border); border-radius:var(--radius-card);}
+  .ingredient-cost{display:block; width:100%; padding:0; border-bottom:none;}
+  .cost-details{width:100%;}
+  .cost-details summary{list-style:none; display:flex; align-items:center; gap:12px; padding:11px 2px; cursor:pointer;}
+  .cost-details summary::-webkit-details-marker{display:none;}
+  .cost-details .ing-name{color:var(--text-soft); flex:1;}
+  .cost-total{font-weight:600; color:var(--copper-light, #e5a066);}
+  .cost-warn{font-size:12px; color:var(--text-soft); font-weight:400; margin-left:4px;}
+  .cost-chevron{color:var(--text-soft); transition:transform .2s; width:28px; text-align:center; flex-shrink:0;}
+  .cost-details[open] .cost-chevron{transform:rotate(180deg);}
+  .cost-lines{list-style:none; width:100%; margin:0 0 6px; padding:6px 40px 4px 2px; border-top:1px solid var(--border-soft);}
+  .cost-lines li{display:grid; grid-template-columns:1fr auto auto; gap:12px; padding:6px 0; font-size:13.5px;}
+  .cost-lines .cl-qty{color:var(--text-soft); min-width:64px; text-align:right;}
+  .cost-lines .cl-val{min-width:84px; text-align:right;}
+  .cost-lines .cost-missing{color:var(--text-soft);}
+  .cost-lines .cost-missing em{font-size:12px;}
+  .cost-lines .cost-sum{border-top:1px solid var(--border-soft); margin-top:4px; padding-top:10px; font-weight:600;}
   .ingredient-total{border-top:1px solid var(--border); margin-top:2px; padding-top:14px;}
   .ingredient-total .ing-name{color:var(--text-soft);}
   .ingredient-row{
@@ -815,7 +886,7 @@
   }
   .pb-static svg{width:19px; height:19px; stroke:var(--text-faint);}
   .pb-static.pb-active svg{stroke:var(--verdigris-bright);}
-  .ing-name .ing-note{color:var(--text-faint); font-size:12.5px;}
+  .ing-name .ing-note{color:var(--text-faint); font-size:12px;}
   .ing-name.is-link{
     color:var(--verdigris-bright);
     cursor:pointer;
@@ -907,7 +978,7 @@
     margin:0 0 4px;
   }
   .modal .modal-sub{
-    font-size:12.5px;
+    font-size:12px;
     color:var(--text-faint);
     margin:0 0 20px;
   }
@@ -987,7 +1058,7 @@
     background:transparent;
     border:1px dashed var(--border);
     color:var(--text-soft);
-    font-size:12.5px;
+    font-size:12px;
     padding:7px 10px;
     border-radius:var(--radius-card);
     cursor:pointer;
@@ -1035,7 +1106,7 @@
     .modal{padding:20px 16px 22px;}
     .modal h2{font-size:19px;}
     .field{margin-bottom:18px;}
-    .field label{font-size:12.5px; margin-bottom:6px;}
+    .field label{font-size:12px; margin-bottom:6px;}
     .field input[type=text], .field input[type=number], .field input[type=tel], .field textarea, .field select{
       padding:11px 12px;
       font-size:16px;
@@ -1394,6 +1465,9 @@
     <button class="float-bar-btn" onclick="focusSearch()" title="Rechercher">
       <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="11" cy="11" r="7" stroke-width="1.6"/><path d="M21 21l-4.3-4.3" stroke-width="1.6" stroke-linecap="round"/></svg>
     </button>
+    <button class="float-bar-btn" id="fullscreenBtn" onclick="toggleFullscreen()" title="Plein écran">
+      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
   </nav>
 
   <aside class="rail" id="rail">
@@ -1442,6 +1516,41 @@
   <div class="rail-backdrop" id="railBackdrop" onclick="closeMobileRail()"></div>
 
   <main class="main" id="main"></main>
+</div>
+
+<div class="modal-overlay" id="ingredientsManagerOverlay">
+  <div class="modal" style="max-width:860px;">
+    <h2>Ingrédients</h2>
+    <p class="modal-sub">Base d'ingrédients bruts par catégorie, utilisée en suggestion dans les recettes.</p>
+    <input type="search" id="ingredientsSearch" class="ingredients-search" placeholder="Rechercher un ingrédient…" oninput="renderIngredientsTable()" autocomplete="off">
+    <div class="ingredients-table-wrap">
+      <table class="ingredients-table">
+        <colgroup>
+          <col style="width:30%;">
+          <col style="width:22%;">
+          <col style="width:12%;">
+          <col style="width:12%;">
+          <col style="width:10%;">
+          <col style="width:14%;">
+        </colgroup>
+        <thead>
+          <tr>
+            <th class="sortable" data-key="name" onclick="sortIngredientsTable('name')">Nom<span class="sort-arrow"></span></th>
+            <th class="sortable" data-key="category" onclick="sortIngredientsTable('category')">Catégorie<span class="sort-arrow"></span></th>
+            <th class="sortable" data-key="costPrice" onclick="sortIngredientsTable('costPrice')">Prix<span class="sort-arrow"></span></th>
+            <th class="sortable" data-key="packSize" onclick="sortIngredientsTable('packSize')">Contenance<span class="sort-arrow"></span></th>
+            <th class="sortable" data-key="packUnit" onclick="sortIngredientsTable('packUnit')">Unité<span class="sort-arrow"></span></th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="ingredientsTableBody"></tbody>
+      </table>
+    </div>
+    <button type="button" class="add-row-btn" onclick="openCreateModal('ingredient')">+ Ajouter un ingrédient</button>
+    <div class="modal-actions">
+      <button class="btn btn-primary" onclick="closeIngredientsManager()">Fermer</button>
+    </div>
+  </div>
 </div>
 
 <div class="modal-overlay" id="modalOverlay">
@@ -1537,9 +1646,46 @@
       </div>
     </div>
 
+    <div id="mfIngredientFields" style="display:none;">
+      <div class="field">
+        <label>Catégorie</label>
+        <select id="mfIngredientCategory">
+          <option>ALCOOL</option>
+          <option>VIN ET CHAMPAGNE</option>
+          <option>SOFT</option>
+          <option>FRUITS ET LÉGUMES</option>
+          <option>ÉPICERIE</option>
+          <option>Autre</option>
+        </select>
+      </div>
+      <div class="row-2">
+        <div class="field">
+          <label>Prix de revient (\u20ac)</label>
+          <input type="number" id="mfIngredientCostPrice" step="0.01" placeholder="ex. 7.16">
+        </div>
+        <div class="field">
+          <label>Contenance</label>
+          <input type="number" id="mfIngredientPackSize" step="0.01" placeholder="ex. 750">
+        </div>
+      </div>
+      <div class="field">
+        <label>Unité du contenu</label>
+        <select id="mfIngredientPackUnit">
+          <option value="">\u2014</option>
+          <option>ML</option>
+          <option>CL</option>
+          <option>L</option>
+          <option>G</option>
+          <option>KG</option>
+          <option>PIECE</option>
+        </select>
+      </div>
+    </div>
+
     <div class="subgroup" id="mfIngSection">
       <p class="subgroup-label" id="mfIngLabel">Ingrédients (pour le volume de référence)</p>
       <div id="mfIngRows"></div>
+      <datalist id="rawIngredientsList"></datalist>
       <button type="button" class="add-row-btn" onclick="addModalIngredient()">+ Ajouter un ingrédient</button>
     </div>
 
@@ -1576,6 +1722,13 @@
         <path d="M12 12v7M9.5 16.5 12 14l2.5 2.5" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>
       <span><span class="sa-title">Publier en ligne</span><span class="sa-desc">Envoie tes fiches en ligne, visibles par toute l'équipe.</span></span>
+    </button>
+    <button class="settings-action ingredients-manage-btn" onclick="openIngredientsManager()">
+      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M9 3v6l-5 9a2 2 0 0 0 1.8 3h12.4a2 2 0 0 0 1.8-3l-5-9V3" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M8 15h8" stroke-width="1.6" stroke-linecap="round"/>
+      </svg>
+      <span><span class="sa-title">Gérer les ingrédients</span><span class="sa-desc">Base d'ingrédients bruts par catégorie, utilisée en suggestion dans les recettes.</span></span>
     </button>
     <button class="settings-action" onclick="closeSettings(); exportUpdatedApp()">
       <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -1735,6 +1888,226 @@ const ratios = [
   },
 ];
 
+// ---- Ingrédients bruts (base de données par catégorie) ----
+const ingredients = [
+  { id: "prosecco-btl-75cl", type: 'ingredient', category: "VIN ET CHAMPAGNE", name: "Prosecco btl 75cl", costPrice: 7.16, packSize: null, packUnit: "ML" },
+  { id: "fever-tree-tonic", type: 'ingredient', category: "SOFT", name: "Fever Tree Tonic", costPrice: 1.17, packSize: 200, packUnit: "ML" },
+  { id: "fever-tree-ginger-beer-20cl", type: 'ingredient', category: "SOFT", name: "Fever Tree Ginger Beer 20cl", costPrice: 1.17, packSize: null, packUnit: "ML" },
+  { id: "fever-tree-ginger-ale-20cl", type: 'ingredient', category: "SOFT", name: "Fever Tree Ginger Ale 20cl", costPrice: 1.15, packSize: null, packUnit: "ML" },
+  { id: "coca-cola-33cl", type: 'ingredient', category: "SOFT", name: "Coca Cola 33cl", costPrice: 1.01, packSize: null, packUnit: "ML" },
+  { id: "jus-ananas-arbre-a-jus-20cl", type: 'ingredient', category: "SOFT", name: "Jus Ananas Arbre à Jus 20cl", costPrice: 1.8, packSize: null, packUnit: "ML" },
+  { id: "perrier-33cl", type: 'ingredient', category: "SOFT", name: "Perrier 33cl", costPrice: 1.08, packSize: null, packUnit: "ML" },
+  { id: "jnpr-70cl", type: 'ingredient', category: "SOFT", name: "JNPR 70cl", costPrice: null, packSize: null, packUnit: "ML" },
+  { id: "verjus-boudier-5l", type: 'ingredient', category: "SOFT", name: "Verjus Boudier 5L", costPrice: 79.5, packSize: null, packUnit: "ML" },
+  { id: "eau", type: 'ingredient', category: "SOFT", name: "Eau", costPrice: null, packSize: null, packUnit: "ML" },
+  { id: "martini-vibrante-75cl", type: 'ingredient', category: "SOFT", name: "Martini Vibrante 75cl", costPrice: 11.07, packSize: null, packUnit: "ML" },
+  { id: "martini-floreal-75cl", type: 'ingredient', category: "SOFT", name: "Martini Floreal 75cl", costPrice: 10.26, packSize: null, packUnit: "ML" },
+  { id: "divers-sans-alcool", type: 'ingredient', category: "SOFT", name: "Divers Sans Alcool", costPrice: null, packSize: null, packUnit: null },
+  { id: "prizm-nolo-sa-33cl", type: 'ingredient', category: "SOFT", name: "Prizm Nolo SA 33cl", costPrice: 1.99, packSize: null, packUnit: "ML" },
+  { id: "no-low-no8-70cl", type: 'ingredient', category: "SOFT", name: "No Low No8 70cl", costPrice: null, packSize: null, packUnit: "ML" },
+  { id: "no-low-no7-70cl", type: 'ingredient', category: "SOFT", name: "No Low No7 70cl", costPrice: null, packSize: null, packUnit: "ML" },
+  { id: "commentaire", type: 'ingredient', category: "SOFT", name: "Commentaire", costPrice: null, packSize: null, packUnit: null },
+  { id: "sirop-orgeat-100cl", type: 'ingredient', category: "SOFT", name: "Sirop Orgeat 100cl", costPrice: 6.77, packSize: null, packUnit: "ML" },
+  { id: "jus-raisin-chardonnay-alain-millat-1l", type: 'ingredient', category: "SOFT", name: "Jus Raisin Chardonnay Alain Millat 1L", costPrice: 3.87, packSize: null, packUnit: "ML" },
+  { id: "the-glace-bio-33cl", type: 'ingredient', category: "SOFT", name: "Thé Glacé Bio 33cl", costPrice: 1.49, packSize: null, packUnit: "ML" },
+  { id: "coca-zero-33cl", type: 'ingredient', category: "SOFT", name: "Coca Zero 33cl", costPrice: 0.99, packSize: null, packUnit: "ML" },
+  { id: "limonade-33cl", type: 'ingredient', category: "SOFT", name: "Limonade 33cl", costPrice: 1.4, packSize: null, packUnit: "ML" },
+  { id: "eau-minerale-33cl", type: 'ingredient', category: "SOFT", name: "Eau Minerale 33cl", costPrice: 0.48, packSize: null, packUnit: "ML" },
+  { id: "jus-peche-arbre-a-jus-20cl", type: 'ingredient', category: "SOFT", name: "Jus Peche Arbre à Jus 20cl", costPrice: 1.71, packSize: null, packUnit: "ML" },
+  { id: "jus-de-tomate-arbre-a-jus-20cl", type: 'ingredient', category: "SOFT", name: "Jus de Tomate Arbre à Jus 20cl", costPrice: 1.6, packSize: null, packUnit: "ML" },
+  { id: "jus-orange-arbre-a-jus-20cl", type: 'ingredient', category: "SOFT", name: "Jus Orange Arbre à Jus 20cl", costPrice: 1.83, packSize: null, packUnit: "ML" },
+  { id: "jus-pomme-arbre-a-jus-20cl", type: 'ingredient', category: "SOFT", name: "Jus Pomme Arbre à Jus 20cl", costPrice: 1.66, packSize: null, packUnit: "ML" },
+  { id: "gimber-70cl", type: 'ingredient', category: "SOFT", name: "Gimber 70cl", costPrice: 19.33, packSize: null, packUnit: "ML" },
+  { id: "sirop-menthe-100cl", type: 'ingredient', category: "SOFT", name: "Sirop Menthe 100cl", costPrice: 4.64, packSize: null, packUnit: "ML" },
+  { id: "sirop-grenadine-100cl", type: 'ingredient', category: "SOFT", name: "Sirop Grenadine 100cl", costPrice: 3.95, packSize: null, packUnit: "ML" },
+  { id: "sirop-peche-100cl", type: 'ingredient', category: "SOFT", name: "Sirop Peche 100cl", costPrice: 7.17, packSize: null, packUnit: "ML" },
+  { id: "sirop-praline-100cl", type: 'ingredient', category: "SOFT", name: "Sirop Praline 100cl", costPrice: 12, packSize: null, packUnit: "ML" },
+  { id: "sirop-noisette-100cl", type: 'ingredient', category: "SOFT", name: "Sirop Noisette 100cl", costPrice: 5.6, packSize: null, packUnit: "ML" },
+  { id: "soda-aloe-vera-pasteque-500ml", type: 'ingredient', category: "SOFT", name: "Soda Aloe Vera Pastèque 500ml", costPrice: 2.25, packSize: null, packUnit: "ML" },
+  { id: "mattei-rouge-0-0-75cl", type: 'ingredient', category: "SOFT", name: "Mattei Rouge 0.0° 75cl", costPrice: 18.12, packSize: null, packUnit: "ML" },
+  { id: "supp-tonic", type: 'ingredient', category: "SOFT", name: "Supp Tonic", costPrice: 1.17, packSize: null, packUnit: null },
+  { id: "fever-tree-ginger-beer-50cl", type: 'ingredient', category: "SOFT", name: "Fever Tree Ginger Beer 50cl", costPrice: 3.04, packSize: null, packUnit: "ML" },
+  { id: "citron-jaune-1kg", type: 'ingredient', category: "FRUITS ET LÉGUMES", name: "Citron jaune 1Kg", costPrice: 2.5, packSize: null, packUnit: "KG" },
+  { id: "citron-vert-1kg", type: 'ingredient', category: "FRUITS ET LÉGUMES", name: "Citron vert 1Kg", costPrice: 2.98, packSize: null, packUnit: "KG" },
+  { id: "poire-comice-1kg", type: 'ingredient', category: "FRUITS ET LÉGUMES", name: "Poire Comice 1kg", costPrice: 2.7, packSize: null, packUnit: "KG" },
+  { id: "ciboulette-1pce", type: 'ingredient', category: "FRUITS ET LÉGUMES", name: "Ciboulette 1Pce", costPrice: 3.81, packSize: null, packUnit: "G" },
+  { id: "basilic-1pce", type: 'ingredient', category: "FRUITS ET LÉGUMES", name: "Basilic 1Pce", costPrice: 0.8, packSize: null, packUnit: "PIECE" },
+  { id: "mangue-1pce", type: 'ingredient', category: "FRUITS ET LÉGUMES", name: "Mangue 1Pce", costPrice: 5.98, packSize: null, packUnit: "PIECE" },
+  { id: "framboises-125g", type: 'ingredient', category: "FRUITS ET LÉGUMES", name: "Framboises 125g", costPrice: 3.47, packSize: null, packUnit: "G" },
+  { id: "fraises-1kg", type: 'ingredient', category: "FRUITS ET LÉGUMES", name: "Fraises 1kg", costPrice: 12.97, packSize: null, packUnit: "G" },
+  { id: "cerise-1kg", type: 'ingredient', category: "FRUITS ET LÉGUMES", name: "Cerise 1kg", costPrice: null, packSize: null, packUnit: "G" },
+  { id: "oignons-cebette-1pce", type: 'ingredient', category: "FRUITS ET LÉGUMES", name: "Oignons Cebette 1Pce", costPrice: 1.98, packSize: null, packUnit: "PIECE" },
+  { id: "basilic-thai", type: 'ingredient', category: "FRUITS ET LÉGUMES", name: "Basilic Thaï", costPrice: 36, packSize: null, packUnit: "KG" },
+  { id: "pamplemousse-pce", type: 'ingredient', category: "FRUITS ET LÉGUMES", name: "Pamplemousse Pce", costPrice: 0.75, packSize: null, packUnit: null },
+  { id: "kumquat-1kg", type: 'ingredient', category: "FRUITS ET LÉGUMES", name: "Kumquat 1Kg", costPrice: 13, packSize: null, packUnit: "G" },
+  { id: "blanc-d-oeuf-1kg", type: 'ingredient', category: "ÉPICERIE", name: "Blanc d’oeuf 1kg", costPrice: 4.43, packSize: null, packUnit: "ML" },
+  { id: "extrait-vanille-500g", type: 'ingredient', category: "ÉPICERIE", name: "Extrait Vanille 500g", costPrice: 72, packSize: null, packUnit: "G" },
+  { id: "miel-2-8kg", type: 'ingredient', category: "ÉPICERIE", name: "Miel 2.8kg", costPrice: 17.66, packSize: null, packUnit: "KG" },
+  { id: "sel-750g", type: 'ingredient', category: "ÉPICERIE", name: "Sel 750g", costPrice: 0.85, packSize: null, packUnit: "G" },
+  { id: "sucre-20kg", type: 'ingredient', category: "ÉPICERIE", name: "Sucre 20kg", costPrice: 24.48, packSize: null, packUnit: "KG" },
+  { id: "yaourt-grec-1kg", type: 'ingredient', category: "ÉPICERIE", name: "Yaourt grec 1kg", costPrice: 5.02, packSize: null, packUnit: "KG" },
+  { id: "gomme-arabique-1kg", type: 'ingredient', category: "ÉPICERIE", name: "Gomme Arabique 1kg", costPrice: 20.74, packSize: null, packUnit: "KG" },
+  { id: "citric-acid-1kg", type: 'ingredient', category: "ÉPICERIE", name: "Citric Acid 1kg", costPrice: 16, packSize: null, packUnit: "G" },
+  { id: "malic-acid-500g", type: 'ingredient', category: "ÉPICERIE", name: "Malic Acid 500g", costPrice: 16.95, packSize: null, packUnit: "G" },
+  { id: "methyl-cellulose-500g", type: 'ingredient', category: "ÉPICERIE", name: "Methyl Cellulose 500g", costPrice: 0, packSize: null, packUnit: "G" },
+  { id: "xanthan-gum-1kg", type: 'ingredient', category: "ÉPICERIE", name: "Xanthan Gum 1kg", costPrice: 44.53, packSize: null, packUnit: "G" },
+  { id: "azote-pur-10kg", type: 'ingredient', category: "ÉPICERIE", name: "Azote Pur 10kg", costPrice: null, packSize: null, packUnit: "KG" },
+  { id: "co2-10kg", type: 'ingredient', category: "ÉPICERIE", name: "CO2 10kg", costPrice: 50, packSize: null, packUnit: "KG" },
+  { id: "lait-entier-1l", type: 'ingredient', category: "ÉPICERIE", name: "Lait entier 1L", costPrice: 1.23, packSize: null, packUnit: "L" },
+  { id: "the-banana-pancake-100g", type: 'ingredient', category: "ÉPICERIE", name: "The banana pancake 100g", costPrice: 6.07, packSize: null, packUnit: "G" },
+  { id: "hibiscus-100g", type: 'ingredient', category: "ÉPICERIE", name: "Hibiscus 100g", costPrice: 9, packSize: null, packUnit: "G" },
+  { id: "the-calypso-mango-100g", type: 'ingredient', category: "ÉPICERIE", name: "The calypso mango 100g", costPrice: 5.31, packSize: null, packUnit: "G" },
+  { id: "the-jardin-des-bois-100g", type: 'ingredient', category: "ÉPICERIE", name: "The Jardin des bois 100g", costPrice: 9.7808, packSize: null, packUnit: "G" },
+  { id: "the-jardin-d-enfance-100g", type: 'ingredient', category: "ÉPICERIE", name: "The Jardin d’enfance 100g", costPrice: null, packSize: null, packUnit: "G" },
+  { id: "the-peacan-pie-100g", type: 'ingredient', category: "ÉPICERIE", name: "The Peacan Pie 100g", costPrice: 4.93, packSize: null, packUnit: "G" },
+  { id: "the-cinnamon-roll-100g", type: 'ingredient', category: "ÉPICERIE", name: "The Cinnamon roll 100g", costPrice: 10.62, packSize: null, packUnit: "G" },
+  { id: "the-jardin-tropical-100g", type: 'ingredient', category: "ÉPICERIE", name: "The Jardin Tropical 100g", costPrice: 118, packSize: null, packUnit: "KG" },
+  { id: "poudre-chai-1kg", type: 'ingredient', category: "ÉPICERIE", name: "Poudre Chaï 1kg", costPrice: 22.75, packSize: null, packUnit: "KG" },
+  { id: "cafe-1kg", type: 'ingredient', category: "ÉPICERIE", name: "Cafe 1kg", costPrice: 19, packSize: null, packUnit: "KG" },
+  { id: "lecithine-de-soja-1kg", type: 'ingredient', category: "ÉPICERIE", name: "Lecithine de Soja 1kg", costPrice: 26.4, packSize: null, packUnit: "KG" },
+  { id: "the-houjicha-poire-100g", type: 'ingredient', category: "ÉPICERIE", name: "The Houjicha Poire 100g", costPrice: 117.5, packSize: null, packUnit: "G" },
+  { id: "oignons-rings-1kg", type: 'ingredient', category: "ÉPICERIE", name: "Oignons Rings 1kg", costPrice: 4.46, packSize: null, packUnit: "KG" },
+  { id: "the-jasmin-100g", type: 'ingredient', category: "ÉPICERIE", name: "The Jasmin 100g", costPrice: 5.31, packSize: null, packUnit: "G" },
+  { id: "the-des-etoile-tonka-100g", type: 'ingredient', category: "ÉPICERIE", name: "The des etoile tonka 100g", costPrice: 119, packSize: null, packUnit: "G" },
+  { id: "the-peche-myrthe-100g", type: 'ingredient', category: "ÉPICERIE", name: "The Peche Myrthe 100g", costPrice: 118, packSize: null, packUnit: "G" },
+  { id: "glace-vanille-2-5l", type: 'ingredient', category: "ÉPICERIE", name: "Glace Vanille 2.5L", costPrice: 18.2, packSize: null, packUnit: "ML" },
+  { id: "glace-pistache-2-5l", type: 'ingredient', category: "ÉPICERIE", name: "Glace Pistache 2.5L", costPrice: 18.2, packSize: null, packUnit: "L" },
+  { id: "riz-basmati-5kg", type: 'ingredient', category: "ÉPICERIE", name: "Riz Basmati 5kg", costPrice: 13.11, packSize: null, packUnit: "KG" },
+  { id: "lait-concentre-sucre-397g", type: 'ingredient', category: "ÉPICERIE", name: "Lait Concentré Sucré 397g", costPrice: 4.55, packSize: null, packUnit: "G" },
+  { id: "noisette-1kg", type: 'ingredient', category: "ÉPICERIE", name: "Noisette 1kg", costPrice: 20.84, packSize: null, packUnit: "KG" },
+  { id: "noix-de-pecan-1kg", type: 'ingredient', category: "ÉPICERIE", name: "Noix de Pécan 1kg", costPrice: 23.83, packSize: null, packUnit: "KG" },
+  { id: "amandes-1kg", type: 'ingredient', category: "ÉPICERIE", name: "Amandes 1kg", costPrice: 15.88, packSize: null, packUnit: "KG" },
+  { id: "glace-coco-2-5l", type: 'ingredient', category: "ÉPICERIE", name: "Glace Coco 2.5L", costPrice: 18.2, packSize: null, packUnit: "ML" },
+  { id: "the-milk-oolong-100g", type: 'ingredient', category: "ÉPICERIE", name: "The Milk Oolong 100g", costPrice: 9.48, packSize: null, packUnit: "G" },
+  { id: "the-noir-coco-100g", type: 'ingredient', category: "ÉPICERIE", name: "The Noir Coco 100g", costPrice: 5.2, packSize: null, packUnit: "G" },
+  { id: "the-noir-cerise-100g", type: 'ingredient', category: "ÉPICERIE", name: "The Noir Cerise 100g", costPrice: 5.2, packSize: null, packUnit: "G" },
+  { id: "arome-fleur-d-oranger-1l", type: 'ingredient', category: "ÉPICERIE", name: "Arôme fleur d’oranger 1L", costPrice: 3.32, packSize: null, packUnit: "ML" },
+  { id: "sel-5kg", type: 'ingredient', category: "ÉPICERIE", name: "Sel 5kg", costPrice: 6.48, packSize: null, packUnit: "KG" },
+  { id: "lait-de-coco-alpro-1l", type: 'ingredient', category: "ÉPICERIE", name: "Lait de Coco Alpro 1L", costPrice: 3.403, packSize: null, packUnit: "ML" },
+  { id: "algues-wakame-seche-50g", type: 'ingredient', category: "ÉPICERIE", name: "Algues Wakame Séché 50g", costPrice: 4.03, packSize: null, packUnit: "G" },
+  { id: "the-jardin-andalou-100g", type: 'ingredient', category: "ÉPICERIE", name: "Thé Jardin Andalou 100g", costPrice: 110, packSize: null, packUnit: "G" },
+  { id: "puree-de-mirabelle-boiron-1kg", type: 'ingredient', category: "ÉPICERIE", name: "Purée de Mirabelle Boiron 1Kg", costPrice: 8.53, packSize: null, packUnit: "KG" },
+  { id: "pectinex", type: 'ingredient', category: "ÉPICERIE", name: "Pectinex", costPrice: 30, packSize: null, packUnit: "ML" },
+  { id: "agar-agar-1kg", type: 'ingredient', category: "ÉPICERIE", name: "Agar Agar 1kg", costPrice: 60.49, packSize: null, packUnit: "G" },
+  { id: "dattes-1kg", type: 'ingredient', category: "ÉPICERIE", name: "Dattes 1Kg", costPrice: 5, packSize: null, packUnit: "KG" },
+  { id: "puree-passion-boiron-1kg", type: 'ingredient', category: "ÉPICERIE", name: "Purée Passion Boiron 1Kg", costPrice: 9.2, packSize: null, packUnit: "G" },
+  { id: "glace-fior-di-latte-2-2l", type: 'ingredient', category: "ÉPICERIE", name: "Glace Fior Di Latte 2.2L", costPrice: 18.65, packSize: null, packUnit: "ML" },
+  { id: "capsule-siphon-x10", type: 'ingredient', category: "ÉPICERIE", name: "Capsule Siphon x10", costPrice: 8.56, packSize: null, packUnit: null },
+  { id: "abv-la-quintinye-rouge-75cl", type: 'ingredient', category: "ALCOOL", name: "ABV La Quintinye Rouge 75cl", costPrice: 16.25, packSize: null, packUnit: "ML" },
+  { id: "rhum-planteray-original-dark-bib-2-8l", type: 'ingredient', category: "ALCOOL", name: "Rhum Planteray Original Dark Bib 2,8L", costPrice: 54.19, packSize: null, packUnit: "L" },
+  { id: "whisky-buffalo-trace-70cl", type: 'ingredient', category: "ALCOOL", name: "Whisky Buffalo Trace 70cl", costPrice: 22.74, packSize: null, packUnit: "ML" },
+  { id: "rhum-neisson-55-100cl", type: 'ingredient', category: "ALCOOL", name: "Rhum Neisson 55° 100cl", costPrice: 29.33, packSize: null, packUnit: "ML" },
+  { id: "tequila-silver-1800-70cl", type: 'ingredient', category: "ALCOOL", name: "Tequila Silver 1800 70cl", costPrice: 31.65, packSize: null, packUnit: "ML" },
+  { id: "aba-absinthe-pernod-70cl", type: 'ingredient', category: "ALCOOL", name: "ABA Absinthe Pernod 70cl", costPrice: 42.04, packSize: null, packUnit: "ML" },
+  { id: "gin-marginal-70cl", type: 'ingredient', category: "ALCOOL", name: "Gin MarGinal 70cl", costPrice: 0, packSize: null, packUnit: "ML" },
+  { id: "whisky-laphroaig-10-70cl", type: 'ingredient', category: "ALCOOL", name: "Whisky Laphroaig 10 70cl", costPrice: 43.99, packSize: null, packUnit: "ML" },
+  { id: "whisky-monkey-shoulder-70cl", type: 'ingredient', category: "ALCOOL", name: "Whisky Monkey Shoulder 70cl", costPrice: 26.04, packSize: null, packUnit: "ML" },
+  { id: "liqueur-amaretto-adriatico-70cl", type: 'ingredient', category: "ALCOOL", name: "Liqueur Amaretto Adriatico 70cl", costPrice: 25.02, packSize: null, packUnit: "ML" },
+  { id: "liqueur-cointreau-70cl", type: 'ingredient', category: "ALCOOL", name: "Liqueur Cointreau 70cl", costPrice: 20.18, packSize: null, packUnit: "ML" },
+  { id: "abv-dolin-blanc-75cl", type: 'ingredient', category: "ALCOOL", name: "ABV Dolin blanc 75cl", costPrice: 10.19, packSize: null, packUnit: "ML" },
+  { id: "abv-dolin-dry-75cl", type: 'ingredient', category: "ALCOOL", name: "ABV Dolin dry 75cl", costPrice: 10.19, packSize: null, packUnit: "ML" },
+  { id: "abv-martelletti-75cl", type: 'ingredient', category: "ALCOOL", name: "ABV Martelletti 75cl", costPrice: 12.07, packSize: null, packUnit: "ML" },
+  { id: "liqueur-chartreuse-verte-70cl", type: 'ingredient', category: "ALCOOL", name: "Liqueur Chartreuse Verte 70cl", costPrice: 42.77, packSize: null, packUnit: "ML" },
+  { id: "rhum-planteray-original-dark-70cl", type: 'ingredient', category: "ALCOOL", name: "Rhum Planteray Original Dark 70cl", costPrice: 13.55, packSize: null, packUnit: "ML" },
+  { id: "abv-olorosso-rio-viejo-75cl", type: 'ingredient', category: "ALCOOL", name: "ABV Olorosso Rio Viejo 75cl", costPrice: 12.97, packSize: null, packUnit: "ML" },
+  { id: "abv-fino-la-ina-75cl", type: 'ingredient', category: "ALCOOL", name: "ABV Fino La Ina 75cl", costPrice: 11.26, packSize: null, packUnit: "ML" },
+  { id: "abv-amontillado-don-zoilo-75cl", type: 'ingredient', category: "ALCOOL", name: "ABV Amontillado Don Zoilo 75cl", costPrice: 0, packSize: null, packUnit: "ML" },
+  { id: "aba-fernet-branca-70cl", type: 'ingredient', category: "ALCOOL", name: "ABA Fernet Branca 70cl", costPrice: 16.97, packSize: null, packUnit: "ML" },
+  { id: "aba-aperol-70cl", type: 'ingredient', category: "ALCOOL", name: "ABA Aperol 70cl", costPrice: 11.74, packSize: null, packUnit: "ML" },
+  { id: "aba-punt-e-mes-100cl", type: 'ingredient', category: "ALCOOL", name: "ABA Punt E Mes 100cl", costPrice: 17.21, packSize: null, packUnit: "ML" },
+  { id: "liqueur-benedictine-70cl", type: 'ingredient', category: "ALCOOL", name: "Liqueur Benedictine 70cl", costPrice: 24.77, packSize: null, packUnit: "ML" },
+  { id: "liqueur-luxardo-maraschino-70cl", type: 'ingredient', category: "ALCOOL", name: "Liqueur Luxardo Maraschino 70cl", costPrice: 25.23, packSize: null, packUnit: "ML" },
+  { id: "abv-noilly-prat-dry-75cl", type: 'ingredient', category: "ALCOOL", name: "ABV Noilly Prat Dry 75cl", costPrice: 18.11, packSize: null, packUnit: "ML" },
+  { id: "liqueur-grand-marnier-70cl", type: 'ingredient', category: "ALCOOL", name: "Liqueur Grand Marnier 70cl", costPrice: 16.81, packSize: null, packUnit: "ML" },
+  { id: "tequila-patron-reposado-70cl", type: 'ingredient', category: "ALCOOL", name: "Tequila Patron Reposado 70cl", costPrice: 50, packSize: null, packUnit: "ML" },
+  { id: "whisky-dalmore-15ans-70cl", type: 'ingredient', category: "ALCOOL", name: "Whisky Dalmore 15ans 70cl", costPrice: 0, packSize: null, packUnit: "ML" },
+  { id: "rhum-planteray-cut-dry-70cl", type: 'ingredient', category: "ALCOOL", name: "Rhum Planteray Cut & Dry 70cl", costPrice: 30.17, packSize: null, packUnit: "ML" },
+  { id: "aba-picon-100cl", type: 'ingredient', category: "ALCOOL", name: "ABA Picon 100cl", costPrice: 11.94, packSize: null, packUnit: "ML" },
+  { id: "mezcal-400-conejos-70cl", type: 'ingredient', category: "ALCOOL", name: "Mezcal 400 conejos 70cl", costPrice: 31.82, packSize: null, packUnit: "ML" },
+  { id: "abv-dolin-rouge-75cl", type: 'ingredient', category: "ALCOOL", name: "ABV Dolin rouge 75cl", costPrice: null, packSize: null, packUnit: "ML" },
+  { id: "liqueur-abricot-giffard-70cl", type: 'ingredient', category: "ALCOOL", name: "Liqueur Abricot Giffard 70cl", costPrice: 14.79, packSize: null, packUnit: "ML" },
+  { id: "aba-ricard-1l", type: 'ingredient', category: "ALCOOL", name: "ABA Ricard 1L", costPrice: 20.55, packSize: null, packUnit: "L" },
+  { id: "liqueur-suze-100cl", type: 'ingredient', category: "ALCOOL", name: "Liqueur Suze 100cl", costPrice: 11.7, packSize: null, packUnit: "L" },
+  { id: "aba-campari-100cl", type: 'ingredient', category: "ALCOOL", name: "ABA Campari 100cl", costPrice: 17.92, packSize: null, packUnit: "ML" },
+  { id: "whisky-kirk-bright-5ans-70cl", type: 'ingredient', category: "ALCOOL", name: "Whisky Kirk & bright 5ans 70cl", costPrice: 19.91, packSize: null, packUnit: "ML" },
+  { id: "whisky-bulleit-rye-70cl", type: 'ingredient', category: "ALCOOL", name: "Whisky Bulleit Rye 70cl", costPrice: 28.13, packSize: null, packUnit: "ML" },
+  { id: "liqueur-noisette-awen-70cl", type: 'ingredient', category: "ALCOOL", name: "Liqueur Noisette Awen 70cl", costPrice: 17.72, packSize: null, packUnit: "ML" },
+  { id: "liqueur-cacao-boudier-50cl", type: 'ingredient', category: "ALCOOL", name: "Liqueur Cacao Boudier 50cl", costPrice: 11.24, packSize: null, packUnit: "ML" },
+  { id: "rhum-pura-vida-blanco-bib-4-5l", type: 'ingredient', category: "ALCOOL", name: "Rhum Pura Vida Blanco Bib 4,5L", costPrice: 73.75, packSize: null, packUnit: "L" },
+  { id: "rhum-pura-vida-anejo-bib-4-5l", type: 'ingredient', category: "ALCOOL", name: "Rhum Pura Vida Anejo Bib 4,5L", costPrice: 88.81, packSize: null, packUnit: "L" },
+  { id: "cognac-hennessy-v-s-70cl", type: 'ingredient', category: "ALCOOL", name: "Cognac Hennessy V.S. 70cl", costPrice: 34.5, packSize: null, packUnit: "ML" },
+  { id: "gin-mattei-btl-70cl", type: 'ingredient', category: "ALCOOL", name: "Gin Mattei btl 70cl", costPrice: 16.96, packSize: null, packUnit: "ML" },
+  { id: "abv-mattei-rouge-75cl", type: 'ingredient', category: "ALCOOL", name: "ABV Mattei Rouge 75cl", costPrice: 16.52, packSize: null, packUnit: "ML" },
+  { id: "abv-mattei-blanc-75cl", type: 'ingredient', category: "ALCOOL", name: "ABV Mattei Blanc 75cl", costPrice: 16.5, packSize: null, packUnit: "ML" },
+  { id: "gin-monkey-47-50cl", type: 'ingredient', category: "ALCOOL", name: "Gin Monkey 47 50cl", costPrice: 40.7, packSize: null, packUnit: "ML" },
+  { id: "liqueur-mangue-boudier-50cl", type: 'ingredient', category: "ALCOOL", name: "Liqueur Mangue Boudier 50cl", costPrice: 13.35, packSize: null, packUnit: "ML" },
+  { id: "liqueur-banane-boudier-50cl", type: 'ingredient', category: "ALCOOL", name: "Liqueur Banane Boudier 50cl", costPrice: 15.4, packSize: null, packUnit: "ML" },
+  { id: "blanche-armagnac-darroze-70cl", type: 'ingredient', category: "ALCOOL", name: "Blanche Armagnac Darroze 70cl", costPrice: 23.68, packSize: null, packUnit: "ML" },
+  { id: "liqueur-cafe-fair-70cl", type: 'ingredient', category: "ALCOOL", name: "Liqueur Cafe Fair 70cl", costPrice: 23.41, packSize: null, packUnit: "ML" },
+  { id: "liqueur-chartreuse-jaune-70cl", type: 'ingredient', category: "ALCOOL", name: "Liqueur Chartreuse Jaune 70cl", costPrice: 40, packSize: null, packUnit: "ML" },
+  { id: "vodka-stolichnaya-70cl", type: 'ingredient', category: "ALCOOL", name: "Vodka Stolichnaya 70cl", costPrice: 16.99, packSize: null, packUnit: "ML" },
+  { id: "cachaca-parati-70cl", type: 'ingredient', category: "ALCOOL", name: "Cachaça Parati 70cl", costPrice: 17.41, packSize: null, packUnit: "ML" },
+  { id: "trois-rivieres-ocean-rhum-70cl", type: 'ingredient', category: "ALCOOL", name: "Trois Rivières Ocean Rhum 70cl", costPrice: 0, packSize: null, packUnit: "ML" },
+  { id: "rhum-pura-vida-anejo-70cl", type: 'ingredient', category: "ALCOOL", name: "Rhum Pura Vida Anejo 70cl", costPrice: 13.81, packSize: null, packUnit: "ML" },
+  { id: "rhum-pura-vida-bianco-70cl", type: 'ingredient', category: "ALCOOL", name: "Rhum Pura Vida Bianco 70cl", costPrice: 11.62, packSize: null, packUnit: "ML" },
+  { id: "whisky-compass-box-70cl", type: 'ingredient', category: "ALCOOL", name: "Whisky Compass Box 70cl", costPrice: null, packSize: null, packUnit: "ML" },
+  { id: "whisky-jameson-12-70cl", type: 'ingredient', category: "ALCOOL", name: "Whisky Jameson 12 70cl", costPrice: null, packSize: null, packUnit: "ML" },
+  { id: "aba-casanis-100cl", type: 'ingredient', category: "ALCOOL", name: "ABA Casanis 100cl", costPrice: 16.35, packSize: null, packUnit: "ML" },
+  { id: "liqueur-abricot-boudier-50cl", type: 'ingredient', category: "ALCOOL", name: "Liqueur Abricot Boudier 50cl", costPrice: 13.56, packSize: null, packUnit: "ML" },
+  { id: "bib-gin-mattei-5l", type: 'ingredient', category: "ALCOOL", name: "Bib Gin Mattei 5L", costPrice: 113.23, packSize: null, packUnit: "L" },
+  { id: "rhum-saint-james-fleur-de-cannes-70cl", type: 'ingredient', category: "ALCOOL", name: "Rhum Saint James Fleur de Cannes 70cl", costPrice: 21.55, packSize: null, packUnit: "ML" },
+  { id: "whisky-sequoia-70cl", type: 'ingredient', category: "ALCOOL", name: "Whisky Sequoia 70cl", costPrice: 0, packSize: null, packUnit: "ML" },
+  { id: "gin-costwolds-jubilee-70cl", type: 'ingredient', category: "ALCOOL", name: "Gin Costwolds Jubilee 70cl", costPrice: 0, packSize: null, packUnit: "ML" },
+  { id: "vulson-rye-50cl", type: 'ingredient', category: "ALCOOL", name: "Vulson Rye 50cl", costPrice: 0, packSize: null, packUnit: "ML" },
+  { id: "vulson-blanc-50cl", type: 'ingredient', category: "ALCOOL", name: "Vulson Blanc 50cl", costPrice: 0, packSize: null, packUnit: "ML" },
+  { id: "gin-mattei-clementine-70cl", type: 'ingredient', category: "ALCOOL", name: "Gin Mattei Clementine 70cl", costPrice: 0, packSize: null, packUnit: "ML" },
+  { id: "gin-mattei-immortel-50cl", type: 'ingredient', category: "ALCOOL", name: "Gin Mattei Immortel 50cl", costPrice: 28.35, packSize: null, packUnit: "ML" },
+  { id: "sab-s-le-marc-50cl", type: 'ingredient', category: "ALCOOL", name: "Sab’s Le Marc 50cl", costPrice: null, packSize: null, packUnit: "ML" },
+  { id: "liqueur-gentiane-chartreux-70cl", type: 'ingredient', category: "ALCOOL", name: "Liqueur Gentiane Chartreux 70cl", costPrice: 0, packSize: null, packUnit: "ML" },
+  { id: "liqueur-noix-chartreux-70cl", type: 'ingredient', category: "ALCOOL", name: "Liqueur Noix Chartreux 70cl", costPrice: 0, packSize: null, packUnit: "ML" },
+  { id: "amaro-angostura-70cl", type: 'ingredient', category: "ALCOOL", name: "Amaro Angostura 70cl", costPrice: 0, packSize: null, packUnit: "ML" },
+  { id: "amaro-santoni-50cl", type: 'ingredient', category: "ALCOOL", name: "Amaro Santoni 50cl", costPrice: 19.66, packSize: null, packUnit: "ML" },
+  { id: "liqueur-fleur-de-sureau-boudier-5l", type: 'ingredient', category: "ALCOOL", name: "Liqueur Fleur de Sureau Boudier 5L", costPrice: 60.13, packSize: null, packUnit: "L" },
+  { id: "liqueur-rhubarbe-boudier-50cl", type: 'ingredient', category: "ALCOOL", name: "Liqueur Rhubarbe Boudier 50cl", costPrice: 10.68, packSize: null, packUnit: "ML" },
+  { id: "angostura-aromatic-bitters-44-7-20cl", type: 'ingredient', category: "ALCOOL", name: "Angostura Aromatic Bitters 44.7° 20cl", costPrice: 17.85, packSize: null, packUnit: "ML" },
+  { id: "liqueur-chipotle-boudier-70cl", type: 'ingredient', category: "ALCOOL", name: "Liqueur Chipotle Boudier 70cl", costPrice: 18.04, packSize: null, packUnit: "ML" },
+  { id: "liqueur-pandan-kota-70cl", type: 'ingredient', category: "ALCOOL", name: "Liqueur Pandan Kota 70cl", costPrice: 20.57, packSize: null, packUnit: "ML" },
+  { id: "liqueur-cassis-boudier-70cl", type: 'ingredient', category: "ALCOOL", name: "Liqueur Cassis Boudier 70cl", costPrice: 14.89, packSize: null, packUnit: "ML" },
+  { id: "liqueur-poire-tic-tac-70cl", type: 'ingredient', category: "ALCOOL", name: "Liqueur Poire Tic & Tac 70cl", costPrice: 18.45, packSize: null, packUnit: "ML" },
+  { id: "gin-roku-70cl", type: 'ingredient', category: "ALCOOL", name: "Gin Roku 70cl", costPrice: 32.73, packSize: null, packUnit: "ML" },
+  { id: "gin-mare-70cl", type: 'ingredient', category: "ALCOOL", name: "Gin Mare 70cl", costPrice: 31.62, packSize: null, packUnit: "ML" },
+  { id: "gin-generous-70cl", type: 'ingredient', category: "ALCOOL", name: "Gin Generous 70cl", costPrice: 28.08, packSize: null, packUnit: "ML" },
+  { id: "gin-san-roccu-50cl", type: 'ingredient', category: "ALCOOL", name: "Gin San Roccu 50cl", costPrice: 30, packSize: null, packUnit: "ML" },
+  { id: "gin-sipsmith-70cl", type: 'ingredient', category: "ALCOOL", name: "Gin Sipsmith 70cl", costPrice: 30, packSize: null, packUnit: "ML" },
+  { id: "cognac-hennessy-x-o-70cl", type: 'ingredient', category: "ALCOOL", name: "Cognac Hennessy X.O. 70cl", costPrice: 0, packSize: null, packUnit: "ML" },
+  { id: "whisky-hatozaki-70cl", type: 'ingredient', category: "ALCOOL", name: "Whisky Hatozaki 70cl", costPrice: 25.73, packSize: null, packUnit: "ML" },
+  { id: "whisky-haig-club-70cl", type: 'ingredient', category: "ALCOOL", name: "Whisky Haig Club 70cl", costPrice: 0, packSize: null, packUnit: "ML" },
+  { id: "whisky-woodford-reserve-double-oak-70cl", type: 'ingredient', category: "ALCOOL", name: "Whisky Woodford Reserve Double Oak 70cl", costPrice: 47.6, packSize: null, packUnit: "ML" },
+  { id: "gin-engine-70cl", type: 'ingredient', category: "ALCOOL", name: "Gin Engine 70cl", costPrice: 40, packSize: null, packUnit: "ML" },
+  { id: "rhum-pyrat-xo-70cl", type: 'ingredient', category: "ALCOOL", name: "Rhum Pyrat XO 70cl", costPrice: 37.24, packSize: null, packUnit: "ML" },
+  { id: "rhum-clement-vs-70cl", type: 'ingredient', category: "ALCOOL", name: "Rhum Clement VS 70cl", costPrice: 22.75, packSize: null, packUnit: "ML" },
+  { id: "liqueur-fraise-boudier-70cl", type: 'ingredient', category: "ALCOOL", name: "Liqueur Fraise Boudier 70cl", costPrice: 13.77, packSize: null, packUnit: "ML" },
+  { id: "liqueur-framboises-boudier-70cl", type: 'ingredient', category: "ALCOOL", name: "Liqueur Framboises Boudier 70cl", costPrice: 13.26, packSize: null, packUnit: "ML" },
+  { id: "liqueur-piment-espelette-giffard-70cl", type: 'ingredient', category: "ALCOOL", name: "Liqueur Piment Espelette Giffard 70cl", costPrice: 18.24, packSize: null, packUnit: "ML" },
+  { id: "liqueur-passion-boudier-50cl", type: 'ingredient', category: "ALCOOL", name: "Liqueur Passion Boudier 50cl", costPrice: 11.78, packSize: null, packUnit: "ML" },
+  { id: "whisky-aberlour-10-70cl", type: 'ingredient', category: "ALCOOL", name: "Whisky Aberlour 10 70cl", costPrice: 34.06, packSize: null, packUnit: "ML" },
+  { id: "cognac-montifaud-vsop-70cl", type: 'ingredient', category: "ALCOOL", name: "Cognac Montifaud VSOP 70cl", costPrice: 0, packSize: null, packUnit: "ML" },
+  { id: "rhum-j-m-xo-70cl", type: 'ingredient', category: "ALCOOL", name: "Rhum J.M. XO 70cl", costPrice: 70.1, packSize: null, packUnit: "ML" },
+  { id: "rhum-vulcao-70cl", type: 'ingredient', category: "ALCOOL", name: "Rhum Vulcaõ 70cl", costPrice: 0, packSize: null, packUnit: "ML" },
+  { id: "liqueur-vanille-boudier-70cl", type: 'ingredient', category: "ALCOOL", name: "Liqueur Vanille Boudier 70cl", costPrice: 14.53, packSize: null, packUnit: "ML" },
+  { id: "liqueur-menthe-pastille-1l", type: 'ingredient', category: "ALCOOL", name: "Liqueur Menthe Pastille 1L", costPrice: 16.43, packSize: null, packUnit: "L" },
+  { id: "liqueur-violette-boudier-50cl", type: 'ingredient', category: "ALCOOL", name: "Liqueur Violette Boudier 50cl", costPrice: null, packSize: null, packUnit: "ML" },
+  { id: "toki-whisky-70cl", type: 'ingredient', category: "ALCOOL", name: "Toki Whisky 70cl", costPrice: 27, packSize: null, packUnit: "ML" },
+  { id: "tio-pepe-75cl", type: 'ingredient', category: "ALCOOL", name: "Tio Pepe 75cl", costPrice: 11.41, packSize: null, packUnit: "ML" },
+  { id: "gin-olive-boudier-70cl", type: 'ingredient', category: "ALCOOL", name: "Gin Olive Boudier 70cl", costPrice: 25.65, packSize: null, packUnit: "ML" },
+  { id: "abv-noilly-prat-ambre-70cl", type: 'ingredient', category: "ALCOOL", name: "ABV Noilly Prat ambré 70cl", costPrice: 12.85, packSize: null, packUnit: "ML" },
+  { id: "bitter-cherry-fee-brothers-15cl", type: 'ingredient', category: "ALCOOL", name: "Bitter Cherry Fee Brothers 15cl", costPrice: 14.84, packSize: null, packUnit: "ML" },
+  { id: "cognac-martell-v-s-70cl", type: 'ingredient', category: "ALCOOL", name: "Cognac Martell V.S. 70cl", costPrice: 32.73, packSize: null, packUnit: "ML" },
+  { id: "blanche-de-calvados-drouin-70cl", type: 'ingredient', category: "ALCOOL", name: "Blanche de Calvados Drouin 70cl", costPrice: 25, packSize: null, packUnit: "ML" },
+  { id: "liqueur-italicus-70cl", type: 'ingredient', category: "ALCOOL", name: "Liqueur Italicus 70cl", costPrice: 25.88, packSize: null, packUnit: "ML" },
+  { id: "liqueur-banane-du-bresil-giffard-70cl", type: 'ingredient', category: "ALCOOL", name: "Liqueur Banane du Brésil Giffard 70cl", costPrice: 13.41, packSize: null, packUnit: "ML" },
+];
+
 // ---- Menus (sous-menus de preps, ex. Été 25) ----
 const menus = [];
 /* DATA_END */
@@ -1751,13 +2124,14 @@ const LOCAL_STORAGE_KEY = 'fiches-prep-data-v1';
       cocktails.length = 0; cocktails.push(...saved.cocktails);
       if(Array.isArray(saved.ratios)){ ratios.length = 0; ratios.push(...saved.ratios); }
       if(Array.isArray(saved.garnishes)){ garnishes.length = 0; garnishes.push(...saved.garnishes); }
+      if(Array.isArray(saved.ingredients)){ ingredients.length = 0; ingredients.push(...saved.ingredients); }
       if(Array.isArray(saved.menus)){ menus.length = 0; menus.push(...saved.menus); }
     }
   }catch(e){ /* données locales illisibles, on garde les données par défaut */ }
 })();
 function saveToLocalStorage(){
   try{
-    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify({ preps, cocktails, ratios, menus, garnishes }));
+    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify({ preps, cocktails, ratios, menus, garnishes, ingredients }));
   }catch(e){ /* stockage indisponible (navigation privée…) — pas bloquant */ }
 }
 
@@ -1779,6 +2153,7 @@ async function loadFromCloud(silent){
       cocktails.length = 0; cocktails.push(...record.cocktails);
       if(Array.isArray(record.ratios)){ ratios.length = 0; ratios.push(...record.ratios); }
       if(Array.isArray(record.garnishes)){ garnishes.length = 0; garnishes.push(...record.garnishes); }
+      if(Array.isArray(record.ingredients)){ ingredients.length = 0; ingredients.push(...record.ingredients); }
       if(Array.isArray(record.menus)){ menus.length = 0; menus.push(...record.menus); }
       saveToLocalStorage();
       renderList();
@@ -1819,7 +2194,7 @@ async function doSaveToCloud(){
     const res = await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_ID}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json', 'X-Master-Key': JSONBIN_KEY },
-      body: JSON.stringify({ preps, cocktails, ratios, menus, garnishes })
+      body: JSON.stringify({ preps, cocktails, ratios, menus, garnishes, ingredients })
     });
     if(!res.ok) throw new Error('HTTP ' + res.status);
     showToast('Publié en ligne — visible par toute l’équipe au prochain chargement.');
@@ -1852,6 +2227,9 @@ const cocktails = ${JSON.stringify(cocktails, null, 2)};
 
 // ---- Ratios (fiches de proportions génériques) ----
 const ratios = ${JSON.stringify(ratios, null, 2)};
+
+// ---- Ingrédients bruts (base de données par catégorie) ----
+const ingredients = ${JSON.stringify(ingredients, null, 2)};
 
 // ---- Garnitures (fiches de garnish) ----
 const garnishes = ${JSON.stringify(garnishes, null, 2)};
@@ -1962,6 +2340,77 @@ function focusSearch(){
     if(input) input.focus();
   }, 150);
 }
+function openIngredientsManager(){
+  closeSettings();
+  const sb = document.getElementById('ingredientsSearch'); if(sb) sb.value = '';
+  renderIngredientsTable();
+  document.getElementById('ingredientsManagerOverlay').classList.add('open');
+}
+function closeIngredientsManager(){
+  document.getElementById('ingredientsManagerOverlay').classList.remove('open');
+}
+let ingredientsSortState = { key: 'name', dir: 'asc' };
+function sortIngredientsTable(key){
+  if(ingredientsSortState.key === key){
+    ingredientsSortState.dir = ingredientsSortState.dir === 'asc' ? 'desc' : 'asc';
+  } else {
+    ingredientsSortState.key = key;
+    ingredientsSortState.dir = 'asc';
+  }
+  renderIngredientsTable();
+}
+function renderIngredientsTable(){
+  const tbody = document.getElementById('ingredientsTableBody');
+  if(!tbody) return;
+  const { key, dir } = ingredientsSortState;
+  const q = ((document.getElementById('ingredientsSearch')||{}).value || '').trim().toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+  const nrm = v => String(v||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+  const sorted = ingredients.filter(i => !q || nrm(i.name).includes(q) || nrm(i.category).includes(q)).sort((a, b) => {
+    let av = a[key], bv = b[key];
+    if(av == null && bv == null) return 0;
+    if(av == null) return 1;
+    if(bv == null) return -1;
+    if(typeof av === 'string'){ av = av.toLowerCase(); bv = (bv + '').toLowerCase(); }
+    if(av < bv) return dir === 'asc' ? -1 : 1;
+    if(av > bv) return dir === 'asc' ? 1 : -1;
+    return 0;
+  });
+  document.querySelectorAll('.ingredients-table th.sortable').forEach(th => {
+    const arrow = th.querySelector('.sort-arrow');
+    if(th.dataset.key === key){
+      arrow.textContent = dir === 'asc' ? ' \u25b2' : ' \u25bc';
+      th.classList.add('sorted');
+    } else {
+      arrow.textContent = '';
+      th.classList.remove('sorted');
+    }
+  });
+  if(!sorted.length){
+    tbody.innerHTML = `<tr><td colspan="6" class="ingredients-table-empty">${q ? 'Aucun résultat.' : 'Aucun ingrédient pour l\u2019instant.'}</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = sorted.map(i => `
+    <tr>
+      <td class="ing-col-name">${i.name}</td>
+      <td>${i.category}</td>
+      <td>${i.costPrice != null ? fmtQty(i.costPrice, '\u20ac') : '\u2014'}</td>
+      <td>${i.packSize != null ? i.packSize : '\u2014'}</td>
+      <td>${i.packUnit || '\u2014'}</td>
+      <td class="ingredients-table-actions">
+        <button type="button" onclick="openEditIngredientModal('${i.id}')" title="Modifier">✎</button>
+        <button type="button" class="ing-delete-btn" onclick="deleteIngredientFromTable('${i.id}')" title="Supprimer">×</button>
+      </td>
+    </tr>
+  `).join('');
+}
+function deleteIngredientFromTable(id){
+  const item = byId(id);
+  if(!item) return;
+  if(!confirm(`Supprimer "${item.name}" ?`)) return;
+  confirmDeleteItem(id, 'ingredient');
+  renderIngredientsTable();
+}
 let cocktailEditMode = false; // édition des ingrédients d'un cocktail activée via le bouton "Modifier"
 let dailyChecklist = {}; // { prepId: true/false } — statut fait/pas fait
 let todaySelection = {}; // { prepId: true } — preps choisies pour l'écran d'accueil du jour
@@ -1993,7 +2442,7 @@ let futureStack = [];
 const HISTORY_LIMIT = 50;
 
 function snapshot(){
-  historyStack.push(JSON.stringify({ cocktails, preps, ratios, menus, garnishes }));
+  historyStack.push(JSON.stringify({ cocktails, preps, ratios, menus, garnishes, ingredients }));
   if(historyStack.length > HISTORY_LIMIT) historyStack.shift();
   futureStack = [];
   updateHistoryButtons();
@@ -2005,6 +2454,7 @@ function applySnapshot(json){
   preps.length = 0; preps.push(...data.preps);
   if(Array.isArray(data.ratios)){ ratios.length = 0; ratios.push(...data.ratios); }
   if(Array.isArray(data.garnishes)){ garnishes.length = 0; garnishes.push(...data.garnishes); }
+  if(Array.isArray(data.ingredients)){ ingredients.length = 0; ingredients.push(...data.ingredients); }
   if(Array.isArray(data.menus)){ menus.length = 0; menus.push(...data.menus); }
   if(state.activeId && !byId(state.activeId)) state.activeId = null;
   cocktailEditMode = false;
@@ -2017,13 +2467,13 @@ function applySnapshot(json){
 
 function undoAction(){
   if(!historyStack.length) return;
-  futureStack.push(JSON.stringify({ cocktails, preps, ratios, menus, garnishes }));
+  futureStack.push(JSON.stringify({ cocktails, preps, ratios, menus, garnishes, ingredients }));
   applySnapshot(historyStack.pop());
 }
 
 function redoAction(){
   if(!futureStack.length) return;
-  historyStack.push(JSON.stringify({ cocktails, preps, ratios, menus, garnishes }));
+  historyStack.push(JSON.stringify({ cocktails, preps, ratios, menus, garnishes, ingredients }));
   applySnapshot(futureStack.pop());
 }
 
@@ -2033,7 +2483,7 @@ function updateHistoryButtons(){
   if(undoBtn) undoBtn.disabled = historyStack.length === 0;
   if(redoBtn) redoBtn.disabled = futureStack.length === 0;
 }
-const allItems = () => [...cocktails, ...preps, ...ratios, ...garnishes];
+const allItems = () => [...cocktails, ...preps, ...ratios, ...garnishes, ...ingredients];
 const byId = (id) => allItems().find(i => i.id === id);
 
 function goHome(){
@@ -2111,6 +2561,9 @@ function confirmDeleteItem(id, type){
   } else if(type === 'garnish'){
     const idx = garnishes.findIndex(g => g.id === id);
     if(idx > -1) garnishes.splice(idx, 1);
+  } else if(type === 'ingredient'){
+    const idx = ingredients.findIndex(g => g.id === id);
+    if(idx > -1) ingredients.splice(idx, 1);
   } else {
     const idx = preps.findIndex(p => p.id === id);
     if(idx > -1) preps.splice(idx, 1);
@@ -2332,6 +2785,7 @@ function renderList(){
   const prepItems = items.filter(i => i.type === 'prep');
   const ratioItems = items.filter(i => i.type === 'ratio');
   const garnishItems = items.filter(i => i.type === 'garnish');
+  const ingredientItems = items.filter(i => i.type === 'ingredient');
 
   const dragItemHtml = (i) => `<div class="swipe-wrapper">
         <div class="swipe-delete" onclick="confirmDeleteItem('${i.id}','${i.type}')">Supprimé</div>
@@ -2410,6 +2864,7 @@ function renderList(){
         flatGroup(prepItems),
         flatGroup(garnishItems),
         flatGroup(ratioItems),
+        flatGroup(ingredientItems),
       ];
     } else {
       groups = [renderMenusGroup()];
@@ -2417,10 +2872,11 @@ function renderList(){
   } else if(state.tab === 'cocktail') groups = [flatGroup(cocktailItems)];
   else if(state.tab === 'prep') groups = [flatGroup(prepItems)];
   else if(state.tab === 'garnish') groups = [flatGroup(garnishItems)];
+  else if(state.tab === 'ingredient') groups = [flatGroup(ingredientItems)];
   else groups = [flatGroup(ratioItems)];
   let html = groups.filter(Boolean).join('<div class="rail-sep"></div>');
 
-  if(q && !cocktailItems.length && !prepItems.length && !ratioItems.length && !garnishItems.length){
+  if(q && !cocktailItems.length && !prepItems.length && !ratioItems.length && !garnishItems.length && !ingredientItems.length){
     html = `<div class="rail-empty">Aucune fiche ne correspond.</div>`;
   }
   list.innerHTML = html;
@@ -2436,6 +2892,7 @@ function updateRailAddButton(){
     prep: { label: 'Nouvelle prep', action: () => openCreateModal('prep') },
     garnish: { label: 'Nouvelle garniture', action: () => openCreateModal('garnish') },
     ratio: { label: 'Nouveau ratio', action: () => openCreateModal('ratio') },
+    ingredient: { label: 'Nouvel ingrédient', action: () => openCreateModal('ingredient') },
   };
   const conf = map[state.tab] || map.menu;
   btn.querySelector('.rail-add-label').textContent = conf.label;
@@ -2590,6 +3047,23 @@ function deleteMenuFromModal(){
   renderList();
 }
 
+function toggleFullscreen(){
+  const d = document, el = d.documentElement;
+  const isFs = d.fullscreenElement || d.webkitFullscreenElement;
+  try{
+    if(isFs){ (d.exitFullscreen || d.webkitExitFullscreen).call(d); }
+    else { (el.requestFullscreen || el.webkitRequestFullscreen).call(el); }
+  }catch(e){
+    alert("Plein écran indisponible ici. Sur iPad : Partager → « Sur l’écran d’accueil », puis ouvre l’app depuis l’icône.");
+  }
+}
+(function(){
+  const b = document.getElementById('fullscreenBtn');
+  const el = document.documentElement;
+  const standalone = window.navigator.standalone || (window.matchMedia && matchMedia('(display-mode: standalone)').matches);
+  if(b && (standalone || !(el.requestFullscreen || el.webkitRequestFullscreen))) b.style.display = 'none';
+})();
+
 function fmtQty(qty, unit){
   let v = Math.round(qty * 100) / 100;
   if(v % 1 === 0) v = v.toFixed(0);
@@ -2614,7 +3088,32 @@ function renderMain(){
   if(item.type === 'prep') renderPrepSheet(item);
   else if(item.type === 'ratio') renderRatioSheet(item);
   else if(item.type === 'garnish') renderGarnishSheet(item);
+  else if(item.type === 'ingredient') renderIngredientSheet(item);
   else renderCocktailSheet(item);
+}
+
+function renderIngredientSheet(item){
+  const main = document.getElementById('main');
+  main.innerHTML = `
+    <div class="sheet-head">
+      <div class="sheet-head-main">
+        <h1 class="sheet-title">${item.name}</h1>
+      </div>
+      <button class="edit-sheet-btn" onclick="openEditIngredientModal('${item.id}')">Modifier</button>
+    </div>
+    <div class="section">
+      <p class="section-label">Catégorie</p>
+      <div class="notes-box verdigris">${item.category}</div>
+    </div>
+    ${(item.costPrice != null || item.packSize != null || item.packUnit) ? `
+    <div class="section">
+      <p class="section-label">Approvisionnement</p>
+      <ul class="ingredient-list">
+        ${item.costPrice != null ? `<li class="ingredient-row"><span class="ing-name">Prix de revient</span><span class="ing-qty-edit"><span class="ing-qty">${fmtQty(item.costPrice, '\u20ac')}</span></span></li>` : ''}
+        ${(item.packSize != null || item.packUnit) ? `<li class="ingredient-row"><span class="ing-name">Contenance</span><span class="ing-qty-edit"><span class="ing-qty">${item.packSize != null ? fmtQty(item.packSize, item.packUnit || '') : (item.packUnit || '')}</span></span></li>` : ''}
+      </ul>
+    </div>` : ''}
+  `;
 }
 
 function renderGarnishSheet(item){
@@ -3064,6 +3563,7 @@ function renderCocktailSheet(item){
           <span class="ing-qty-edit"><span class="ing-qty" id="recipeTotalValue">${fmtNumber(recipeTotalMl(item))} ml</span></span>
           <span class="pb-static" aria-hidden="true"></span>
         </li>
+        ${renderCostRow(item)}
       </ul>
       ${editing ? `<select class="add-row-btn add-ing-select" onchange="handleAddIngredientChoice('${item.id}', this)">
         <option value="" selected disabled>+ Ajouter un ingrédient</option>
@@ -3167,6 +3667,111 @@ function recipeTotalMl(item){
     else if(ing.unit !== 'ml') return sum;
     return sum + q;
   }, 0);
+}
+
+
+/* ===== Coût matière ===== */
+function normName(n){ return String(n||'').trim().toLowerCase().replace(/\s+/g,' '); }
+function fmtEuro(v){ return (Math.round(v*100)/100).toFixed(2).replace('.', ',') + ' €'; }
+function fmtEuro3(v){ return (Math.round(v*1000)/1000).toFixed(3).replace('.', ',') + ' €'; }
+
+// Taille du conditionnement -> {kind:'vol'|'mass'|'pce', base:number} (ml, g ou pièces)
+function ingredientPack(dbIng){
+  const toBase = (n, u) => {
+    u = String(u||'').toLowerCase();
+    if(u==='ml') return {kind:'vol', base:n};
+    if(u==='cl') return {kind:'vol', base:n*10};
+    if(u==='l')  return {kind:'vol', base:n*1000};
+    if(u==='g')  return {kind:'mass', base:n};
+    if(u==='kg') return {kind:'mass', base:n*1000};
+    if(u==='piece' || u==='pce' || u==='pcs') return {kind:'pce', base:n};
+    return null;
+  };
+  if(Number(dbIng.packSize) > 0){
+    const r = toBase(Number(dbIng.packSize), dbIng.packUnit);
+    if(r) return r;
+  }
+  const m = String(dbIng.name||'').match(/(\d+(?:[.,]\d+)?)\s*(cl|ml|l|kg|g)\b/i);
+  if(m){ const r = toBase(parseFloat(m[1].replace(',','.')), m[2]); if(r) return r; }
+  if(String(dbIng.packUnit||'').toUpperCase()==='PIECE') return {kind:'pce', base:1};
+  return null;
+}
+
+// Coût unitaire : {kind, perBase} ou {error}
+function unitCostOf(name, depth){
+  depth = depth || 0;
+  const key = normName(name);
+  let db = ingredients.find(i => normName(i.name) === key);
+  if(!db){
+    // tolère l'absence du conditionnement dans le nom ("Gin MarGinal" ↔ "Gin MarGinal 70cl")
+    const strip = n => normName(n).replace(/\s*\b(btl|bib)\b/g,'').replace(/\s*\d+(?:[.,]\d+)?\s*(cl|ml|l|kg|g|pce)\b/g,'').trim();
+    const cands = ingredients.filter(i => strip(i.name) === strip(name));
+    if(cands.length === 1) db = cands[0];
+    else if(cands.length > 1) return {error:'plusieurs correspondances'};
+  }
+  if(db){
+    const price = Number(db.costPrice);
+    if(!(price > 0)) return {error:'prix manquant'};
+    const pack = ingredientPack(db);
+    if(!pack) return {error:'contenance inconnue'};
+    return {kind: pack.kind, perBase: price / pack.base};
+  }
+  const prep = preps.find(p => normName(p.name) === key);
+  if(prep && depth < 5){
+    let total = 0, missing = 0;
+    prep.ingredients.forEach(pi => {
+      const c = lineCost(pi.name, pi.qty, pi.unit, depth+1);
+      if(c.error) missing++; else total += c.cost;
+    });
+    if(missing) return {error:'prep incomplète'};
+    const vol = toBaseQty(prep.baseVolume, prep.unit);
+    if(!vol || vol.q <= 0) return {error:'volume prep inconnu'};
+    return {kind: vol.kind, perBase: total / vol.q};
+  }
+  return {error:'absent de la base'};
+}
+function toBaseQty(q, unit){
+  q = Number(q)||0; const u = String(unit||'').toLowerCase();
+  if(u==='ml') return {kind:'vol', q};
+  if(u==='cl') return {kind:'vol', q:q*10};
+  if(u==='l')  return {kind:'vol', q:q*1000};
+  if(u==='g')  return {kind:'mass', q};
+  if(u==='kg') return {kind:'mass', q:q*1000};
+  if(u==='pce' || u==='pcs' || u==='piece' || u==='pc' || u==='pièce') return {kind:'pce', q};
+  return null;
+}
+function lineCost(name, qty, unit, depth){
+  const uc = unitCostOf(name, depth);
+  if(uc.error) return {error: uc.error};
+  const bq = toBaseQty(qty, unit);
+  if(!bq) return {error:'unité « '+unit+' » non chiffrable'};
+  if(bq.kind !== uc.kind) return {error:'unité incompatible'};
+  return {cost: bq.q * uc.perBase};
+}
+function cocktailCost(item){
+  const lines = item.ingredients.map(ing => {
+    const name = ing.kind==='prep' && ing.ref ? ((byId(ing.ref)||{}).name || ing.name) : ing.name;
+    const r = lineCost(name, ing.qty, ing.unit, 0);
+    return {name, qty: ing.qty, unit: ing.unit, cost: r.cost, error: r.error};
+  });
+  const total = lines.reduce((s,l) => s + (l.error ? 0 : l.cost), 0);
+  const missing = lines.filter(l => l.error).length;
+  return {lines, total, missing};
+}
+function renderCostRow(item){
+  const c = cocktailCost(item);
+  const label = c.missing
+    ? `${fmtEuro(c.total)} <span class="cost-warn">+ ${c.missing} non chiffré${c.missing>1?'s':''}</span>`
+    : fmtEuro(c.total);
+  return `<li class="ingredient-row ingredient-cost">
+    <details class="cost-details">
+      <summary><span class="ing-name">Coût matière</span><span class="cost-total">${label}</span><span class="cost-chevron" aria-hidden="true">▾</span></summary>
+      <ul class="cost-lines">
+        ${c.lines.map(l => `<li class="${l.error?'cost-missing':''}"><span class="cl-name">${l.name}</span><span class="cl-qty">${fmtQty(Number(l.qty)||0, l.unit)}</span><span class="cl-val">${l.error ? '— <em>'+l.error+'</em>' : fmtEuro3(l.cost)}</span></li>`).join('')}
+        <li class="cost-sum"><span class="cl-name">Total${c.missing?' (partiel)':''}</span><span class="cl-qty"></span><span class="cl-val">${fmtEuro(c.total)}</span></li>
+      </ul>
+    </details>
+  </li>`;
 }
 
 function prebatchBaseVolume(item){
@@ -3342,6 +3947,7 @@ function openEditPrepModal(prepId){
   document.getElementById('mfPrepFields').style.display = '';
   document.getElementById('mfCocktailFields').style.display = 'none';
   document.getElementById('mfRatioFields').style.display = 'none';
+  document.getElementById('mfIngredientFields').style.display = 'none';
   document.getElementById('mfIngSection').style.display = '';
   document.getElementById('mfRatioPartsSection').style.display = 'none';
   document.getElementById('mfStepsSection').style.display = '';
@@ -3374,6 +3980,7 @@ function openEditCocktailModal(cocktailId){
   document.getElementById('mfPrepFields').style.display = 'none';
   document.getElementById('mfCocktailFields').style.display = '';
   document.getElementById('mfRatioFields').style.display = 'none';
+  document.getElementById('mfIngredientFields').style.display = 'none';
   document.getElementById('mfIngSection').style.display = '';
   document.getElementById('mfRatioPartsSection').style.display = 'none';
   document.getElementById('mfStepsSection').style.display = '';
@@ -3414,6 +4021,7 @@ function openEditCocktailModal(cocktailId){
   document.getElementById('modalOverlay').classList.add('open');
 }
 
+const INGREDIENT_CATEGORIES = ['ALCOOL', 'VIN ET CHAMPAGNE', 'SOFT', 'FRUITS ET LÉGUMES', 'ÉPICERIE', 'Autre'];
 const DETAILS_COLORS = ['default','red','blue','green','white','purple','yellow','black','brown'];
 const DETAILS_COLOR_LABELS = { default:'Défaut', red:'Rouge', blue:'Bleue', green:'Vert', white:'Blanc', purple:'Violet', yellow:'Jaune', black:'Noir', brown:'Marron' };
 function renderColorSwatches(selected){
@@ -3430,17 +4038,18 @@ function openCreateModal(type){
   modalCtx = null;
   modalMode = 'create';
   modalType = type;
-  const titles = { cocktail: 'Nouveau cocktail', prep: 'Nouvelle préparation', ratio: 'Nouveau ratio', garnish: 'Nouvelle garniture' };
-  const nameLabels = { cocktail: 'Nom du cocktail', prep: 'Nom de la préparation', ratio: 'Nom du ratio', garnish: 'Nom de la garniture' };
+  const titles = { cocktail: 'Nouveau cocktail', prep: 'Nouvelle préparation', ratio: 'Nouveau ratio', garnish: 'Nouvelle garniture', ingredient: 'Nouvel ingrédient' };
+  const nameLabels = { cocktail: 'Nom du cocktail', prep: 'Nom de la préparation', ratio: 'Nom du ratio', garnish: 'Nom de la garniture', ingredient: 'Nom de l\u2019ingrédient' };
   document.getElementById('modalTitle').textContent = titles[type];
   document.getElementById('modalNameLabel').textContent = nameLabels[type];
   document.getElementById('mfIngLabel').textContent = type === 'cocktail' ? 'Ingrédients (pour 1 verre)' : (type === 'garnish' ? 'Ingrédients' : 'Ingrédients (pour le volume de référence)');
   document.getElementById('mfPrepFields').style.display = type === 'prep' ? '' : 'none';
   document.getElementById('mfCocktailFields').style.display = type === 'cocktail' ? '' : 'none';
   document.getElementById('mfRatioFields').style.display = type === 'ratio' ? '' : 'none';
-  document.getElementById('mfIngSection').style.display = type === 'ratio' ? 'none' : '';
+  document.getElementById('mfIngredientFields').style.display = type === 'ingredient' ? '' : 'none';
+  document.getElementById('mfIngSection').style.display = (type === 'ratio' || type === 'ingredient') ? 'none' : '';
   document.getElementById('mfRatioPartsSection').style.display = type === 'ratio' ? '' : 'none';
-  document.getElementById('mfStepsSection').style.display = type === 'ratio' ? 'none' : '';
+  document.getElementById('mfStepsSection').style.display = (type === 'ratio' || type === 'ingredient') ? 'none' : '';
   document.getElementById('mfName').value = '';
   mfBaseVolumeTouched = false;
   if(type === 'prep'){
@@ -3465,6 +4074,11 @@ function openCreateModal(type){
     document.getElementById('mfRatioCategory').value = '';
     document.getElementById('mfRatioNote').value = '';
     modalRatioParts = [{ label: '', value: '', unit: '' }, { label: '', value: '', unit: '' }];
+  } else if(type === 'ingredient'){
+    document.getElementById('mfIngredientCategory').value = 'ALCOOL';
+    document.getElementById('mfIngredientCostPrice').value = '';
+    document.getElementById('mfIngredientPackSize').value = '';
+    document.getElementById('mfIngredientPackUnit').value = '';
   } else {
     modalIngredients = [{ name: '', qty: '', unit: 'ml' }];
   }
@@ -3514,6 +4128,7 @@ function openEditGarnishModal(garnishId){
   document.getElementById('mfPrepFields').style.display = 'none';
   document.getElementById('mfCocktailFields').style.display = 'none';
   document.getElementById('mfRatioFields').style.display = 'none';
+  document.getElementById('mfIngredientFields').style.display = 'none';
   document.getElementById('mfIngSection').style.display = '';
   document.getElementById('mfRatioPartsSection').style.display = 'none';
   document.getElementById('mfStepsSection').style.display = '';
@@ -3524,6 +4139,31 @@ function openEditGarnishModal(garnishId){
   if(!modalSteps.length) modalSteps = [{ title: '', text: '', icon: 'leaf', timer: '' }];
   renderModalIngredients();
   renderModalSteps();
+  const submitBtn = document.getElementById('modalSubmitBtn');
+  if(submitBtn) submitBtn.textContent = 'Enregistrer les modifications';
+  document.getElementById('modalOverlay').classList.add('open');
+}
+
+function openEditIngredientModal(ingredientId){
+  const item = byId(ingredientId);
+  if(!item) return;
+  modalCtx = { editId: ingredientId };
+  modalMode = 'edit';
+  modalType = 'ingredient';
+  document.getElementById('modalTitle').textContent = 'Modifier l\u2019ingrédient';
+  document.getElementById('modalNameLabel').textContent = 'Nom de l\u2019ingrédient';
+  document.getElementById('mfPrepFields').style.display = 'none';
+  document.getElementById('mfCocktailFields').style.display = 'none';
+  document.getElementById('mfRatioFields').style.display = 'none';
+  document.getElementById('mfIngredientFields').style.display = '';
+  document.getElementById('mfIngSection').style.display = 'none';
+  document.getElementById('mfRatioPartsSection').style.display = 'none';
+  document.getElementById('mfStepsSection').style.display = 'none';
+  document.getElementById('mfName').value = item.name;
+  document.getElementById('mfIngredientCategory').value = item.category || 'Autre';
+  document.getElementById('mfIngredientCostPrice').value = item.costPrice != null ? item.costPrice : '';
+  document.getElementById('mfIngredientPackSize').value = item.packSize != null ? item.packSize : '';
+  document.getElementById('mfIngredientPackUnit').value = item.packUnit || '';
   const submitBtn = document.getElementById('modalSubmitBtn');
   if(submitBtn) submitBtn.textContent = 'Enregistrer les modifications';
   document.getElementById('modalOverlay').classList.add('open');
@@ -3547,7 +4187,14 @@ function closePrepModal(){
   modalCtx = null;
 }
 
+function renderRawIngredientsDatalist(){
+  const dl = document.getElementById('rawIngredientsList');
+  if(!dl) return;
+  dl.innerHTML = ingredients.map(i => `<option value="${i.name}">`).join('');
+}
+
 function renderModalIngredients(){
+  renderRawIngredientsDatalist();
   const wrap = document.getElementById('mfIngRows');
   const dragHandle = (kind, i) => `
     <span class="rail-drag-handle row-drag-handle" draggable="true" ondragstart="modalRowDragStart(event,'${kind}',${i})" ondragend="modalRowDragEnd(event)" title="Glisser pour réordonner">
@@ -3582,7 +4229,7 @@ function renderModalIngredients(){
                     ${preps.map(p => `<option value="${p.id}" ${row.ref===p.id?'selected':''}>${p.name}</option>`).join('')}
                     <option value="__new__">+ Créer une nouvelle prep</option>
                   </select>`)
-            : `<input type="text" value="${row.name||''}" oninput="updateModalIng(${i},'name',this.value)">`
+            : `<input type="text" list="rawIngredientsList" value="${row.name||''}" oninput="updateModalIng(${i},'name',this.value)">`
           }
         </div>
         <div class="field" style="margin-bottom:0;">
@@ -3611,7 +4258,7 @@ function renderModalIngredients(){
       ${dragHandle('ing', i)}
       <div class="field" style="margin-bottom:0;">
         ${i===0?'<label>Nom</label>':''}
-        <input type="text" value="${row.name}" oninput="updateModalIng(${i},'name',this.value)">
+        <input type="text" list="rawIngredientsList" value="${row.name}" oninput="updateModalIng(${i},'name',this.value)">
       </div>
       <div class="field" style="margin-bottom:0;">
         ${i===0?'<label>Qté</label>':''}
@@ -3865,6 +4512,22 @@ function submitPrepModal(){
     return;
   }
 
+  if(modalMode === 'edit' && modalType === 'ingredient'){
+    const item = byId(modalCtx.editId);
+    if(!item){ closePrepModal(); return; }
+    item.name = name;
+    item.category = document.getElementById('mfIngredientCategory').value || 'Autre';
+    item.costPrice = document.getElementById('mfIngredientCostPrice').value !== '' ? parseFloat(document.getElementById('mfIngredientCostPrice').value) : null;
+    item.packSize = document.getElementById('mfIngredientPackSize').value !== '' ? parseFloat(document.getElementById('mfIngredientPackSize').value) : null;
+    item.packUnit = document.getElementById('mfIngredientPackUnit').value || null;
+    closePrepModal();
+    renderList();
+    renderMain();
+    renderIngredientsTable();
+    showToast(`Ingrédient "${name}" mis à jour.`);
+    return;
+  }
+
   let id = slugify(name);
   if(byId(id)) id = id + '-' + Math.floor(Math.random()*900 + 100);
 
@@ -3943,12 +4606,31 @@ function submitPrepModal(){
     return;
   }
 
+  if(modalType === 'ingredient'){
+    const newIngredient = {
+      id, type: 'ingredient',
+      category: document.getElementById('mfIngredientCategory').value || 'Autre',
+      name,
+      costPrice: document.getElementById('mfIngredientCostPrice').value !== '' ? parseFloat(document.getElementById('mfIngredientCostPrice').value) : null,
+      packSize: document.getElementById('mfIngredientPackSize').value !== '' ? parseFloat(document.getElementById('mfIngredientPackSize').value) : null,
+      packUnit: document.getElementById('mfIngredientPackUnit').value || null,
+    };
+    ingredients.push(newIngredient);
+    lastCreatedPrep = newIngredient;
+    closePrepModal();
+    renderList();
+    selectItem(id);
+    renderIngredientsTable();
+    showToast(`Ingrédient "${name}" créé pour cette session.`);
+    return;
+  }
+
   const category = document.getElementById('mfCategory').value;
   const baseVolume = parseFloat(document.getElementById('mfBaseVolume').value) || 1000;
   const unit = document.getElementById('mfBaseUnit').value;
   const shelfLife = document.getElementById('mfShelfLife').value.trim();
 
-  const ingredients = modalIngredients
+  const prepIngredients = modalIngredients
     .filter(r => r.name.trim() && r.qty !== '')
     .map(r => ({ name: r.name.trim(), qty: parseFloat(r.qty), unit: r.unit }));
   const steps = modalSteps
@@ -3958,7 +4640,7 @@ function submitPrepModal(){
   const newPrep = {
     id, type: 'prep', category, name, baseVolume, unit,
     shelfLife: shelfLife || null,
-    ingredients: ingredients.length ? ingredients : [{ name: 'Ingrédient à préciser', qty: 1000, unit: 'ml' }],
+    ingredients: prepIngredients.length ? prepIngredients : [{ name: 'Ingrédient à préciser', qty: 1000, unit: 'ml' }],
     steps: steps.length ? steps : [{ icon: 'leaf', title: 'Étape à préciser', text: '' }],
   };
   preps.push(newPrep);
