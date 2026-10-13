@@ -2797,6 +2797,8 @@ function renderList(){
   let items = allItems().filter(i => state.tab === 'menu' || i.type === state.tab);
   if(q) items = items.filter(i => i.name.toLowerCase().includes(q) || i.category.toLowerCase().includes(q));
 
+  const alpha = (a,b) => a.name.localeCompare(b.name, 'fr', {sensitivity:'base'});
+  items = [...items].sort(alpha);
   const cocktailItems = items.filter(i => i.type === 'cocktail');
   const prepItems = items.filter(i => i.type === 'prep');
   const ratioItems = items.filter(i => i.type === 'ratio');
@@ -2808,14 +2810,8 @@ function renderList(){
         <div class="swipe-content rail-item type-${i.type} ${state.activeId===i.id?'active':''}"
           data-id="${i.id}"
           onpointerdown="swipeStart(event, this)" onpointermove="swipeMove(event, this)"
-          onpointerup="swipeEnd(event, this, '${i.id}')" onpointercancel="swipeEnd(event, this, '${i.id}')"
-          ondragover="railDragOver(event, this)" ondragleave="railDragLeave(event, this)" ondrop="railDrop(event, this)">
-          <span class="rail-drag-handle" draggable="true" ondragstart="railDragStart(event, '${i.id}')" ondragend="railDragEnd(event)" title="Glisser pour réordonner">
-            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <circle cx="9" cy="6" r="1.3" fill="currentColor"/><circle cx="9" cy="12" r="1.3" fill="currentColor"/><circle cx="9" cy="18" r="1.3" fill="currentColor"/>
-              <circle cx="15" cy="6" r="1.3" fill="currentColor"/><circle cx="15" cy="12" r="1.3" fill="currentColor"/><circle cx="15" cy="18" r="1.3" fill="currentColor"/>
-            </svg>
-          </span>
+          onpointerup="swipeEnd(event, this, '${i.id}')" onpointercancel="swipeEnd(event, this, '${i.id}')">
+          
           <span class="dot"></span>
           <span class="rail-item-text">
             <div class="rail-item-name">${i.name}</div>
@@ -3429,13 +3425,15 @@ function fmtPercent(p){
 function renderIngredients(item, volume, animate){
   const factor = volume / item.baseVolume;
   const list = document.getElementById('ingList');
+  const wasOpen = !!list.querySelector('.cost-details[open]');
   list.innerHTML = item.ingredients.map((ing) => {
     return `
     <li class="ingredient-row">
       <span class="ing-name">${ing.name}</span>
       <span class="ing-qty-edit"><span class="ing-qty ${animate?'flash':''}">${fmtQty(ing.qty * factor, ing.unit)}</span></span>
     </li>`;
-  }).join('');
+  }).join('') + renderCostRow(item, factor, volume);
+  if(wasOpen){ const d = list.querySelector('.cost-details'); if(d) d.open = true; }
 }
 
 function refreshPercentDisplays(item){
@@ -3790,18 +3788,27 @@ function lineCost(name, qty, unit, depth){
   if(bq.kind !== uc.kind) return {error:'unité incompatible'};
   return {cost: bq.q * uc.perBase};
 }
-function cocktailCost(item){
+function cocktailCost(item, factor){
+  factor = factor || 1;
   const lines = item.ingredients.map(ing => {
     const name = ing.kind==='prep' && ing.ref ? ((byId(ing.ref)||{}).name || ing.name) : ing.name;
-    const r = lineCost(name, ing.qty, ing.unit, 0);
-    return {name, qty: ing.qty, unit: ing.unit, cost: r.cost, error: r.error};
+    const q = (Number(ing.qty)||0) * factor;
+    const r = lineCost(name, q, ing.unit, 0);
+    return {name, qty: q, unit: ing.unit, cost: r.cost, error: r.error};
   });
   const total = lines.reduce((s,l) => s + (l.error ? 0 : l.cost), 0);
   const missing = lines.filter(l => l.error).length;
   return {lines, total, missing};
 }
-function renderCostRow(item){
-  const c = cocktailCost(item);
+function renderCostRow(item, factor, volume){
+  const c = cocktailCost(item, factor);
+  let perUnit = '';
+  if(volume){
+    const bq = toBaseQty(volume, item.unit);
+    if(bq && bq.q > 0 && (bq.kind==='vol' || bq.kind==='mass')){
+      perUnit = `<li class="cost-sum"><span class="cl-name">Coût au ${bq.kind==='vol'?'litre':'kilo'}${c.missing?' (partiel)':''}</span><span class="cl-qty"></span><span class="cl-val">${fmtEuro(c.total / bq.q * 1000)}</span></li>`;
+    }
+  }
   const label = c.missing
     ? `${fmtEuro(c.total)} <span class="cost-warn">+ ${c.missing} non chiffré${c.missing>1?'s':''}</span>`
     : fmtEuro(c.total);
@@ -3811,6 +3818,7 @@ function renderCostRow(item){
       <ul class="cost-lines">
         ${c.lines.map(l => `<li class="${l.error?'cost-missing':''}"><span class="cl-name">${l.name}</span><span class="cl-qty">${fmtQty(Number(l.qty)||0, l.unit)}</span><span class="cl-val">${l.error ? '— <em>'+l.error+'</em>' : fmtEuro3(l.cost)}</span></li>`).join('')}
         <li class="cost-sum"><span class="cl-name">Total${c.missing?' (partiel)':''}</span><span class="cl-qty"></span><span class="cl-val">${fmtEuro(c.total)}</span></li>
+        ${perUnit}
       </ul>
     </details>
   </li>`;
