@@ -839,6 +839,22 @@
   .ingredients-search{width:100%; box-sizing:border-box; margin:0 0 12px; padding:11px 14px; font-size:15px; background:var(--bg-card); color:var(--text); border:1px solid var(--border); border-radius:var(--radius-card);}
   .new-ing-wrap{display:flex; flex-direction:column; gap:6px;}
   .new-ing-cancel{align-self:flex-start; background:none; border:none; color:var(--text-soft); cursor:pointer; font-size:13px; padding:0 2px;}
+
+  .picker-overlay{z-index:70; align-items:center; padding:24px 12px;}
+  .picker-modal{max-width:560px; max-height:calc(100vh - 48px); display:flex; flex-direction:column; padding:20px 20px 16px;}
+  .picker-head{display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;}
+  .picker-head h2{margin:0;}
+  .picker-close{background:none; border:none; color:var(--text-soft); font-size:26px; line-height:1; cursor:pointer; padding:0 6px;}
+  .picker-list{flex:1; overflow-y:auto; min-height:200px; margin:0 -6px; padding:0 6px;}
+  .picker-list .rail-submenu{margin-top:6px;}
+  .picker-list .rail-sub-list{margin-left:10px;}
+  .picker-list .rail-item{cursor:pointer;}
+  .picker-foot{display:flex; gap:8px; margin-top:12px;}
+  .picker-foot button{flex:1; padding:12px; border:1px dashed var(--border); background:transparent; color:var(--text); border-radius:var(--radius-card); font-size:14px; cursor:pointer;}
+  .picker-foot button:hover{border-color:var(--copper-bright); background:var(--bg-card-hover);}
+  .pick-btn{width:100%; text-align:left; padding:11px 12px; background:var(--bg-card); color:var(--text); border:1px solid var(--border); border-radius:6px; font-size:15px; cursor:pointer; display:flex; justify-content:space-between; gap:8px; align-items:center; font-family:inherit;}
+  .pick-btn.empty{color:var(--text-soft);}
+  .pick-btn:hover{border-color:var(--copper-bright);}
   .ingredient-cost{display:block; width:100%; padding:0; border-bottom:none;}
   .cost-details{width:100%;}
   .cost-details summary{list-style:none; display:flex; align-items:center; gap:12px; padding:11px 2px; cursor:pointer;}
@@ -1463,11 +1479,17 @@
         <path d="M6 10v9a1 1 0 0 0 1 1h3v-6h4v6h3a1 1 0 0 0 1-1v-9" stroke-width="1.6" stroke-linejoin="round"/>
       </svg>
     </button>
-    <button class="float-bar-btn" id="navBackBtn" onclick="navigateBack()" title="Page précédente" disabled>
-      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M15 5l-7 7 7 7" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <button class="float-bar-btn" id="undoBtn" onclick="undoAction()" title="Annuler la dernière modification" disabled>
+      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M9 7L4 12l5 5" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M4 12h11a5 5 0 0 1 0 10h-1" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
     </button>
-    <button class="float-bar-btn" id="navForwardBtn" onclick="navigateForward()" title="Page suivante" disabled>
-      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M9 5l7 7-7 7" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <button class="float-bar-btn" id="redoBtn" onclick="redoAction()" title="Rétablir la modification suivante" disabled>
+      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M15 7l5 5-5 5" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M20 12H9a5 5 0 0 0 0 10h1" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
     </button>
     <button class="float-bar-btn" onclick="focusSearch()" title="Rechercher">
       <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="11" cy="11" r="7" stroke-width="1.6"/><path d="M21 21l-4.3-4.3" stroke-width="1.6" stroke-linecap="round"/></svg>
@@ -1480,17 +1502,11 @@
   <aside class="rail" id="rail">
     <div class="rail-head">
       <div class="head-btn-row">
-        <button class="home-btn" id="undoBtn" onclick="undoAction()" title="Annuler la dernière modification" disabled>
-          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M9 7L4 12l5 5" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
-            <path d="M4 12h11a5 5 0 0 1 0 10h-1" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
+        <button class="home-btn" id="navBackBtn" onclick="navigateBack()" title="Page précédente" disabled>
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M15 5l-7 7 7 7" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </button>
-        <button class="home-btn" id="redoBtn" onclick="redoAction()" title="Rétablir la modification suivante" disabled>
-          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M15 7l5 5-5 5" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
-            <path d="M20 12H9a5 5 0 0 0 0 10h1" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
+        <button class="home-btn" id="navForwardBtn" onclick="navigateForward()" title="Page suivante" disabled>
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M9 5l7 7-7 7" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </button>
       </div>
       <div class="search">
@@ -1805,6 +1821,18 @@
 <div class="toast" id="toast">
   <span id="toastText"></span>
   <button onclick="copyToastCode()">Copier le code</button>
+</div>
+
+<div class="modal-overlay picker-overlay" id="pickerOverlay" onclick="if(event.target===this) closePicker()">
+  <div class="modal picker-modal">
+    <div class="picker-head">
+      <h2 id="pickerTitle">Choisir</h2>
+      <button type="button" class="picker-close" onclick="closePicker()" aria-label="Fermer">×</button>
+    </div>
+    <input type="search" id="pickerSearch" class="ingredients-search" placeholder="Rechercher…" oninput="renderPicker()" autocomplete="off">
+    <div class="picker-list" id="pickerList"></div>
+    <div class="picker-foot" id="pickerFoot"></div>
+  </div>
 </div>
 
 <script>
@@ -3605,13 +3633,7 @@ function renderCocktailSheet(item){
         </li>
         ${renderCostRow(item)}
       </ul>
-      ${editing ? `<select class="add-row-btn add-ing-select" onchange="handleAddIngredientChoice('${item.id}', this)">
-        <option value="" selected disabled>+ Ajouter un ingrédient</option>
-        <option value="__new__">+ Nouvel ingrédient (brut)</option>
-        ${preps.length ? `<optgroup label="Preps existantes">
-          ${preps.map(p => `<option value="${p.id}">${p.name}</option>`).join('')}
-        </optgroup>` : ''}
-      </select>` : ''}
+      ${editing ? `<button type="button" class="add-row-btn" onclick="openPicker('both', c => handleAddIngredientPick('${item.id}', c))">+ Ajouter un ingrédient ou une prep</button>` : ''}
     </div>
 
     ${hasPrebatch ? `
@@ -3655,6 +3677,23 @@ function updateQuickNote(id, value){
   saveToLocalStorage();
 }
 
+function handleAddIngredientPick(cocktailId, c){
+  const cocktail = byId(cocktailId);
+  if(!cocktail) return;
+  snapshot();
+  if(c.kind === 'newraw'){
+    cocktail.ingredients.push({ kind: 'raw', name: '', qty: 0, unit: 'ml', prebatch: false });
+    renderMain();
+    const input = document.getElementById('newIngNameInput');
+    if(input) input.focus();
+  } else if(c.kind === 'raw'){
+    cocktail.ingredients.push({ kind: 'raw', name: c.name, qty: 0, unit: 'ml', prebatch: false });
+    renderMain();
+  } else if(c.kind === 'prep'){
+    cocktail.ingredients.push({ kind: 'prep', ref: c.ref, qty: 0, unit: 'ml', prebatch: false });
+    renderMain();
+  }
+}
 function handleAddIngredientChoice(cocktailId, selectEl){
   const val = selectEl.value;
   const cocktail = byId(cocktailId);
@@ -4244,6 +4283,71 @@ function renderRawIngredientsDatalist(){
 }
 
 
+/* ===== Sélecteur flottant (ingrédients bruts + preps) ===== */
+let pickerState = null;
+const pickerOpenCats = {};
+function openPicker(mode, onPick, opts){
+  pickerState = { mode, onPick, opts: opts || {} };
+  const titles = { raw:'Choisir un ingrédient', prep:'Choisir une prep', both:'Ajouter un ingrédient ou une prep' };
+  document.getElementById('pickerTitle').textContent = titles[mode] || 'Choisir';
+  document.getElementById('pickerSearch').value = '';
+  const foot = [];
+  if(mode === 'raw' || mode === 'both') foot.push(`<button type="button" onclick="pickerChoose({kind:'newraw'})">+ Nouvel ingrédient</button>`);
+  if(mode === 'prep' || (mode === 'both' && pickerState.opts.allowNewPrep)) foot.push(`<button type="button" onclick="pickerChoose({kind:'newprep'})">+ Nouvelle prep</button>`);
+  document.getElementById('pickerFoot').innerHTML = foot.join('');
+  document.getElementById('pickerOverlay').classList.add('open');
+  renderPicker();
+  setTimeout(() => { const el = document.getElementById('pickerSearch'); if(el && window.innerWidth > 860) el.focus(); }, 30);
+}
+function closePicker(){
+  document.getElementById('pickerOverlay').classList.remove('open');
+  pickerState = null;
+}
+function pickerChoose(choice){
+  const cb = pickerState && pickerState.onPick;
+  closePicker();
+  if(cb) cb(choice);
+}
+function pickerToggle(key){
+  pickerOpenCats[key] = !pickerOpenCats[key];
+  renderPicker();
+}
+function renderPicker(){
+  if(!pickerState) return;
+  const nrm = v => String(v||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+  const q = nrm(document.getElementById('pickerSearch').value.trim());
+  const cmp = (a,b) => a.name.localeCompare(b.name,'fr',{sensitivity:'base'});
+  const esc = v => String(v).replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/"/g,'&quot;');
+  const mode = pickerState.mode;
+  let h = '';
+  const group = (key, label, color, arr, itemFn) => {
+    if(!arr.length) return;
+    const open = q ? true : !!pickerOpenCats[key];
+    h += `<div class="rail-submenu cat-submenu ${open?'open':''}" style="--cat:${color}" onclick="pickerToggle('${esc(key)}')">
+      <span class="chev" style="color:${color}">▸</span><span class="submenu-name">${label}</span><span class="submenu-count">${arr.length}</span></div>`;
+    if(open) h += `<div class="rail-sub-list" style="--cat:${color}">${arr.map(itemFn).join('')}</div>`;
+  };
+  if(mode === 'prep' || mode === 'both'){
+    const arr = preps.filter(x => !q || nrm(x.name).includes(q)).sort(cmp);
+    group('__preps__', 'Preps', 'var(--verdigris-bright, #8bb8ad)', arr, x =>
+      `<div class="rail-item type-prep" onclick="pickerChoose({kind:'prep', ref:'${esc(x.id)}', name:'${esc(x.name)}'})">
+        <span class="dot"></span><span class="rail-item-text"><div class="rail-item-name">${x.name}</div><div class="rail-item-cat">${x.category||''}</div></span></div>`);
+  }
+  if(mode === 'raw' || mode === 'both'){
+    const cats = [...new Set(ingredients.map(x => x.category))].sort((a,b) => a.localeCompare(b,'fr'));
+    cats.forEach(c => {
+      const arr = ingredients.filter(x => x.category === c && (!q || nrm(x.name).includes(q))).sort(cmp);
+      const col = ingCatColor(c);
+      group('c-'+c, c, col, arr, x => {
+        const sub = x.costPrice > 0 ? fmtEuro(x.costPrice) : 'prix à renseigner';
+        return `<div class="rail-item type-ingredient" style="--cat:${col}" onclick="pickerChoose({kind:'raw', name:'${esc(x.name)}'})">
+          <span class="dot"></span><span class="rail-item-text"><div class="rail-item-name">${x.name}</div><div class="rail-item-cat">${sub}</div></span></div>`;
+      });
+    });
+  }
+  document.getElementById('pickerList').innerHTML = h || `<div class="rail-empty">Aucun résultat.</div>`;
+}
+
 function rawNameFieldHtml(i, row){
   if(row.newIng){
     return `<span class="pending-prep-name new-ing-wrap">
@@ -4255,17 +4359,15 @@ function rawNameFieldHtml(i, row){
     </span>`;
   }
   const cur = (row.name||'').trim();
-  const known = ingredients.some(x => x.name === row.name);
-  const cats = [...new Set(ingredients.map(x => x.category))].sort((a,b) => a.localeCompare(b,'fr'));
-  const esc = v => String(v).replace(/"/g,'&quot;');
-  return `<select onchange="selectModalIngRaw(${i}, this.value)">
-    <option value="" ${cur?'':'selected'}>— choisir —</option>
-    ${cur && !known ? `<option value="${esc(row.name)}" selected>${row.name}</option>` : ''}
-    ${cats.map(c => `<optgroup label="${c}">
-      ${ingredients.filter(x => x.category===c).sort((a,b)=>a.name.localeCompare(b.name,'fr')).map(x => `<option value="${esc(x.name)}" ${row.name===x.name?'selected':''}>${x.name}</option>`).join('')}
-    </optgroup>`).join('')}
-    <option value="__new__">+ Nouvel ingrédient</option>
-  </select>`;
+  return `<button type="button" class="pick-btn ${cur?'':'empty'}" onclick="openPicker('raw', c => pickModalIngRaw(${i}, c))"><span>${cur || '— choisir —'}</span><span>▾</span></button>`;
+}
+function pickModalIngRaw(i, c){
+  if(c.kind === 'newraw') selectModalIngRaw(i, '__new__');
+  else if(c.kind === 'raw') selectModalIngRaw(i, c.name);
+}
+function pickModalIngPrep(i, c){
+  if(c.kind === 'newprep') selectModalIngPrep(i, '__new__');
+  else if(c.kind === 'prep') selectModalIngPrep(i, c.ref);
 }
 function selectModalIngRaw(i, val){
   const r = modalIngredients[i];
@@ -4320,11 +4422,7 @@ function renderModalIngredients(){
                 ? `<span class="pending-prep-name">
                     <input type="text" placeholder="Nom de la nouvelle prep…" value="${row.pendingName||''}" oninput="updateModalIng(${i},'pendingName',this.value)">
                   </span>`
-                : `<select onchange="selectModalIngPrep(${i}, this.value)">
-                    <option value="">— choisir —</option>
-                    ${preps.map(p => `<option value="${p.id}" ${row.ref===p.id?'selected':''}>${p.name}</option>`).join('')}
-                    <option value="__new__">+ Créer une nouvelle prep</option>
-                  </select>`)
+                : `<button type="button" class="pick-btn ${row.ref?'':'empty'}" onclick="openPicker('prep', c => pickModalIngPrep(${i}, c))"><span>${(byId(row.ref)||{}).name || '— choisir —'}</span><span>▾</span></button>`)
             : rawNameFieldHtml(i, row)
           }
         </div>
