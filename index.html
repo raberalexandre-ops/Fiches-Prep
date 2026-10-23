@@ -1123,6 +1123,8 @@
   }
   .today-selector-name{flex:1; font-size:14px; color:var(--text);}
   .today-selector-cat{font-size:11.5px; color:var(--text-faint);}
+  .checklist-group-label{font-size:12px; letter-spacing:.08em; text-transform:uppercase; color:var(--copper-bright); margin:16px 2px 4px; cursor:pointer;}
+  .checklist-group-label.other:empty{display:none;}
   .today-block-label{font-size:11.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--text-faint); margin:12px 2px 6px;}
   .today-selector-list .rail-submenu{margin-top:6px;}
   .today-selector-empty{padding:16px 2px; color:var(--text-faint); font-size:13px;}
@@ -2811,6 +2813,15 @@ function syncMenuPreps(){
   });
 }
 
+const MENU_COLORS = ['#e5a066','#7fa6dc','#8fc06a','#d0708a','#b48ee0','#d9bc5c','#5fc2b8','#e07b5f','#a8b5c8','#c9d17a'];
+function ensureMenuColors(){
+  const used = menus.map(m => m.color).filter(Boolean);
+  menus.forEach(m => {
+    if(m.color) return;
+    const free = MENU_COLORS.find(c => !used.includes(c)) || MENU_COLORS[menus.indexOf(m) % MENU_COLORS.length];
+    m.color = free; used.push(free);
+  });
+}
 const INGREDIENT_CAT_COLORS = {
   'ALCOOL':'#e5a066', 'VIN ET CHAMPAGNE':'#d0708a', 'SOFT':'#7fa6dc',
   'FRUITS ET LÉGUMES':'#8fc06a', 'ÉPICERIE':'#d9bc5c', 'Autre':'#a79f93'
@@ -2822,6 +2833,7 @@ function ingCatColor(c){
 }
 function renderList(){
   syncMenuPreps();
+  ensureMenuColors();
   saveToLocalStorage();
   const q = document.getElementById('searchInput').value.trim().toLowerCase();
   const list = document.getElementById('railList');
@@ -2881,9 +2893,9 @@ function renderList(){
       const mGarnish = garnishItems.filter(i => (m.garnishIds || []).includes(i.id));
       const total = mCocktails.length + mPreps.length + mGarnish.length;
       const key = 'm-' + m.id;
-      h += submenuHeader(key, m.name, total, m.id, 'var(--copper-bright)');
+      h += submenuHeader(key, m.name, total, m.id, m.color).replace('class="rail-submenu ', 'style="--cat:' + m.color + '" class="rail-submenu cat-submenu ');
       if(menuOpen[key]){
-        h += `<div class="rail-sub-list">`;
+        h += `<div class="rail-sub-list" style="--cat:${m.color}">`;
         if(!total){
           h += `<div class="rail-sub-empty">Menu vide — clique sur le crayon pour ajouter des cocktails, des preps ou des garnitures.</div>`;
         } else {
@@ -3296,17 +3308,28 @@ function renderDailyChecklistHtml(){
           ${viderBtn}
         </div>
       </div>
-      <ul class="checklist">
-        ${todayPreps.map(p => `
+      ${(() => {
+        const rowHtml = p => `
           <li class="checklist-row ${dailyChecklist[p.id] ? 'done' : ''}" data-id="${p.id}">
             <label>
               <input type="checkbox" ${dailyChecklist[p.id] ? 'checked' : ''} onchange="toggleDaily('${p.id}', this.checked)">
               <span class="checklist-name" onclick="selectItem('${p.id}')">${p.name}</span>
               <span class="checklist-cat">${p.category}</span>
             </label>
-          </li>
-        `).join('')}
-      </ul>
+          </li>`;
+        const selIds = new Set(todayPreps.map(p => p.id));
+        const used = new Set();
+        let out = '';
+        [...cocktails].sort((a,b) => a.name.localeCompare(b.name,'fr')).forEach(c => {
+          const items = cocktailPrepItems(c).filter(p => selIds.has(p.id));
+          if(!items.length) return;
+          items.forEach(p => used.add(p.id));
+          out += `<p class="checklist-group-label" onclick="selectItem('${c.id}')">${c.name}</p><ul class="checklist">${items.map(rowHtml).join('')}</ul>`;
+        });
+        const others = todayPreps.filter(p => !used.has(p.id));
+        if(others.length) out += `<p class="checklist-group-label other">${out ? 'Autres preps' : ''}</p><ul class="checklist">${others.map(rowHtml).join('')}</ul>`;
+        return out;
+      })()}
     </div>
   `;
 }
@@ -3320,8 +3343,10 @@ function clearTodaySelection(){
 function toggleDaily(id, val){
   dailyChecklist[id] = val;
   saveDailyToLocalStorage();
-  const row = document.querySelector(`.checklist-row[data-id="${id}"]`);
-  if(row) row.classList.toggle('done', val);
+  document.querySelectorAll(`.checklist-row[data-id="${id}"]`).forEach(row => {
+    row.classList.toggle('done', val);
+    const cb = row.querySelector('input'); if(cb) cb.checked = val;
+  });
   const todayPreps = [...preps, ...garnishes].filter(p => todaySelection[p.id]);
   const done = todayPreps.filter(p => dailyChecklist[p.id]).length;
   const countEl = document.getElementById('checklistCount');
