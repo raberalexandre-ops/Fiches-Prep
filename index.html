@@ -353,6 +353,9 @@
   .rail-drag-handle svg{width:14px;height:14px;}
   .rail-item.dragging{opacity:.35;}
   .rail-item.drag-over{box-shadow: inset 0 2px 0 0 var(--copper);}
+  .rail-item.has-mc{border-left-color:var(--mc);}
+  .rail-item.has-mc .dot{background:var(--mc);}
+  .rail-item.has-mc.active{border-left-color:var(--mc);}
   .rail-item.type-prep .dot{background:var(--verdigris);}
   .rail-item.type-ratio .dot{background:var(--slate);}
   .rail-item.type-garnish .dot{background:var(--amber);}
@@ -2814,6 +2817,11 @@ function syncMenuPreps(){
 }
 
 const MENU_COLORS = ['#e5a066','#7fa6dc','#8fc06a','#d0708a','#b48ee0','#d9bc5c','#5fc2b8','#e07b5f','#a8b5c8','#c9d17a'];
+function cocktailMenuColor(id){
+  ensureMenuColors();
+  const m = menus.find(x => (x.cocktailIds || []).includes(id));
+  return m ? m.color : null;
+}
 function ensureMenuColors(){
   const used = menus.map(m => m.color).filter(Boolean);
   menus.forEach(m => {
@@ -2848,9 +2856,10 @@ function renderList(){
   const garnishItems = items.filter(i => i.type === 'garnish');
   const ingredientItems = items.filter(i => i.type === 'ingredient');
 
+  const mcOf = (i) => i.type === 'cocktail' ? cocktailMenuColor(i.id) : null;
   const dragItemHtml = (i) => `<div class="swipe-wrapper">
         <div class="swipe-delete" onclick="confirmDeleteItem('${i.id}','${i.type}')">Supprimé</div>
-        <div class="swipe-content rail-item type-${i.type} ${state.activeId===i.id?'active':''}"
+        <div class="swipe-content rail-item type-${i.type} ${state.activeId===i.id?'active':''} ${mcOf(i)?'has-mc':''}" ${mcOf(i)?`style="--mc:${mcOf(i)}"`:''}
           data-id="${i.id}"
           onpointerdown="swipeStart(event, this)" onpointermove="swipeMove(event, this)"
           onpointerup="swipeEnd(event, this, '${i.id}')" onpointercancel="swipeEnd(event, this, '${i.id}')">
@@ -2863,7 +2872,7 @@ function renderList(){
         </div>
       </div>`;
 
-  const plainItemHtml = (i) => `<div class="rail-item type-${i.type} ${state.activeId===i.id?'active':''}" data-id="${i.id}" onclick="selectItem('${i.id}')">
+  const plainItemHtml = (i) => `<div class="rail-item type-${i.type} ${state.activeId===i.id?'active':''} ${mcOf(i)?'has-mc':''}" ${mcOf(i)?`style="--mc:${mcOf(i)}"`:''} data-id="${i.id}" onclick="selectItem('${i.id}')">
         <span class="dot"></span>
         <span class="rail-item-text">
           <div class="rail-item-name">${i.name}</div>
@@ -3324,7 +3333,7 @@ function renderDailyChecklistHtml(){
           const items = cocktailPrepItems(c).filter(p => selIds.has(p.id));
           if(!items.length) return;
           items.forEach(p => used.add(p.id));
-          out += `<p class="checklist-group-label" onclick="selectItem('${c.id}')">${c.name}</p><ul class="checklist">${items.map(rowHtml).join('')}</ul>`;
+          out += `<p class="checklist-group-label" style="${cocktailMenuColor(c.id)?'color:'+cocktailMenuColor(c.id):''}" onclick="selectItem('${c.id}')">${c.name}</p><ul class="checklist">${items.map(rowHtml).join('')}</ul>`;
         });
         const others = todayPreps.filter(p => !used.has(p.id));
         if(others.length) out += `<p class="checklist-group-label other">${out ? 'Autres preps' : ''}</p><ul class="checklist">${others.map(rowHtml).join('')}</ul>`;
@@ -3429,8 +3438,9 @@ function renderTodaySelectorList(){
       const items = cocktailPrepItems(c);
       const done = items.filter(p => todaySelectorDraft[p.id]).length;
       const open = !!todayCocktailOpen[c.id];
-      html += `<div class="rail-submenu cat-submenu ${open?'open':''}" style="--cat:var(--copper-bright)" onclick="toggleTodayCocktail('${c.id}')">
-        <span class="chev" style="color:var(--copper-bright)">▸</span>
+      const mc = cocktailMenuColor(c.id) || 'var(--copper-bright)';
+      html += `<div class="rail-submenu cat-submenu ${open?'open':''}" style="--cat:${mc}" onclick="toggleTodayCocktail('${c.id}')">
+        <span class="chev" style="color:${mc}">▸</span>
         <span class="submenu-name">${c.name}</span>
         <span class="submenu-count">${done}/${items.length}</span>
       </div>`;
