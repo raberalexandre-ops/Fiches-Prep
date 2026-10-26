@@ -363,7 +363,16 @@
   .rail-submenu.cat-submenu{border-left:3px solid var(--cat);}
   .rail-submenu.cat-submenu:hover{border-color:var(--cat); border-left-color:var(--cat);}
   .rail-submenu.cat-submenu .submenu-name{color:var(--cat);}
-  .rail-sub-list[style*="--cat"]{border-left-color:var(--cat);}
+  /* bande latérale de couleur à la place de la pastille */
+  .rail-item{border-left:3px solid var(--copper);}
+  .rail-item .dot{display:none;}
+  .rail-item.type-prep{border-left-color:var(--verdigris);}
+  .rail-item.type-ratio{border-left-color:var(--slate);}
+  .rail-item.type-garnish{border-left-color:var(--amber);}
+  .rail-item.type-ingredient{border-left-color:var(--cat, var(--teal));}
+  .rail-item.has-mc, .rail-item.has-mc.active{border-left-color:var(--mc);}
+  .rail-item.active, .rail-item.active.type-prep, .rail-item.active.type-garnish, .rail-item.active.type-ratio{border-left-width:3px;}
+  .rail-sub-list{border-left:none; padding-left:0;}
   .rail-submenu{
     display:flex;
     align-items:center;
@@ -418,7 +427,7 @@
   .settings-action.ingredients-manage-btn:hover{border-color:var(--teal-bright);}
   .settings-action.ingredients-manage-btn:hover svg{stroke:var(--teal-bright);}
   .settings-action.ingredients-manage-btn:hover .sa-title{color:var(--teal-bright);}
-  .rail-sub-list{margin:2px 0 6px 12px; padding-left: 6px; border-left:1px solid var(--border-soft);}
+  .rail-sub-list{margin:2px 0 6px 12px; padding-left: 6px; border-left:none;}
   .rail-sub-empty{font-size:12px; color:var(--text-soft); padding:8px 8px 8px 10px;}
   .rail-sep{height:1px; background:var(--border); margin:14px 10px;}
   .menu-mini-list{max-height:30vh;}
