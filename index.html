@@ -1135,6 +1135,15 @@
   }
   .today-selector-name{flex:1; font-size:14px; color:var(--text);}
   .today-selector-cat{font-size:11.5px; color:var(--text-faint);}
+  .custom-tasks{margin-top:0; margin-bottom:28px;}
+  .task-add{display:flex; gap:8px; margin:12px 0 6px;}
+  .task-add input{flex:1; padding:11px 12px; font-size:15px; background:var(--bg-card); color:var(--text); border:1px solid var(--border); border-radius:6px; font-family:inherit;}
+  .task-add button{width:44px; border:1px solid var(--border); background:var(--bg-card); color:var(--copper-bright); font-size:22px; border-radius:6px; cursor:pointer;}
+  .task-add button:hover{border-color:var(--copper-bright);}
+  .custom-tasks .checklist-row{display:flex; align-items:center;}
+  .custom-tasks .checklist-row label{flex:1;}
+  .task-del{background:none; border:none; color:var(--text-faint); font-size:20px; cursor:pointer; padding:0 8px;}
+  .task-del:hover{color:var(--danger);}
   .checklist-group-label{font-size:12px; letter-spacing:.08em; text-transform:uppercase; color:var(--copper-bright); margin:16px 2px 4px; cursor:pointer;}
   .checklist-group-label.other:empty{display:none;}
   .today-block-label{font-size:11.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--text-faint); margin:12px 2px 6px;}
@@ -1633,7 +1642,7 @@
       </div>
       <div class="field">
         <label>Conservation</label>
-        <input type="text" id="mfShelfLife" placeholder="ex. 2 semaines au réfrigérateur">
+        <input type="text" id="mfShelfLife">
       </div>
     </div>
 
@@ -1641,17 +1650,17 @@
       <div class="row-2">
         <div class="field">
           <label>Catégorie</label>
-          <input type="text" id="mfCktCategory" placeholder="ex. Signature, Classique…">
+          <input type="text" id="mfCktCategory">
         </div>
         <div class="field">
           <label>Verre</label>
-          <input type="text" id="mfGlass" placeholder="ex. Tumbler">
+          <input type="text" id="mfGlass">
         </div>
       </div>
       <div class="row-2">
         <div class="field">
           <label>Glace</label>
-          <input type="text" id="mfIce" placeholder="ex. Clear Collins">
+          <input type="text" id="mfIce">
         </div>
         <div class="field">
           <label>Garniture</label>
@@ -1666,11 +1675,11 @@
       </div>
       <div class="field">
         <label>Méthode</label>
-        <input type="text" id="mfMethod" placeholder="ex. On Tap, Shake, Build…">
+        <input type="text" id="mfMethod">
       </div>
       <div class="field">
         <label>Specs <span class="field-hint">(une ligne par indication — quantités premix, dashes, etc.)</span></label>
-        <textarea id="mfSpecs" rows="3" placeholder="ex. 85 ml premix&#10;1 dsh saline&#10;Bitter piment selon demande"></textarea>
+        <textarea id="mfSpecs" rows="3"></textarea>
       </div>
       <div class="field">
         <label>Couleur de l'encart détails</label>
@@ -1682,7 +1691,7 @@
     <div id="mfRatioFields" style="display:none;">
       <div class="field">
         <label>Catégorie</label>
-        <input type="text" id="mfRatioCategory" placeholder="ex. Sirop, Infusion, Acide…">
+        <input type="text" id="mfRatioCategory">
       </div>
     </div>
 
@@ -1701,11 +1710,11 @@
       <div class="row-2">
         <div class="field">
           <label>Prix de revient (\u20ac)</label>
-          <input type="number" id="mfIngredientCostPrice" step="0.01" placeholder="ex. 7.16">
+          <input type="number" id="mfIngredientCostPrice" step="0.01">
         </div>
         <div class="field">
           <label>Contenance</label>
-          <input type="number" id="mfIngredientPackSize" step="0.01" placeholder="ex. 750">
+          <input type="number" id="mfIngredientPackSize" step="0.01">
         </div>
       </div>
       <div class="field">
@@ -1735,7 +1744,7 @@
       <button type="button" class="add-row-btn" onclick="addModalRatioPart()">+ Ajouter une part</button>
       <div class="field" style="margin-top:14px;">
         <label>Note (optionnel)</label>
-        <input type="text" id="mfRatioNote" placeholder="ex. précision d'usage, température…">
+        <input type="text" id="mfRatioNote">
       </div>
     </div>
 
@@ -1800,10 +1809,10 @@
 <div class="modal-overlay" id="menuModalOverlay">
   <div class="modal" style="max-width:720px;">
     <h2 id="menuModalTitle">Nouveau menu</h2>
-    <p class="modal-sub">Donne un nom au menu (ex. Été 25) et sélectionne ses cocktails. Leurs preps et leur garniture sont ajoutées automatiquement.</p>
+    <p class="modal-sub">Donne un nom au menu et sélectionne ses cocktails. Leurs preps et leur garniture sont ajoutées automatiquement.</p>
     <div class="field">
       <label>Nom du menu</label>
-      <input type="text" id="menuName" placeholder="ex. Été 25">
+      <input type="text" id="menuName">
     </div>
     <label class="menu-preps-label">Cocktails du menu</label>
     <div id="menuCocktailList" class="today-selector-list menu-mini-list"></div>
@@ -2464,6 +2473,7 @@ function deleteIngredientFromTable(id){
   renderIngredientsTable();
 }
 let cocktailEditMode = false; // édition des ingrédients d'un cocktail activée via le bouton "Modifier"
+let customTasks = []; // [{id, text, done}] — tâches personnalisées du jour
 let dailyChecklist = {}; // { prepId: true/false } — statut fait/pas fait
 let todaySelection = {}; // { prepId: true } — preps choisies pour l'écran d'accueil du jour
 let menuOpen = { all: true }; // sous-menus dépliés dans le menu latéral
@@ -2477,6 +2487,7 @@ const DAILY_STORAGE_KEY = 'fiches-prep-daily-v1';
     const saved = JSON.parse(raw);
     if(saved && typeof saved === 'object'){
       dailyChecklist = saved.dailyChecklist || {};
+      customTasks = Array.isArray(saved.customTasks) ? saved.customTasks : [];
       todaySelection = saved.todaySelection || {};
       if(saved.menuOpen && typeof saved.menuOpen === 'object') menuOpen = saved.menuOpen;
     }
@@ -2484,7 +2495,7 @@ const DAILY_STORAGE_KEY = 'fiches-prep-daily-v1';
 })();
 function saveDailyToLocalStorage(){
   try{
-    localStorage.setItem(DAILY_STORAGE_KEY, JSON.stringify({ dailyChecklist, todaySelection, menuOpen }));
+    localStorage.setItem(DAILY_STORAGE_KEY, JSON.stringify({ dailyChecklist, todaySelection, customTasks, menuOpen }));
   }catch(e){ /* stockage indisponible — pas bloquant */ }
 }
 
@@ -3295,7 +3306,7 @@ function renderRatioSheet(item){
   `;
 }
 
-function renderDailyChecklistHtml(){
+function renderPrepChecklistHtml(){
   const todayPreps = [...preps, ...garnishes].filter(p => todaySelection[p.id]);
   const viderBtn = `<button class="today-edit-btn" onclick="clearTodaySelection()" title="Vider la liste du jour">
     <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -3304,28 +3315,12 @@ function renderDailyChecklistHtml(){
     Vider
   </button>`;
   if(!preps.length && !garnishes.length){
-    return `<div class="checklist-section"><p class="section-label">À faire aujourd'hui</p><div class="checklist-empty">Aucune préparation pour l'instant.</div></div>`;
+    return '';
   }
-  if(!todayPreps.length){
-    return `
-      <div class="checklist-section">
-        <div class="checklist-head">
-          <p class="section-label" style="margin:0; border:none; padding:0;">À faire aujourd'hui</p>
-        </div>
-        <div class="checklist-empty">Rien sélectionné pour aujourd'hui. Clique sur « Choisir pour aujourd'hui » ci-dessus pour ajouter des preps ou des garnitures.</div>
-      </div>
-    `;
-  }
+  if(!todayPreps.length) return '';
   const done = todayPreps.filter(p => dailyChecklist[p.id]).length;
   return `
     <div class="checklist-section">
-      <div class="checklist-head">
-        <p class="section-label" style="margin:0; border:none; padding:0;">À faire aujourd'hui</p>
-        <div class="checklist-head-right">
-          <span class="checklist-count" id="checklistCount">${done}/${todayPreps.length}</span>
-          ${viderBtn}
-        </div>
-      </div>
       ${(() => {
         const rowHtml = p => `
           <li class="checklist-row ${dailyChecklist[p.id] ? 'done' : ''}" data-id="${p.id}">
@@ -3352,8 +3347,65 @@ function renderDailyChecklistHtml(){
   `;
 }
 
+function renderDailyChecklistHtml(){
+  return renderCustomTasksHtml() + renderPrepChecklistHtml();
+}
+function renderCustomTasksHtml(){
+  const hasPreps = [...preps, ...garnishes].some(p => todaySelection[p.id]);
+  const done = customTasks.filter(t => t.done).length;
+  const esc = v => String(v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');
+  const todayP = [...preps, ...garnishes].filter(p => todaySelection[p.id]);
+  const total = todayP.length + customTasks.length;
+  const doneAll = todayP.filter(p => dailyChecklist[p.id]).length + done;
+  const vider = total ? `<span class="checklist-count" id="checklistCount">${doneAll}/${total}</span><button class="today-edit-btn" onclick="clearTodaySelection()" title="Vider la liste du jour">
+    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5 7h14M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2m-8 0 1 12a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1l1-12" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    Vider</button>` : '';
+  return `
+    <div class="checklist-section custom-tasks">
+      ${vider ? `<div class="checklist-head"><div class="checklist-head-right" style="margin-left:auto;">${vider}</div></div>` : ''}
+      <form class="task-add" onsubmit="addCustomTask(event)">
+        <input type="text" id="customTaskInput" placeholder="Ajouter une tâche…" autocomplete="off">
+        <button type="submit" aria-label="Ajouter">+</button>
+      </form>
+      ${customTasks.length ? `<ul class="checklist">
+        ${customTasks.map(t => `
+          <li class="checklist-row ${t.done ? 'done' : ''}" data-task="${t.id}">
+            <label>
+              <input type="checkbox" ${t.done ? 'checked' : ''} onchange="toggleCustomTask('${t.id}', this.checked)">
+              <span class="checklist-name">${esc(t.text)}</span>
+            </label>
+            <button type="button" class="task-del" onclick="deleteCustomTask('${t.id}')" title="Supprimer">×</button>
+          </li>`).join('')}
+      </ul>` : ''}
+    </div>`;
+}
+function addCustomTask(e){
+  e.preventDefault();
+  const input = document.getElementById('customTaskInput');
+  const text = (input.value || '').trim();
+  if(!text) return;
+  customTasks.push({ id: 't' + Date.now().toString(36) + Math.random().toString(36).slice(2,5), text, done: false });
+  saveDailyToLocalStorage();
+  renderMain();
+  const el = document.getElementById('customTaskInput'); if(el) el.focus();
+}
+function toggleCustomTask(id, val){
+  const t = customTasks.find(x => x.id === id); if(!t) return;
+  t.done = val;
+  saveDailyToLocalStorage();
+  const row = document.querySelector(`.checklist-row[data-task="${id}"]`);
+  if(row) row.classList.toggle('done', val);
+  updateDailyCounts();
+}
+function deleteCustomTask(id){
+  customTasks = customTasks.filter(x => x.id !== id);
+  saveDailyToLocalStorage();
+  renderMain();
+}
+
 function clearTodaySelection(){
   todaySelection = {};
+  customTasks = [];
   saveDailyToLocalStorage();
   renderMain();
 }
@@ -3365,10 +3417,13 @@ function toggleDaily(id, val){
     row.classList.toggle('done', val);
     const cb = row.querySelector('input'); if(cb) cb.checked = val;
   });
+  updateDailyCounts();
+}
+function updateDailyCounts(){
   const todayPreps = [...preps, ...garnishes].filter(p => todaySelection[p.id]);
-  const done = todayPreps.filter(p => dailyChecklist[p.id]).length;
+  const done = todayPreps.filter(p => dailyChecklist[p.id]).length + customTasks.filter(t => t.done).length;
   const countEl = document.getElementById('checklistCount');
-  if(countEl) countEl.textContent = `${done}/${todayPreps.length}`;
+  if(countEl) countEl.textContent = `${done}/${todayPreps.length + customTasks.length}`;
 }
 
 let todayMenuFilter = '';
@@ -4024,7 +4079,7 @@ function renderModalGarnishField(){
   if(!wrap) return;
   const g = modalGarnish;
   if(g.type === 'raw'){
-    wrap.innerHTML = `<input type="text" placeholder="ex. Zeste de citron" value="${g.name || ''}" oninput="updateModalGarnishName(this.value)">`;
+    wrap.innerHTML = `<input type="text" value="${g.name || ''}" oninput="updateModalGarnishName(this.value)">`;
   } else if(g.ref === '__new__'){
     wrap.innerHTML = `<input type="text" placeholder="Nom de la nouvelle garniture…" value="${g.pendingName || ''}" oninput="updateModalGarnishPending(this.value)">`;
   } else {
@@ -4600,11 +4655,11 @@ function renderModalRatioParts(){
       ${dragHandle(i)}
       <div class="field" style="margin-bottom:0;">
         ${i===0?'<label>Élément</label>':''}
-        <input type="text" placeholder="ex. Miel" value="${row.label||''}" oninput="updateModalRatioPart(${i},'label',this.value)">
+        <input type="text" value="${row.label||''}" oninput="updateModalRatioPart(${i},'label',this.value)">
       </div>
       <div class="field" style="margin-bottom:0;">
         ${i===0?'<label>Valeur</label>':''}
-        <input type="number" step="0.1" placeholder="ex. 64" value="${row.value}" oninput="updateModalRatioPart(${i},'value',this.value)">
+        <input type="number" step="0.1" value="${row.value}" oninput="updateModalRatioPart(${i},'value',this.value)">
       </div>
       <div class="field" style="margin-bottom:0;">
         ${i===0?'<label>Unité</label>':''}
@@ -4666,7 +4721,7 @@ function renderModalSteps(){
         <textarea oninput="updateModalStep(${i},'text',this.value)">${row.text}</textarea>
       </div>
       <div class="field">
-        <label>Timer (optionnel, ex. 48h)</label>
+        <label>Timer (optionnel)</label>
         <input type="text" value="${row.timer}" oninput="updateModalStep(${i},'timer',this.value)">
       </div>
     </div>
