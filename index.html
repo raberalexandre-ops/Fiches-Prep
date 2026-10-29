@@ -3368,7 +3368,7 @@ function renderPrebatchChecklistHtml(){
   if(!list.length) return '';
   return `
     <div class="checklist-section prebatch-section">
-      <p class="checklist-group-label" style="cursor:default;">Prebatch</p>
+      <p class="checklist-group-label" style="cursor:default; color:#8fc06a;">Prebatch</p>
       <ul class="checklist">
         ${list.map(c => {
           const key = 'pb:' + c.id;
@@ -3485,6 +3485,8 @@ function closeTodaySelector(){
   document.getElementById('todayModalOverlay').classList.remove('open');
 }
 let todayCocktailOpen = {};
+let todaySectionOpen = {};
+function toggleTodaySection(k){ todaySectionOpen[k] = !todaySectionOpen[k]; renderTodaySelectorList(); }
 function cocktailPrepItems(c){
   const out = [];
   (c.ingredients || []).forEach(i => {
@@ -3533,34 +3535,44 @@ function renderTodaySelectorList(){
       </label>
     </div>
   `;
-  let html = '';
   const pbPool = (activeMenu ? cocktails.filter(c => (activeMenu.cocktailIds || []).includes(c.id)) : cocktails)
     .filter(c => (c.ingredients || []).some(i => i.prebatch))
     .sort((a,b) => a.name.localeCompare(b.name, 'fr'));
+  const section = (key, label, color, count, content) => {
+    const open = !!todaySectionOpen[key];
+    return `<div class="rail-submenu cat-submenu ${open?'open':''}" style="--cat:${color}" onclick="toggleTodaySection('${key}')">
+        <span class="chev" style="color:${color}">▸</span>
+        <span class="submenu-name">${label}</span>
+        <span class="submenu-count">${count}</span>
+      </div>` + (open ? `<div class="rail-sub-list today-section-body">${content}</div>` : '');
+  };
+  let html = '';
   if(pbPool.length){
-    html += `<p class="today-block-label">Prebatch du jour</p>`;
-    html += pbPool.map(c => {
+    const content = pbPool.map(c => {
       const col = cocktailMenuColor(c.id);
       return `<div class="today-selector-row"><label>
         <input type="checkbox" ${todayPrebatchDraft[c.id] ? 'checked' : ''} onchange="toggleTodayPrebatchDraft('${c.id}', this.checked)">
         <span class="today-selector-name" ${col?`style="color:${col}"`:''}>${c.name}</span>
         <span class="today-selector-cat">${c.category||''}</span></label></div>`;
     }).join('');
+    html += section('prebatch', 'Prebatch', '#8fc06a', `${pbPool.filter(c => todayPrebatchDraft[c.id]).length}/${pbPool.length}`, content);
   }
   if(cocktailPool.length){
-    html += `<p class="today-block-label">Par cocktail</p>`;
+    let content = '';
+    const uniq = new Map();
     cocktailPool.forEach(c => {
       const items = cocktailPrepItems(c);
+      items.forEach(p => uniq.set(p.id, p));
       const done = items.filter(p => todaySelectorDraft[p.id]).length;
       const open = !!todayCocktailOpen[c.id];
       const mc = cocktailMenuColor(c.id) || 'var(--copper-bright)';
-      html += `<div class="rail-submenu cat-submenu ${open?'open':''}" style="--cat:${mc}" onclick="toggleTodayCocktail('${c.id}')">
+      content += `<div class="rail-submenu cat-submenu ${open?'open':''}" style="--cat:${mc}" onclick="toggleTodayCocktail('${c.id}')">
         <span class="chev" style="color:${mc}">▸</span>
         <span class="submenu-name">${c.name}</span>
         <span class="submenu-count">${done}/${items.length}</span>
       </div>`;
       if(open){
-        html += `<div class="rail-sub-list">
+        content += `<div class="rail-sub-list">
           <div class="today-selector-row today-all-row"><label>
             <input type="checkbox" ${done===items.length?'checked':''} onchange="toggleTodayCocktailAll('${c.id}', this.checked)">
             <span class="today-selector-name"><i>Tout sélectionner</i></span></label></div>
@@ -3568,11 +3580,15 @@ function renderTodaySelectorList(){
         </div>`;
       }
     });
-    html += `<p class="today-block-label">Toutes les preps</p>`;
+    const nSel = [...uniq.keys()].filter(id => todaySelectorDraft[id]).length;
+    html += section('cocktails', 'Cocktails', 'var(--copper-bright)', `${nSel}/${uniq.size}`, content);
   }
-  html += sortedPreps.map(row).join('');
-  if(sortedPreps.length && sortedGarnish.length) html += `<div class="rail-sub-sep"></div>`;
-  html += sortedGarnish.map(row).join('');
+  if(sortedPreps.length){
+    html += section('preps', 'Preps', 'var(--verdigris-bright, #8bb8ad)', `${sortedPreps.filter(p => todaySelectorDraft[p.id]).length}/${sortedPreps.length}`, sortedPreps.map(row).join(''));
+  }
+  if(sortedGarnish.length){
+    html += section('garnish', 'Garnish', 'var(--amber-bright, #c589b3)', `${sortedGarnish.filter(p => todaySelectorDraft[p.id]).length}/${sortedGarnish.length}`, sortedGarnish.map(row).join(''));
+  }
   list.innerHTML = html;
   list.scrollTop = scroll;
 }
