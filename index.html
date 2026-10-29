@@ -2473,6 +2473,8 @@ function deleteIngredientFromTable(id){
   renderIngredientsTable();
 }
 let cocktailEditMode = false; // édition des ingrédients d'un cocktail activée via le bouton "Modifier"
+let todayPrebatch = {}; // { cocktailId: true } — cocktails à prebatcher aujourd'hui
+let todayPrebatchDraft = {};
 let customTasks = []; // [{id, text, done}] — tâches personnalisées du jour
 let dailyChecklist = {}; // { prepId: true/false } — statut fait/pas fait
 let todaySelection = {}; // { prepId: true } — preps choisies pour l'écran d'accueil du jour
@@ -2488,6 +2490,7 @@ const DAILY_STORAGE_KEY = 'fiches-prep-daily-v1';
     if(saved && typeof saved === 'object'){
       dailyChecklist = saved.dailyChecklist || {};
       customTasks = Array.isArray(saved.customTasks) ? saved.customTasks : [];
+      todayPrebatch = saved.todayPrebatch || {};
       todaySelection = saved.todaySelection || {};
       if(saved.menuOpen && typeof saved.menuOpen === 'object') menuOpen = saved.menuOpen;
     }
@@ -2495,7 +2498,7 @@ const DAILY_STORAGE_KEY = 'fiches-prep-daily-v1';
 })();
 function saveDailyToLocalStorage(){
   try{
-    localStorage.setItem(DAILY_STORAGE_KEY, JSON.stringify({ dailyChecklist, todaySelection, customTasks, menuOpen }));
+    localStorage.setItem(DAILY_STORAGE_KEY, JSON.stringify({ dailyChecklist, todaySelection, todayPrebatch, customTasks, menuOpen }));
   }catch(e){ /* stockage indisponible — pas bloquant */ }
 }
 
@@ -2633,6 +2636,7 @@ function confirmDeleteItem(id, type){
   }
   delete dailyChecklist[id];
   delete todaySelection[id];
+  delete todayPrebatch[id];
   menus.forEach(m => { m.prepIds = (m.prepIds || []).filter(x => x !== id); m.cocktailIds = (m.cocktailIds || []).filter(x => x !== id); m.garnishIds = (m.garnishIds || []).filter(x => x !== id); });
   saveDailyToLocalStorage();
   if(state.activeId === id) state.activeId = null;
@@ -3356,15 +3360,38 @@ function renderPrepChecklistHtml(){
 }
 
 function renderDailyChecklistHtml(){
-  return renderCustomTasksHtml() + renderPrepChecklistHtml();
+  return renderCustomTasksHtml() + renderPrebatchChecklistHtml() + renderPrepChecklistHtml();
+}
+function pbList(){ return cocktails.filter(c => todayPrebatch[c.id]).sort((a,b) => a.name.localeCompare(b.name,'fr')); }
+function renderPrebatchChecklistHtml(){
+  const list = pbList();
+  if(!list.length) return '';
+  return `
+    <div class="checklist-section prebatch-section">
+      <p class="checklist-group-label" style="cursor:default;">Prebatch</p>
+      <ul class="checklist">
+        ${list.map(c => {
+          const key = 'pb:' + c.id;
+          const col = cocktailMenuColor(c.id);
+          return `<li class="checklist-row ${dailyChecklist[key] ? 'done' : ''}" data-id="${key}">
+            <label>
+              <input type="checkbox" ${dailyChecklist[key] ? 'checked' : ''} onchange="toggleDaily('${key}', this.checked)">
+              <span class="checklist-name" ${col?`style="color:${col}"`:''} onclick="selectItem('${c.id}')">${c.name}</span>
+              <span class="checklist-cat">prebatch</span>
+            </label>
+          </li>`;
+        }).join('')}
+      </ul>
+    </div>`;
 }
 function renderCustomTasksHtml(){
   const hasPreps = [...preps, ...garnishes].some(p => todaySelection[p.id]);
   const done = customTasks.filter(t => t.done).length;
   const esc = v => String(v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');
   const todayP = [...preps, ...garnishes].filter(p => todaySelection[p.id]);
-  const total = todayP.length + customTasks.length;
-  const doneAll = todayP.filter(p => dailyChecklist[p.id]).length + done;
+  const pbs = pbList();
+  const total = todayP.length + pbs.length + customTasks.length;
+  const doneAll = todayP.filter(p => dailyChecklist[p.id]).length + pbs.filter(c => dailyChecklist['pb:'+c.id]).length + done;
   const vider = total ? `<span class="checklist-count" id="checklistCount">${doneAll}/${total}</span><button class="today-edit-btn" onclick="clearTodaySelection()" title="Vider la liste du jour">
     <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5 7h14M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2m-8 0 1 12a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1l1-12" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
     Vider</button>` : '';
@@ -3413,6 +3440,7 @@ function deleteCustomTask(id){
 
 function clearTodaySelection(){
   todaySelection = {};
+  todayPrebatch = {};
   customTasks = [];
   saveDailyToLocalStorage();
   renderMain();
@@ -3429,9 +3457,10 @@ function toggleDaily(id, val){
 }
 function updateDailyCounts(){
   const todayPreps = [...preps, ...garnishes].filter(p => todaySelection[p.id]);
-  const done = todayPreps.filter(p => dailyChecklist[p.id]).length + customTasks.filter(t => t.done).length;
+  const pbs = pbList();
+  const done = todayPreps.filter(p => dailyChecklist[p.id]).length + pbs.filter(c => dailyChecklist['pb:'+c.id]).length + customTasks.filter(t => t.done).length;
   const countEl = document.getElementById('checklistCount');
-  if(countEl) countEl.textContent = `${done}/${todayPreps.length + customTasks.length}`;
+  if(countEl) countEl.textContent = `${done}/${todayPreps.length + pbs.length + customTasks.length}`;
 }
 
 let todayMenuFilter = '';
@@ -3441,6 +3470,7 @@ function setTodayMenuFilter(v){
 }
 function openTodaySelector(){
   todaySelectorDraft = { ...todaySelection };
+  todayPrebatchDraft = { ...todayPrebatch };
   todayMenuFilter = '';
   const field = document.getElementById('todayMenuField');
   if(field){
@@ -3504,6 +3534,19 @@ function renderTodaySelectorList(){
     </div>
   `;
   let html = '';
+  const pbPool = (activeMenu ? cocktails.filter(c => (activeMenu.cocktailIds || []).includes(c.id)) : cocktails)
+    .filter(c => (c.ingredients || []).some(i => i.prebatch))
+    .sort((a,b) => a.name.localeCompare(b.name, 'fr'));
+  if(pbPool.length){
+    html += `<p class="today-block-label">Prebatch du jour</p>`;
+    html += pbPool.map(c => {
+      const col = cocktailMenuColor(c.id);
+      return `<div class="today-selector-row"><label>
+        <input type="checkbox" ${todayPrebatchDraft[c.id] ? 'checked' : ''} onchange="toggleTodayPrebatchDraft('${c.id}', this.checked)">
+        <span class="today-selector-name" ${col?`style="color:${col}"`:''}>${c.name}</span>
+        <span class="today-selector-cat">${c.category||''}</span></label></div>`;
+    }).join('');
+  }
   if(cocktailPool.length){
     html += `<p class="today-block-label">Par cocktail</p>`;
     cocktailPool.forEach(c => {
@@ -3533,6 +3576,10 @@ function renderTodaySelectorList(){
   list.innerHTML = html;
   list.scrollTop = scroll;
 }
+function toggleTodayPrebatchDraft(id, val){
+  if(val) todayPrebatchDraft[id] = true; else delete todayPrebatchDraft[id];
+  renderTodaySelectorList();
+}
 function toggleTodayDraft(id, val){
   if(val) todaySelectorDraft[id] = true;
   else delete todaySelectorDraft[id];
@@ -3540,6 +3587,7 @@ function toggleTodayDraft(id, val){
 }
 function confirmTodaySelection(){
   todaySelection = { ...todaySelectorDraft };
+  todayPrebatch = { ...todayPrebatchDraft };
   saveDailyToLocalStorage();
   closeTodaySelector();
   renderMain();
