@@ -3330,16 +3330,24 @@ function renderPrepChecklistHtml(){
               <span class="checklist-cat">${p.category}</span>
             </label>
           </li>`;
-        const selIds = new Set(todayPreps.map(p => p.id));
-        const used = new Set();
-        let out = '';
-        [...cocktails].sort((a,b) => a.name.localeCompare(b.name,'fr')).forEach(c => {
-          const items = cocktailPrepItems(c).filter(p => selIds.has(p.id));
-          if(!items.length) return;
-          items.forEach(p => used.add(p.id));
-          out += `<p class="checklist-group-label" style="${cocktailMenuColor(c.id)?'color:'+cocktailMenuColor(c.id):''}" onclick="selectItem('${c.id}')">${c.name}</p><ul class="checklist">${items.map(rowHtml).join('')}</ul>`;
+        // chaque prep n'apparaît qu'une fois : groupée avec le(s) cocktail(s) qui l'utilisent
+        const sortedC = [...cocktails].sort((a,b) => a.name.localeCompare(b.name,'fr'));
+        const groups = new Map();
+        const others = [];
+        todayPreps.forEach(p => {
+          const cs = sortedC.filter(c => cocktailPrepItems(c).some(x => x.id === p.id));
+          if(!cs.length){ others.push(p); return; }
+          const key = cs.map(c => c.id).join('|');
+          if(!groups.has(key)) groups.set(key, { cs, items: [] });
+          groups.get(key).items.push(p);
         });
-        const others = todayPreps.filter(p => !used.has(p.id));
+        let out = '';
+        [...groups.values()]
+          .sort((a,b) => a.cs.map(c => c.name).join(' · ').localeCompare(b.cs.map(c => c.name).join(' · '),'fr'))
+          .forEach(g => {
+            const col = cocktailMenuColor(g.cs[0].id);
+            out += `<p class="checklist-group-label" style="${col?'color:'+col:''}" onclick="selectItem('${g.cs[0].id}')">${g.cs.map(c => c.name).join(' · ')}</p><ul class="checklist">${g.items.map(rowHtml).join('')}</ul>`;
+          });
         if(others.length) out += `<p class="checklist-group-label other">${out ? 'Autres preps' : ''}</p><ul class="checklist">${others.map(rowHtml).join('')}</ul>`;
         return out;
       })()}
