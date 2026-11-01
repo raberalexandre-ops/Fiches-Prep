@@ -867,6 +867,8 @@
   .pick-btn{width:100%; text-align:left; padding:11px 12px; background:var(--bg-card); color:var(--text); border:1px solid var(--border); border-radius:6px; font-size:15px; cursor:pointer; display:flex; justify-content:space-between; gap:8px; align-items:center; font-family:inherit;}
   .pick-btn.empty{color:var(--text-soft);}
   .pick-btn:hover{border-color:var(--copper-bright);}
+  .read-only .edit-sheet-btn, .read-only #railAddBtn, .read-only .submenu-edit, .read-only .swipe-delete, .read-only #undoBtn, .read-only #redoBtn{display:none !important;}
+  .read-only .quick-note{pointer-events:none; opacity:.8;}
   .ingredient-cost{display:block; width:100%; padding:0; border-bottom:none;}
   .cost-details{width:100%;}
   .cost-details summary{list-style:none; display:flex; align-items:center; gap:12px; padding:11px 2px; cursor:pointer;}
@@ -882,6 +884,8 @@
   .cost-lines .cl-val{min-width:84px; text-align:right;}
   .cost-lines .cost-missing{color:var(--text-soft);}
   .cost-lines .cost-missing em{font-size:12px;}
+  .cost-lines .cost-fixable{cursor:pointer;}
+  .cost-lines .cost-fixable:hover{color:var(--copper-bright);}
   .cost-lines .cost-sum{border-top:1px solid var(--border-soft); margin-top:4px; padding-top:10px; font-weight:600;}
   .ingredient-total{border-top:1px solid var(--border); margin-top:2px; padding-top:14px;}
   .ingredient-total .ing-name{color:var(--text-soft);}
@@ -1551,13 +1555,13 @@
         <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 5v14M5 12h14" stroke-width="1.8" stroke-linecap="round"/></svg>
         <span class="rail-add-label">Nouveau menu</span>
       </button>
-      <button class="export-btn" id="railSaveBtn" onclick="saveToCloud()" title="Enregistrer (publier en ligne)">
+      <button class="export-btn" id="railSaveBtn" onclick="onSaveButton()" title="Déverrouiller">
         <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path d="M8 3h8l4 4v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h2z" stroke-width="1.6" stroke-linejoin="round"/>
           <path d="M9 3v4M12 3v4M15 3v4" stroke-width="1.6" stroke-linecap="round"/>
           <rect x="8" y="12" width="8" height="5" rx="1" stroke-width="1.4"/>
         </svg>
-        <span class="save-label">Enregistrer</span>
+        <span class="save-label">Déverrouiller</span>
       </button>
     </div>
   </aside>
@@ -2194,12 +2198,76 @@ function saveToLocalStorage(){
   try{
     localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify({ preps, cocktails, ratios, menus, garnishes, ingredients }));
   }catch(e){ /* stockage indisponible (navigation privée…) — pas bloquant */ }
+  if(typeof editUnlocked !== 'undefined' && editUnlocked && cloudReady && dataJson() !== lastCloudJson){ setDirty(true); schedulePush(); }
 }
 
 // ---- Sauvegarde en ligne (jsonbin.io) — partagée avec toute l'équipe ----
 const JSONBIN_ID = '6ab2d919ffd5d16053242607';
 const JSONBIN_KEY = '$2a$10$toOK1DCtfNjMBJuBWFEpL.63wSuwQNJDE5wwnU7.HqdL9D0zEcs.S';
 const SAVE_PIN = '1623';
+
+// ---- Synchronisation automatique (mode B : seuls les appareils déverrouillés envoient) ----
+const UNLOCK_KEY = 'fiches-unlocked-v1';
+const DIRTY_KEY = 'fiches-dirty-v1';
+let editUnlocked = false;
+try{ editUnlocked = localStorage.getItem(UNLOCK_KEY) === '1'; }catch(e){}
+let syncDirty = false;
+try{ syncDirty = localStorage.getItem(DIRTY_KEY) === '1'; }catch(e){}
+let cloudReady = false;      // vrai une fois la version en ligne lue (évite d'écraser le cloud avec une vieille copie)
+let lastCloudJson = null;    // dernier état connu côté cloud
+let pushTimer = null, pushing = false, syncStatus = 'idle';
+
+function dataJson(){
+  return JSON.stringify({ preps, cocktails, ratios, menus, garnishes, ingredients });
+}
+function recordJson(r){
+  return JSON.stringify({ preps: r.preps, cocktails: r.cocktails, ratios: r.ratios || [], menus: r.menus || [], garnishes: r.garnishes || [], ingredients: r.ingredients || [] });
+}
+function setDirty(v){
+  syncDirty = v;
+  try{ localStorage.setItem(DIRTY_KEY, v ? '1' : '0'); }catch(e){}
+}
+function updateSyncUi(){
+  document.body.classList.toggle('read-only', !editUnlocked);
+  const btn = document.getElementById('railSaveBtn');
+  if(!btn) return;
+  const l = btn.querySelector('.save-label');
+  if(!l) return;
+  if(!editUnlocked){ l.textContent = 'Déverrouiller'; btn.title = 'Lecture seule — saisir le code pour modifier'; return; }
+  const labels = { idle: 'Enregistré', pending: 'Modifié…', sending: 'Envoi…', error: 'Hors ligne — nouvel essai' };
+  l.textContent = labels[syncStatus] || 'Enregistré';
+  btn.title = 'Synchronisation automatique active — cliquer pour verrouiller / forcer l’envoi';
+}
+function schedulePush(){
+  if(!editUnlocked || !cloudReady) return;
+  clearTimeout(pushTimer);
+  syncStatus = 'pending'; updateSyncUi();
+  pushTimer = setTimeout(pushToCloud, 2000);
+}
+async function pushToCloud(){
+  if(!editUnlocked || !cloudReady || pushing) return;
+  const json = dataJson();
+  if(json === lastCloudJson){ setDirty(false); syncStatus = 'idle'; updateSyncUi(); return; }
+  pushing = true; syncStatus = 'sending'; updateSyncUi();
+  try{
+    const res = await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_ID}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', 'X-Master-Key': JSONBIN_KEY },
+      body: json
+    });
+    if(!res.ok) throw new Error('HTTP ' + res.status);
+    lastCloudJson = json;
+    pushing = false;
+    if(dataJson() !== json){ schedulePush(); return; }   // modifié pendant l'envoi
+    setDirty(false); syncStatus = 'idle';
+  }catch(e){
+    pushing = false; syncStatus = 'error';
+    clearTimeout(pushTimer);
+    pushTimer = setTimeout(pushToCloud, 15000);
+  }
+  updateSyncUi();
+}
+function anyModalOpen(){ return !!document.querySelector('.modal-overlay.open'); }
 
 async function loadFromCloud(silent){
   try{
@@ -2209,21 +2277,64 @@ async function loadFromCloud(silent){
     if(!res.ok) throw new Error('HTTP ' + res.status);
     const data = await res.json();
     const record = data.record || {};
-    if(Array.isArray(record.preps) && Array.isArray(record.cocktails)){
+    if(!(Array.isArray(record.preps) && Array.isArray(record.cocktails))) return;
+    const recJson = recordJson(record);
+    const localEdits = editUnlocked && syncDirty;
+    if(!localEdits && recJson !== lastCloudJson){
+      if(anyModalOpen() || pushing) return;     // on réessaiera au prochain passage
       preps.length = 0; preps.push(...record.preps);
       cocktails.length = 0; cocktails.push(...record.cocktails);
       if(Array.isArray(record.ratios)){ ratios.length = 0; ratios.push(...record.ratios); }
       if(Array.isArray(record.garnishes)){ garnishes.length = 0; garnishes.push(...record.garnishes); }
       if(Array.isArray(record.ingredients)){ ingredients.length = 0; ingredients.push(...record.ingredients); }
       if(Array.isArray(record.menus)){ menus.length = 0; menus.push(...record.menus); }
+      lastCloudJson = recJson;
+      cloudReady = true;
       saveToLocalStorage();
       renderList();
       renderMain();
+    } else {
+      lastCloudJson = recJson;
+      cloudReady = true;
     }
+    if(editUnlocked && (syncDirty || dataJson() !== lastCloudJson)) schedulePush();
+    updateSyncUi();
   }catch(e){
     if(!silent) showToast('Chargement en ligne impossible — affichage de la dernière version locale.');
   }
 }
+// rafraîchissement automatique : toutes les 20 s et au retour sur l'application
+setInterval(() => { if(!document.hidden) loadFromCloud(true); }, 20000);
+document.addEventListener('visibilitychange', () => { if(!document.hidden) loadFromCloud(true); });
+window.addEventListener('focus', () => loadFromCloud(true));
+window.addEventListener('online', () => loadFromCloud(true));
+
+function unlockEditing(){
+  openPinModal('Code pour déverrouiller la modification', () => {
+    editUnlocked = true;
+    try{ localStorage.setItem(UNLOCK_KEY, '1'); }catch(e){}
+    updateSyncUi();
+    loadFromCloud(true);
+  });
+}
+function lockEditing(){
+  if(syncDirty || syncStatus !== 'idle'){ pushToCloud(); return; }
+  if(!confirm('Verrouiller cet appareil en lecture seule ?')) return;
+  editUnlocked = false;
+  try{ localStorage.removeItem(UNLOCK_KEY); }catch(e){}
+  updateSyncUi();
+}
+function onSaveButton(){ if(editUnlocked) lockEditing(); else unlockEditing(); }
+
+// garde-fous : en lecture seule, aucune action de modification
+['openCreateModal','openEditPrepModal','openEditCocktailModal','openEditRatioModal','openEditGarnishModal','openEditIngredientModal','openMenuModal','confirmDeleteItem','openOrCreateGarnish','createMissingIngredient','openIngredientsManager'].forEach(name => {
+  const orig = window[name];
+  if(typeof orig !== 'function') return;
+  window[name] = function(...args){
+    if(!editUnlocked){ alert('Appareil en lecture seule. Appuie sur « Déverrouiller » (en bas du panneau) pour modifier.'); return; }
+    return orig.apply(this, args);
+  };
+});
 
 // ---------- code PIN (clavier numérique sur mobile) ----------
 let pinModalAction = null;
@@ -3247,7 +3358,7 @@ function renderGarnishSheet(item){
       <ul class="ingredient-list">
         ${ingredients.map(ing => `
           <li class="ingredient-row">
-            <span class="ing-name">${ing.name}</span>
+            ${ing.kind === 'prep' && ing.ref && byId(ing.ref) ? `<span class="ing-name is-link" onclick="selectItem('${ing.ref}')">${byId(ing.ref).name}</span>` : `<span class="ing-name">${ing.name}</span>`}
             <span class="ing-qty-edit"><span class="ing-qty">${fmtQty(ing.qty, ing.unit)}</span></span>
           </li>`).join('')}
       </ul>
@@ -3681,7 +3792,7 @@ function renderIngredients(item, volume, animate){
   list.innerHTML = item.ingredients.map((ing) => {
     return `
     <li class="ingredient-row">
-      <span class="ing-name">${ing.name}</span>
+      ${ing.kind === 'prep' && ing.ref && byId(ing.ref) ? `<span class="ing-name is-link" onclick="selectItem('${ing.ref}')">${byId(ing.ref).name}</span>` : `<span class="ing-name">${ing.name}</span>`}
       <span class="ing-qty-edit"><span class="ing-qty ${animate?'flash':''}">${fmtQty(ing.qty * factor, ing.unit)}</span></span>
     </li>`;
   }).join('') + renderCostRow(item, factor, volume);
@@ -4014,16 +4125,16 @@ function unitCostOf(name, depth){
   }
   if(db){
     const price = Number(db.costPrice);
-    if(!(price > 0)) return {error:'prix manquant'};
+    if(!(price > 0)) return {error:'prix manquant', ingId: db.id};
     const pack = ingredientPack(db);
-    if(!pack) return {error:'contenance inconnue'};
+    if(!pack) return {error:'contenance inconnue', ingId: db.id};
     return {kind: pack.kind, perBase: price / pack.base};
   }
   const prep = preps.find(p => normName(p.name) === key);
   if(prep && depth < 5){
     let total = 0, missing = 0;
     prep.ingredients.forEach(pi => {
-      const c = lineCost(pi.name, pi.qty, pi.unit, depth+1);
+      const c = lineCost(pi.kind === 'prep' && pi.ref ? ((byId(pi.ref)||{}).name || pi.name) : pi.name, pi.qty, pi.unit, depth+1);
       if(c.error) missing++; else total += c.cost;
     });
     if(missing) return {error:'prep incomplète'};
@@ -4045,7 +4156,7 @@ function toBaseQty(q, unit){
 }
 function lineCost(name, qty, unit, depth){
   const uc = unitCostOf(name, depth);
-  if(uc.error) return {error: uc.error};
+  if(uc.error) return {error: uc.error, ingId: uc.ingId, name};
   const bq = toBaseQty(qty, unit);
   if(!bq) return {error:'unité « '+unit+' » non chiffrable'};
   if(bq.kind !== uc.kind) return {error:'unité incompatible'};
@@ -4057,11 +4168,15 @@ function cocktailCost(item, factor){
     const name = ing.kind==='prep' && ing.ref ? ((byId(ing.ref)||{}).name || ing.name) : ing.name;
     const q = (Number(ing.qty)||0) * factor;
     const r = lineCost(name, q, ing.unit, 0);
-    return {name, qty: q, unit: ing.unit, cost: r.cost, error: r.error};
+    return {name, qty: q, unit: ing.unit, cost: r.cost, error: r.error, ingId: r.ingId, prepId: (ing.kind==='prep' ? ing.ref : ((preps.find(x => normName(x.name) === normName(name)) || {}).id))};
   });
   const total = lines.reduce((s,l) => s + (l.error ? 0 : l.cost), 0);
   const missing = lines.filter(l => l.error).length;
   return {lines, total, missing};
+}
+function createMissingIngredient(name){
+  openCreateModal('ingredient');
+  const el = document.getElementById('mfName'); if(el) el.value = name;
 }
 function renderCostRow(item, factor, volume){
   const c = cocktailCost(item, factor);
@@ -4076,10 +4191,17 @@ function renderCostRow(item, factor, volume){
     ? `${fmtEuro(c.total)} <span class="cost-warn">+ ${c.missing} non chiffré${c.missing>1?'s':''}</span>`
     : fmtEuro(c.total);
   return `<li class="ingredient-row ingredient-cost">
-    <details class="cost-details">
+    <details class="cost-details" ${window._costOpen?'open':''} ontoggle="window._costOpen=this.open">
       <summary><span class="ing-name">Coût matière</span><span class="cost-total">${label}</span><span class="cost-chevron" aria-hidden="true">▾</span></summary>
       <ul class="cost-lines">
-        ${c.lines.map(l => `<li class="${l.error?'cost-missing':''}"><span class="cl-name">${l.name}</span><span class="cl-qty">${fmtQty(Number(l.qty)||0, l.unit)}</span><span class="cl-val">${l.error ? '— <em>'+l.error+'</em>' : fmtEuro3(l.cost)}</span></li>`).join('')}
+        ${c.lines.map(l => {
+          const nm = String(l.name).replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/"/g,'&quot;');
+          let act = '';
+          if(l.error && l.ingId) act = `openEditIngredientModal('${l.ingId}')`;
+          else if(l.error === 'absent de la base' && !l.prepId) act = `createMissingIngredient('${nm}')`;
+          else if(l.error && l.prepId) act = `selectItem('${l.prepId}')`;
+          return `<li class="${l.error?'cost-missing':''} ${act?'cost-fixable':''}" ${act?`onclick="${act}" title="Cliquer pour corriger"`:''}><span class="cl-name">${l.name}</span><span class="cl-qty">${fmtQty(Number(l.qty)||0, l.unit)}</span><span class="cl-val">${l.error ? '— <em>'+l.error+'</em>'+(act?' ✎':'') : fmtEuro3(l.cost)}</span></li>`;
+        }).join('')}
         <li class="cost-sum"><span class="cl-name">Total${c.missing?' (partiel)':''}</span><span class="cl-qty"></span><span class="cl-val">${fmtEuro(c.total)}</span></li>
         ${perUnit}
       </ul>
@@ -4270,7 +4392,7 @@ function openEditPrepModal(prepId){
   document.getElementById('mfBaseUnit').value = item.unit;
   document.getElementById('mfShelfLife').value = item.shelfLife || '';
   mfBaseVolumeTouched = true;
-  modalIngredients = item.ingredients.map(i => ({ name: i.name, qty: i.qty, unit: i.unit }));
+  modalIngredients = item.ingredients.map(i => ({ name: i.name, kind: i.kind, ref: i.ref, qty: i.qty, unit: i.unit }));
   modalSteps = (item.steps || []).map(s => ({ title: s.title, icon: s.icon, text: s.text, timer: s.timer || '' }));
   if(!modalIngredients.length) modalIngredients = [{ name: '', qty: '', unit: 'ml' }];
   if(!modalSteps.length) modalSteps = [{ title: '', text: '', icon: 'leaf', timer: '' }];
@@ -4446,7 +4568,7 @@ function openEditGarnishModal(garnishId){
   document.getElementById('mfRatioPartsSection').style.display = 'none';
   document.getElementById('mfStepsSection').style.display = '';
   document.getElementById('mfName').value = item.name;
-  modalIngredients = (item.ingredients || []).map(i => ({ name: i.name, qty: i.qty, unit: i.unit }));
+  modalIngredients = (item.ingredients || []).map(i => ({ name: i.name, kind: i.kind, ref: i.ref, qty: i.qty, unit: i.unit }));
   if(!modalIngredients.length) modalIngredients = [{ name: '', qty: '', unit: 'ml' }];
   modalSteps = (item.steps || []).map(s => ({ title: s.title, icon: s.icon, text: s.text, timer: s.timer || '' }));
   if(!modalSteps.length) modalSteps = [{ title: '', text: '', icon: 'leaf', timer: '' }];
@@ -4552,7 +4674,7 @@ function renderPicker(){
     if(open) h += `<div class="rail-sub-list" style="--cat:${color}">${arr.map(itemFn).join('')}</div>`;
   };
   if(mode === 'prep' || mode === 'both'){
-    const arr = preps.filter(x => !q || nrm(x.name).includes(q)).sort(cmp);
+    const arr = preps.filter(x => x.id !== (pickerState.opts || {}).excludeId && (!q || nrm(x.name).includes(q))).sort(cmp);
     group('__preps__', 'Preps', 'var(--verdigris-bright, #8bb8ad)', arr, x =>
       `<div class="rail-item type-prep" onclick="pickerChoose({kind:'prep', ref:'${esc(x.id)}', name:'${esc(x.name)}'})">
         <span class="dot"></span><span class="rail-item-text"><div class="rail-item-name">${x.name}</div><div class="rail-item-cat">${x.category||''}</div></span></div>`);
@@ -4582,10 +4704,15 @@ function rawNameFieldHtml(i, row){
       <button type="button" class="new-ing-cancel" onclick="selectModalIngRaw(${i}, '')" title="Annuler">↩</button>
     </span>`;
   }
-  const cur = (row.name||'').trim();
-  return `<button type="button" class="pick-btn ${cur?'':'empty'}" onclick="openPicker('raw', c => pickModalIngRaw(${i}, c))"><span>${cur || '— choisir —'}</span><span>▾</span></button>`;
+  const isPrep = row.kind === 'prep' && row.ref && modalType !== 'cocktail';
+  const cur = isPrep ? ((byId(row.ref)||{}).name || row.name || '') : (row.name||'').trim();
+  const mode = modalType === 'cocktail' ? 'raw' : 'both';
+  return `<button type="button" class="pick-btn ${cur?'':'empty'}" onclick="openPicker('${mode}', c => pickModalIngRaw(${i}, c), {excludeId: ${modalCtx && modalCtx.editId ? `'${modalCtx.editId}'` : 'null'}})"><span>${cur || '— choisir —'}${isPrep ? ' <small style="color:var(--verdigris-bright)">· prep</small>' : ''}</span><span>▾</span></button>`;
 }
 function pickModalIngRaw(i, c){
+  const r = modalIngredients[i];
+  if(c.kind === 'prep'){ r.kind = 'prep'; r.ref = c.ref; r.name = c.name; r.newIng = false; renderModalIngredients(); return; }
+  if(modalType !== 'cocktail'){ r.kind = 'raw'; r.ref = ''; }
   if(c.kind === 'newraw') selectModalIngRaw(i, '__new__');
   else if(c.kind === 'raw') selectModalIngRaw(i, c.name);
 }
@@ -4823,7 +4950,7 @@ function buildCocktailIngredientsFromModal(){
 function buildGarnishIngredientsFromModal(){
   return modalIngredients
     .filter(r => (r.name||'').trim() && r.qty !== '')
-    .map(r => ({ name: r.name.trim(), qty: parseFloat(r.qty), unit: r.unit }));
+    .map(r => (r.kind === 'prep' && r.ref ? { kind: 'prep', ref: r.ref, name: r.name.trim(), qty: parseFloat(r.qty), unit: r.unit } : { name: r.name.trim(), qty: parseFloat(r.qty), unit: r.unit }));
 }
 
 function buildRatioPartsFromModal(){
@@ -4847,7 +4974,7 @@ function submitPrepModal(){
     const shelfLife = document.getElementById('mfShelfLife').value.trim();
     const ingredients = modalIngredients
       .filter(r => r.name.trim() && r.qty !== '')
-      .map(r => ({ name: r.name.trim(), qty: parseFloat(r.qty), unit: r.unit }));
+      .map(r => (r.kind === 'prep' && r.ref ? { kind: 'prep', ref: r.ref, name: r.name.trim(), qty: parseFloat(r.qty), unit: r.unit } : { name: r.name.trim(), qty: parseFloat(r.qty), unit: r.unit }));
     const steps = modalSteps
       .filter(s => s.title.trim())
       .map(s => ({ icon: s.icon, title: s.title.trim(), text: s.text.trim(), timer: s.timer.trim() || null }));
@@ -5051,7 +5178,7 @@ function submitPrepModal(){
 
   const prepIngredients = modalIngredients
     .filter(r => r.name.trim() && r.qty !== '')
-    .map(r => ({ name: r.name.trim(), qty: parseFloat(r.qty), unit: r.unit }));
+    .map(r => (r.kind === 'prep' && r.ref ? { kind: 'prep', ref: r.ref, name: r.name.trim(), qty: parseFloat(r.qty), unit: r.unit } : { name: r.name.trim(), qty: parseFloat(r.qty), unit: r.unit }));
   const steps = modalSteps
     .filter(s => s.title.trim())
     .map(s => ({ icon: s.icon, title: s.title.trim(), text: s.text.trim(), timer: s.timer.trim() || null }));
@@ -5106,6 +5233,7 @@ function copyToastCode(){
    ============================================================ */
 renderList();
 renderMain();
+updateSyncUi();
 loadFromCloud(true);
 </script>
 </body>
