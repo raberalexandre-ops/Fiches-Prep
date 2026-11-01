@@ -1579,12 +1579,13 @@
     <div class="ingredients-table-wrap">
       <table class="ingredients-table">
         <colgroup>
-          <col style="width:30%;">
-          <col style="width:22%;">
+          <col style="width:28%;">
+          <col style="width:20%;">
+          <col style="width:11%;">
+          <col style="width:11%;">
+          <col style="width:9%;">
+          <col style="width:9%;">
           <col style="width:12%;">
-          <col style="width:12%;">
-          <col style="width:10%;">
-          <col style="width:14%;">
         </colgroup>
         <thead>
           <tr>
@@ -1593,6 +1594,7 @@
             <th class="sortable" data-key="costPrice" onclick="sortIngredientsTable('costPrice')">Prix<span class="sort-arrow"></span></th>
             <th class="sortable" data-key="packSize" onclick="sortIngredientsTable('packSize')">Contenance<span class="sort-arrow"></span></th>
             <th class="sortable" data-key="packUnit" onclick="sortIngredientsTable('packUnit')">Unité<span class="sort-arrow"></span></th>
+            <th class="sortable" data-key="abv" onclick="sortIngredientsTable('abv')">% alc.<span class="sort-arrow"></span></th>
             <th></th>
           </tr>
         </thead>
@@ -1702,7 +1704,7 @@
     <div id="mfIngredientFields" style="display:none;">
       <div class="field">
         <label>Catégorie</label>
-        <select id="mfIngredientCategory">
+        <select id="mfIngredientCategory" onchange="toggleIngAbvField()">
           <option>ALCOOL</option>
           <option>VIN ET CHAMPAGNE</option>
           <option>SOFT</option>
@@ -1720,6 +1722,10 @@
           <label>Contenance</label>
           <input type="number" id="mfIngredientPackSize" step="0.01">
         </div>
+      </div>
+      <div class="field" id="mfIngredientAbvField" style="display:none">
+        <label>% d\u2019alcool (ABV)</label>
+        <input type="number" id="mfIngredientAbv" step="0.1" min="0" max="100" placeholder="ex : 40">
       </div>
       <div class="field">
         <label>Unité du contenu</label>
@@ -2559,7 +2565,7 @@ function renderIngredientsTable(){
     }
   });
   if(!sorted.length){
-    tbody.innerHTML = `<tr><td colspan="6" class="ingredients-table-empty">${q ? 'Aucun résultat.' : 'Aucun ingrédient pour l\u2019instant.'}</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="7" class="ingredients-table-empty">${q ? 'Aucun résultat.' : 'Aucun ingrédient pour l\u2019instant.'}</td></tr>`;
     return;
   }
   tbody.innerHTML = sorted.map(i => `
@@ -2569,6 +2575,7 @@ function renderIngredientsTable(){
       <td>${i.costPrice != null ? fmtQty(i.costPrice, '\u20ac') : '\u2014'}</td>
       <td>${i.packSize != null ? i.packSize : '\u2014'}</td>
       <td>${i.packUnit || '\u2014'}</td>
+      <td>${i.abv != null ? i.abv + '\u00a0%' : '\u2014'}</td>
       <td class="ingredients-table-actions">
         <button type="button" onclick="openEditIngredientModal('${i.id}')" title="Modifier">✎</button>
         <button type="button" class="ing-delete-btn" onclick="deleteIngredientFromTable('${i.id}')" title="Supprimer">×</button>
@@ -3073,7 +3080,7 @@ function renderList(){
   else if(state.tab === 'garnish') groups = [flatGroup(garnishItems)];
   else if(state.tab === 'ingredient'){
     const ingItemHtml = (i) => {
-      const sub = i.costPrice != null && i.costPrice > 0 ? fmtEuro(i.costPrice) + (i.packSize ? ' · ' + i.packSize + ' ' + (i.packUnit||'') : '') : 'prix à renseigner';
+      const sub = (i.costPrice != null && i.costPrice > 0 ? fmtEuro(i.costPrice) + (i.packSize ? ' · ' + i.packSize + ' ' + (i.packUnit||'') : '') : 'prix à renseigner') + (i.abv != null ? ' · ' + i.abv + '°' : '');
       return `<div class="rail-item type-ingredient ${state.activeId===i.id?'active':''}" style="--cat:${ingCatColor(i.category)}" data-id="${i.id}" onclick="openEditIngredientModal('${i.id}')">
         <span class="dot"></span>
         <span class="rail-item-text">
@@ -3966,6 +3973,7 @@ function renderCocktailSheet(item){
           <span class="ing-qty-edit"><span class="ing-qty" id="recipeTotalValue">${fmtNumber(recipeTotalMl(item))} ml</span></span>
           <span class="pb-static" aria-hidden="true"></span>
         </li>
+        ${renderAbvRow(item)}
         ${renderCostRow(item)}
       </ul>
       ${editing ? `<button type="button" class="add-row-btn" onclick="openPicker('both', c => handleAddIngredientPick('${item.id}', c))">+ Ajouter un ingrédient ou une prep</button>` : ''}
@@ -4083,6 +4091,62 @@ function recipeTotalMl(item){
   }, 0);
 }
 
+
+/* ===== Taux d'alcool ===== */
+function toggleIngAbvField(){
+  const f = document.getElementById('mfIngredientAbvField'); const c = document.getElementById('mfIngredientCategory');
+  if(f && c) f.style.display = c.value === 'ALCOOL' ? '' : 'none';
+}
+function findDbIngredient(name){
+  const key = normName(name);
+  let db = ingredients.find(i => normName(i.name) === key);
+  if(db) return db;
+  const strip = n => normName(n).replace(/\s*\b(btl|bib)\b/g,'').replace(/\s*\d+(?:[.,]\d+)?\s*(cl|ml|l|kg|g|pce)\b/g,'').trim();
+  const c = ingredients.filter(i => strip(i.name) === strip(name));
+  return c.length === 1 ? c[0] : null;
+}
+// Alcool pur (ml) et volume (ml) d'une ligne ; missing=true si ingrédient alcool sans ABV
+function abvOfLine(name, qty, unit, depth){
+  const bq = toBaseQty(qty, unit);
+  if(!bq || bq.kind !== 'vol') return {vol:0, alc:0, missing:false};
+  const db = findDbIngredient(name);
+  if(db){
+    if(db.abv != null) return {vol:bq.q, alc:bq.q * db.abv/100, missing:false};
+    return {vol:bq.q, alc:0, missing: db.category === 'ALCOOL'};
+  }
+  const prep = preps.find(p => normName(p.name) === normName(name));
+  if(prep && (depth||0) < 5){
+    const pv = toBaseQty(prep.baseVolume, prep.unit);
+    if(!pv || pv.kind !== 'vol' || pv.q <= 0) return {vol:bq.q, alc:0, missing:false};
+    let alc = 0, missing = false;
+    prep.ingredients.forEach(pi => {
+      const n = pi.kind === 'prep' && pi.ref ? ((byId(pi.ref)||{}).name || pi.name) : pi.name;
+      const r = abvOfLine(n, pi.qty, pi.unit, (depth||0)+1);
+      alc += r.alc; if(r.missing) missing = true;
+    });
+    return {vol:bq.q, alc: alc / pv.q * bq.q, missing};
+  }
+  return {vol:bq.q, alc:0, missing:false};
+}
+function cocktailAbv(item){
+  let vol = 0, alc = 0, missing = false;
+  item.ingredients.forEach(ing => {
+    const name = ing.kind==='prep' && ing.ref ? ((byId(ing.ref)||{}).name || ing.name) : ing.name;
+    const r = abvOfLine(name, ing.qty, ing.unit, 0);
+    vol += r.vol; alc += r.alc; if(r.missing) missing = true;
+  });
+  return {abv: vol > 0 ? alc / vol * 100 : 0, vol, alc, missing};
+}
+function renderAbvRow(item){
+  const a = cocktailAbv(item);
+  if(!(a.vol > 0) || (a.alc === 0 && !a.missing)) return '';
+  const warn = a.missing ? ' <span class="cost-warn">ABV manquant sur certains alcools</span>' : '';
+  return `<li class="ingredient-row ingredient-total">
+    <span class="ing-name">Taux d\u2019alcool <span class="ing-note">(avant dilution)</span>${warn}</span>
+    <span class="ing-qty-edit"><span class="ing-qty">${(Math.round(a.abv*10)/10).toString().replace('.',',')} %</span></span>
+    <span class="pb-static" aria-hidden="true"></span>
+  </li>`;
+}
 
 /* ===== Coût matière ===== */
 function normName(n){ return String(n||'').trim().toLowerCase().replace(/\s+/g,' '); }
@@ -4513,6 +4577,8 @@ function openCreateModal(type){
     document.getElementById('mfIngredientCategory').value = 'ALCOOL';
     document.getElementById('mfIngredientCostPrice').value = '';
     document.getElementById('mfIngredientPackSize').value = '';
+    document.getElementById('mfIngredientAbv').value = '';
+    toggleIngAbvField();
     document.getElementById('mfIngredientPackUnit').value = '';
   } else {
     modalIngredients = [{ name: '', qty: '', unit: 'ml' }];
@@ -4598,6 +4664,8 @@ function openEditIngredientModal(ingredientId){
   document.getElementById('mfIngredientCategory').value = item.category || 'Autre';
   document.getElementById('mfIngredientCostPrice').value = item.costPrice != null ? item.costPrice : '';
   document.getElementById('mfIngredientPackSize').value = item.packSize != null ? item.packSize : '';
+  document.getElementById('mfIngredientAbv').value = item.abv != null ? item.abv : '';
+  toggleIngAbvField();
   document.getElementById('mfIngredientPackUnit').value = item.packUnit || '';
   const submitBtn = document.getElementById('modalSubmitBtn');
   if(submitBtn) submitBtn.textContent = 'Enregistrer les modifications';
@@ -4675,7 +4743,7 @@ function renderPicker(){
   };
   if(mode === 'prep' || mode === 'both'){
     const arr = preps.filter(x => x.id !== (pickerState.opts || {}).excludeId && (!q || nrm(x.name).includes(q))).sort(cmp);
-    group('__preps__', 'Preps', 'var(--verdigris-bright, #8bb8ad)', arr, x =>
+    group('__preps__', 'PREPS', 'var(--verdigris-bright, #8bb8ad)', arr, x =>
       `<div class="rail-item type-prep" onclick="pickerChoose({kind:'prep', ref:'${esc(x.id)}', name:'${esc(x.name)}'})">
         <span class="dot"></span><span class="rail-item-text"><div class="rail-item-name">${x.name}</div><div class="rail-item-cat">${x.category||''}</div></span></div>`);
   }
@@ -5066,6 +5134,7 @@ function submitPrepModal(){
     item.costPrice = document.getElementById('mfIngredientCostPrice').value !== '' ? parseFloat(document.getElementById('mfIngredientCostPrice').value) : null;
     item.packSize = document.getElementById('mfIngredientPackSize').value !== '' ? parseFloat(document.getElementById('mfIngredientPackSize').value) : null;
     item.packUnit = document.getElementById('mfIngredientPackUnit').value || null;
+    item.abv = (item.category === 'ALCOOL' && document.getElementById('mfIngredientAbv').value !== '') ? parseFloat(document.getElementById('mfIngredientAbv').value) : null;
     closePrepModal();
     renderList();
     renderMain();
@@ -5161,6 +5230,7 @@ function submitPrepModal(){
       packSize: document.getElementById('mfIngredientPackSize').value !== '' ? parseFloat(document.getElementById('mfIngredientPackSize').value) : null,
       packUnit: document.getElementById('mfIngredientPackUnit').value || null,
     };
+    newIngredient.abv = (newIngredient.category === 'ALCOOL' && document.getElementById('mfIngredientAbv').value !== '') ? parseFloat(document.getElementById('mfIngredientAbv').value) : null;
     ingredients.push(newIngredient);
     lastCreatedPrep = newIngredient;
     closePrepModal();
