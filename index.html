@@ -3337,11 +3337,12 @@ function renderIngredientSheet(item){
       <p class="section-label">Catégorie</p>
       <div class="notes-box verdigris">${item.category}</div>
     </div>
-    ${(item.costPrice != null || item.packSize != null || item.packUnit) ? `
+    ${(item.costPrice != null || item.packSize != null || item.packUnit || item.abv != null) ? `
     <div class="section">
       <p class="section-label">Approvisionnement</p>
       <ul class="ingredient-list">
         ${item.costPrice != null ? `<li class="ingredient-row"><span class="ing-name">Prix de revient</span><span class="ing-qty-edit"><span class="ing-qty">${fmtQty(item.costPrice, '\u20ac')}</span></span></li>` : ''}
+        ${item.abv != null ? `<li class="ingredient-row"><span class="ing-name">% d\u2019alcool</span><span class="ing-qty-edit"><span class="ing-qty">${item.abv} %</span></span></li>` : ''}
         ${(item.packSize != null || item.packUnit) ? `<li class="ingredient-row"><span class="ing-name">Contenance</span><span class="ing-qty-edit"><span class="ing-qty">${item.packSize != null ? fmtQty(item.packSize, item.packUnit || '') : (item.packUnit || '')}</span></span></li>` : ''}
       </ul>
     </div>` : ''}
@@ -3364,8 +3365,8 @@ function renderGarnishSheet(item){
       <p class="section-label">Ingrédients</p>
       <ul class="ingredient-list">
         ${ingredients.map(ing => `
-          <li class="ingredient-row">
-            ${ing.kind === 'prep' && ing.ref && byId(ing.ref) ? `<span class="ing-name is-link" onclick="selectItem('${ing.ref}')">${byId(ing.ref).name}</span>` : `<span class="ing-name">${ing.name}</span>`}
+          <li class="ingredient-row ing-bold">
+            ${ingNameLinkHtml(ing)}
             <span class="ing-qty-edit"><span class="ing-qty">${fmtQty(ing.qty, ing.unit)}</span></span>
           </li>`).join('')}
       </ul>
@@ -3798,8 +3799,8 @@ function renderIngredients(item, volume, animate){
   const wasOpen = !!list.querySelector('.cost-details[open]');
   list.innerHTML = item.ingredients.map((ing) => {
     return `
-    <li class="ingredient-row">
-      ${ing.kind === 'prep' && ing.ref && byId(ing.ref) ? `<span class="ing-name is-link" onclick="selectItem('${ing.ref}')">${byId(ing.ref).name}</span>` : `<span class="ing-name">${ing.name}</span>`}
+    <li class="ingredient-row ing-bold">
+      ${ingNameLinkHtml(ing)}
       <span class="ing-qty-edit"><span class="ing-qty ${animate?'flash':''}">${fmtQty(ing.qty * factor, ing.unit)}</span></span>
     </li>`;
   }).join('') + renderCostRow(item, factor, volume);
@@ -3845,6 +3846,17 @@ function updatePrepPercent(prepId, idx, value){
   refreshPercentDisplays(item);
 }
 
+function ingNameLinkHtml(ing, extra){
+  extra = extra || '';
+  if(ing.kind === 'prep' && ing.ref && byId(ing.ref))
+    return `<span class="ing-name is-link" onclick="selectItem('${ing.ref}')">${byId(ing.ref).name}${extra}</span>`;
+  const nm = ing.name || '';
+  const db = nm ? findDbIngredient(nm) : null;
+  if(db) return `<span class="ing-name is-link" onclick="selectItem('${db.id}')">${nm}${extra}</span>`;
+  const pr = nm ? preps.find(x => normName(x.name) === normName(nm)) : null;
+  if(pr) return `<span class="ing-name is-link" onclick="selectItem('${pr.id}')">${nm}${extra}</span>`;
+  return `<span class="ing-name">${nm}${extra}</span>`;
+}
 function ingredientRowHtml(ing, qty, cocktailId, idx, editing){
   if(!editing){
     const isPending = ing.kind === 'raw' && ing.note === 'prep — fiche à créer';
@@ -3855,7 +3867,7 @@ function ingredientRowHtml(ing, qty, cocktailId, idx, editing){
               <button class="add-prep-btn" title="Créer une fiche de prep pour cet ingrédient" onclick="openPrepModal('${cocktailId}', ${idx})">+</button>
               ${ing.name}
             </span>`
-          : `<span class="ing-name">${ing.name}</span>`);
+          : ingNameLinkHtml(ing));
     const pbStatic = ing.prebatch ? `
       <span class="pb-static pb-active" title="Dans le prebatch">
         <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -4282,7 +4294,7 @@ function renderBatchIngredients(item, volume, animate){
   const list = document.getElementById('batchIngList');
   list.innerHTML = item.ingredients.filter(ing => ing.prebatch).map(ing => `
     <li class="ingredient-row ing-bold">
-      <span class="ing-name">${ing.kind === 'prep' ? (byId(ing.ref) ? byId(ing.ref).name : ing.ref) : ing.name}${ing.note ? ` <span class="ing-note">(${ing.note})</span>` : ''}</span>
+      ${ingNameLinkHtml(ing, ing.note ? ` <span class="ing-note">(${ing.note})</span>` : '')}
       <span class="ing-qty ${animate?'flash':''}">${fmtQty(ing.qty * factor, ing.unit)}</span>
     </li>
   `).join('');
