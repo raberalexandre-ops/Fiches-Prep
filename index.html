@@ -938,6 +938,7 @@
     transition:text-decoration-color .12s ease;
   }
   .ing-name.is-link:hover, .ing-name.is-link:active{text-decoration-color:var(--verdigris-bright);}
+  .ing-name.ing-link{color:inherit;cursor:pointer;text-decoration:none;}
   .edit-ing-btn{
     width:18px;height:18px;
     border-radius:50%;
@@ -2693,7 +2694,7 @@ function closeAllSwipes(except){
 }
 
 function swipeStart(e, el){
-  if(e.target.closest('input, select, button, a, label, .is-link')) return;
+  if(e.target.closest('input, select, button, a, label, .is-link, .ing-link')) return;
   const base = el.classList.contains('swiped') ? -88 : 0;
   closeAllSwipes(el);
   swipe = { active:true, startX:e.clientX, el, base, lastDx:base };
@@ -3852,7 +3853,7 @@ function ingNameLinkHtml(ing, extra){
     return `<span class="ing-name is-link" onclick="selectItem('${ing.ref}')">${byId(ing.ref).name}${extra}</span>`;
   const nm = ing.name || '';
   const db = nm ? findDbIngredient(nm) : null;
-  if(db) return `<span class="ing-name is-link" onclick="selectItem('${db.id}')">${nm}${extra}</span>`;
+  if(db) return `<span class="ing-name ing-link" onclick="selectItem('${db.id}')">${nm}${extra}</span>`;
   const pr = nm ? preps.find(x => normName(x.name) === normName(nm)) : null;
   if(pr) return `<span class="ing-name is-link" onclick="selectItem('${pr.id}')">${nm}${extra}</span>`;
   return `<span class="ing-name">${nm}${extra}</span>`;
